@@ -6,8 +6,8 @@ can be copied, hosted and handed over without buying or sharing licences.
 
 | On the deck | On the site | Where the site uses it | Files in this folder |
 |---|---|---|---|
-| Margin | Fraunces (variable, weights 100 to 900, SOFT axis) | headings, the tagline, the giant chapter words | `fraunces-normal-100-900.woff2` |
-| Kawaii RT | Sniglet (400 and 800) | a few single-word punches | `sniglet-normal-400.woff2`, `sniglet-normal-800.woff2` |
+| Margin | Fraunces (variable, weights 100 to 900, SOFT axis) | headings, the tagline, the day counter, the business card | `fraunces-normal-100-900.woff2` |
+| Kawaii RT | Sniglet (400 and 800) | the four giant chapter words (Hang it, Breathe, It fades, Plant it) | `sniglet-normal-400.woff2`, `sniglet-normal-800.woff2` |
 | HK Gothic | Hanken Grotesk (variable, weights 300 to 800) | body text and the small uppercase labels | `hanken-normal-300-800.woff2` |
 
 `fonts.css` is the stylesheet the site loads; it points only at the .woff2
