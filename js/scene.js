@@ -4,13 +4,20 @@ import * as THREE from 'three'
 
 export const WORLD_H = 10
 export const canvas = document.getElementById('gl')
-export const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' })
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
-renderer.setClearColor(0x000000, 0)
-renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.0
-renderer.outputColorSpace = THREE.SRGBColorSpace
-renderer.localClippingEnabled = true
+/* no WebGL (old booth laptop, locked-down browser): the page still works, just without the pendant */
+export let renderer = null
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' })
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+  renderer.setClearColor(0x000000, 0)
+  renderer.toneMapping = THREE.ACESFilmicToneMapping
+  renderer.toneMappingExposure = 1.0
+  renderer.outputColorSpace = THREE.SRGBColorSpace
+  renderer.localClippingEnabled = true
+} catch (err) {
+  console.warn('[seed scent] WebGL is not available, running without the 3D pendant', err)
+  document.body.classList.add('no-webgl')
+}
 
 export const scene = new THREE.Scene()
 export const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100)
@@ -23,7 +30,7 @@ scene.add(rig)
 export function resize() {
   view.w = innerWidth; view.h = innerHeight
   view.wpp = WORLD_H / view.h
-  renderer.setSize(view.w, view.h, false)
+  if (renderer) renderer.setSize(view.w, view.h, false)
   camera.aspect = view.w / view.h
   camera.position.z = (WORLD_H / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))
   camera.updateProjectionMatrix()

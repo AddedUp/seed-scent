@@ -340,6 +340,23 @@ replaces the placeholder with no code change.
 - **Hero tuning:** paper and wood are light, so the cursor is a small ball, speeds
   are capped, and a big jump of a hang point snaps the chain instead of tearing it.
 
+- **Review round.** Six independent reviewers (copy and claims, interactions, chapter
+  seams, config swap, resilience, design) ran against the finished build. What changed as
+  a result: tier breakpoints and the holder/refill/vent-clip claims now carry "tbc" chips
+  bound to `tiersConfirmed` and `product.formatConfirmed`; the sprout chapter counts days
+  only when `product.daysToSprout` is set (otherwise it says "Day one, Day after day,
+  First sprouts"); "Three scents, one happy ending" became "Three scents. All of them
+  grow."; the end-of-life row no longer says "biodegradable" as a blanket claim; the
+  finale pendant no longer gets trapped under the hero's physics floor; the hero copy
+  fades as the card opens; ink text leaves before the ink soil reaches it; the sprout
+  copy exits before the wipe; chips follow their discs in and out of the frame; a
+  cursor "wind" and a small scene slide mean a wiggle anywhere near the pendant counts;
+  the nav gets a cream scrim over the flat sections; prices typed as text ("4.50") work
+  everywhere and bad values keep their chip; the site boots without WebGL; the skip
+  link, anchor offsets, menu focus and contrast on sage were fixed; the buyer-facing
+  checkout no longer talks about config files; the placeholder report checks types,
+  photo paths and checkout modes.
+
 ## 12. Open assumptions to confirm
 
 - The S-shaped tag stands in for the product in 3D until photos arrive (one

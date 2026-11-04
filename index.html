@@ -24,6 +24,9 @@
 <script type="importmap">
 { "imports": { "three": "./vendor/three.module.js", "@dimforge/rapier3d-compat": "./vendor/rapier.es.js" } }
 </script>
+<!-- preloads must come after the import map, or the map is ignored -->
+<link rel="modulepreload" href="vendor/three.module.js">
+<link rel="modulepreload" href="vendor/rapier.es.js">
 <script src="js/config.js"></script>
 </head>
 <body data-chapter="hero" data-theme="cream">
@@ -82,7 +85,7 @@
     <div class="stage">
       <div class="card-area">
         <span class="hang" id="hang-hero" aria-hidden="true"></span>
-        <img class="hero-logo" src="brand/logo-primary.png" alt="Seed Scent. From scent to sprout." width="2300" height="1600">
+        <img class="hero-logo" src="brand/logo-primary.png" alt="Seed Scent. from scent to sprout." width="2300" height="1600">
         <p class="hint" id="push-hint"><span class="hint-arrow">↗</span> Give it a push</p>
         <div class="hero-copy">
           <p class="kicker">Seed Scent · A plantable car air freshener</p>
@@ -99,7 +102,7 @@
   </section>
 
   <!-- 02 · The drive -->
-  <section class="ch ch-drive" id="drive" data-ch="drive">
+  <section class="ch ch-drive" id="drive" data-ch="drive" aria-label="How it works">
     <div class="stage">
       <span class="hang" id="hang-drive" aria-hidden="true"></span>
       <span class="hang" id="hang-plant" aria-hidden="true"></span>
@@ -112,7 +115,7 @@
       <ol class="beats">
         <li class="beat" data-beat="0">
           <p class="kicker">01 · Hang it</p>
-          <p class="beat-copy">Loop it over the mirror. The holder is wood, the disc is seed paper, and the whole thing weighs almost nothing, so it swings when you corner.</p>
+          <p class="beat-copy">Loop it over the mirror. The holder is wood, the disc is seed paper, and it swings when you corner.</p>
         </li>
         <li class="beat" data-beat="1">
           <p class="kicker">02 · Breathe</p>
@@ -124,14 +127,14 @@
         </li>
         <li class="beat" data-beat="3">
           <p class="kicker">04 · Plant it</p>
-          <p class="beat-copy">Pop the disc out of the holder, tear it up, press it into soil and water it. The paper breaks down and the seeds take over. The holder stays in the car for the next one.</p>
+          <p class="beat-copy">Pop the disc out of the holder, tear it up, press it into soil and water it. The paper breaks down and the seeds take over. The holder stays in the car. <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></p>
         </li>
       </ol>
     </div>
   </section>
 
   <!-- 03 · The sprout -->
-  <section class="ch ch-sprout" id="sprout" data-ch="sprout">
+  <section class="ch ch-sprout" id="sprout" data-ch="sprout" aria-label="From scent to sprout">
     <div class="stage">
       <svg class="sprout-draw" id="sprout-svg" viewBox="0 0 240 520" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
         <path id="stem" d="M120 520 C 118 440, 124 380, 120 300 C 117 250, 122 215, 120 180"/>
@@ -139,21 +142,21 @@
         <path id="leaf-r" d="M120 196 C 154 192, 184 166, 194 124 C 148 120, 118 152, 120 196 Z"/>
         <path id="vein-l" d="M118 232 C 100 214, 78 196, 58 172"/>
         <path id="vein-r" d="M122 192 C 140 174, 162 156, 182 132"/>
-        <path id="stem-ext" d="M120 180 C 118 120, 122 60, 120 -40"/>
+        <path id="stem-ext" d="M120 180 C 118 60, 122 -200, 120 -700"/>
       </svg>
       <div class="sprout-copy">
         <p class="kicker">From scent to sprout</p>
         <p class="day"><span class="day-word">Day</span> <span id="day-num">01</span></p>
-        <p class="kicker soft">Wildflower mix · <span class="tbc">sprout time to be confirmed</span></p>
+        <p class="kicker soft">Wildflower mix · first sprouts in <span class="ph" data-ph="product.daysToSprout">days to sprout</span></p>
       </div>
     </div>
   </section>
 
   <!-- 04 · Three scents -->
-  <section class="ch ch-scents" id="scents" data-ch="scents">
+  <section class="ch ch-scents" id="scents" data-ch="scents" aria-label="Three scents">
     <div class="stage">
       <div class="section-head">
-        <h2 class="display" data-split>Three scents, one happy ending.</h2>
+        <h2 class="display" data-split>Three scents. All of them grow.</h2>
         <p class="annotation">Same wooden holder. Same seed paper. Same wildflower mix. Three moods for the drive.</p>
       </div>
       <div class="hang-row" aria-hidden="true">
@@ -164,7 +167,7 @@
     </div>
   </section>
 
-  <section class="ch ch-cards" id="cards" data-ch="cards">
+  <section class="ch ch-cards" id="cards" data-ch="cards" aria-label="Scent cards">
     <div class="wrap">
       <ul class="cards" id="scent-cards">
         <li class="card" data-scent="0" data-tilt>
@@ -176,7 +179,7 @@
             <div><dt>Pack</dt><dd><span class="ph" data-ph="scents.0.packSize">pack size</span></dd></div>
             <div><dt>Price</dt><dd><span class="ph price" data-ph="scents.0.price">price</span></dd></div>
           </dl>
-          <fieldset class="format"><legend class="kicker">Format <span class="tbc">tbc</span></legend>
+          <fieldset class="format"><legend class="kicker">Format <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></legend>
             <label><input type="radio" name="format-0" value="mirror" checked> Mirror cord</label>
             <label><input type="radio" name="format-0" value="vent"> Vent clip</label>
           </fieldset>
@@ -191,7 +194,7 @@
             <div><dt>Pack</dt><dd><span class="ph" data-ph="scents.1.packSize">pack size</span></dd></div>
             <div><dt>Price</dt><dd><span class="ph price" data-ph="scents.1.price">price</span></dd></div>
           </dl>
-          <fieldset class="format"><legend class="kicker">Format <span class="tbc">tbc</span></legend>
+          <fieldset class="format"><legend class="kicker">Format <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></legend>
             <label><input type="radio" name="format-1" value="mirror" checked> Mirror cord</label>
             <label><input type="radio" name="format-1" value="vent"> Vent clip</label>
           </fieldset>
@@ -206,7 +209,7 @@
             <div><dt>Pack</dt><dd><span class="ph" data-ph="scents.2.packSize">pack size</span></dd></div>
             <div><dt>Price</dt><dd><span class="ph price" data-ph="scents.2.price">price</span></dd></div>
           </dl>
-          <fieldset class="format"><legend class="kicker">Format <span class="tbc">tbc</span></legend>
+          <fieldset class="format"><legend class="kicker">Format <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></legend>
             <label><input type="radio" name="format-2" value="mirror" checked> Mirror cord</label>
             <label><input type="radio" name="format-2" value="vent"> Vent clip</label>
           </fieldset>
@@ -221,35 +224,35 @@
     <div class="wrap">
       <div class="section-head">
         <h2 class="display" data-split>What's in the paper.</h2>
-        <p class="annotation">Everything in the disc is meant to end up in the ground. The holder is the only part you keep.</p>
+        <p class="annotation">Everything in the disc is meant to end up in the ground. The holder is the part you keep.</p>
       </div>
       <div class="inside-grid">
         <table class="spec" id="spec">
           <tbody>
-            <tr><th scope="row">Holder</th><td>Wood, reusable. Refill discs slot in. <span class="tbc">tbc</span></td></tr>
+            <tr><th scope="row">Holder</th><td>Wood, reusable. Refill discs slot in. <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></td></tr>
             <tr><th scope="row">Paper</th><td>Plantable seed paper, <span class="ph" data-ph="product.paperSource">paper source</span></td></tr>
             <tr><th scope="row">Seeds</th><td>Wildflower mix <span class="tbc" data-tbc="product.seedsConfirmed">tbc</span></td></tr>
             <tr><th scope="row">Scent</th><td>Natural essential oils</td></tr>
             <tr><th scope="row">Fixative</th><td><span id="fixative-text">Natural, plant-based</span><span class="ph optional" data-ph="product.fixativeName">ingredient</span></td></tr>
             <tr><th scope="row">Lasts</th><td><span class="ph" data-ph="product.scentDuration">scent duration</span></td></tr>
             <tr><th scope="row">After</th><td>Plant it. First sprouts in <span class="ph" data-ph="product.daysToSprout">days to sprout</span></td></tr>
-            <tr><th scope="row">Mounts</th><td>Mirror cord or vent clip <span class="tbc">tbc</span></td></tr>
-            <tr><th scope="row">End of life</th><td>Biodegradable</td></tr>
+            <tr><th scope="row">Mounts</th><td>Mirror cord or vent clip <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></td></tr>
+            <tr><th scope="row">End of life</th><td>Paper, seeds and oils go in the ground. The holder is kept. <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></td></tr>
           </tbody>
         </table>
         <figure class="xsec">
-          <svg id="paper-xsec" viewBox="0 0 600 420" role="img" aria-label="A close-up drawing of seed paper: plant fibre, wildflower seeds and drops of essential oil"></svg>
-          <figcaption class="kicker">Seed paper, up close · fibre, seeds, oil · move your cursor to stir the seeds</figcaption>
+          <svg id="paper-xsec" viewBox="0 0 600 420" role="img" aria-label="A close-up drawing of seed paper: plant fiber, wildflower seeds and drops of essential oil"></svg>
+          <figcaption class="kicker">Seed paper, up close · fiber, seeds, oil · move your cursor or finger to stir the seeds</figcaption>
         </figure>
       </div>
       <div class="inside-photos">
         <figure class="photo" data-tilt>
-          <img src="images/refills-flatlay.jpg" alt="The wooden holder open beside three seed paper refill discs" loading="lazy" width="1280" height="720">
-          <figcaption class="kicker">The holder opens. The discs are the refills. <span class="tbc">tbc</span></figcaption>
+          <img src="images/product-mirror-1.jpg" alt="The pendant hanging from a rear-view mirror on its jute cord" loading="lazy" width="1280" height="720">
+          <figcaption class="kicker">Mirror cord version <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></figcaption>
         </figure>
         <figure class="photo" data-tilt>
           <img src="images/product-vent-clip.jpg" alt="The vent clip version on a car dashboard vent" loading="lazy" width="1280" height="720">
-          <figcaption class="kicker">Vent clip version <span class="tbc">tbc</span></figcaption>
+          <figcaption class="kicker">Vent clip version <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></figcaption>
         </figure>
       </div>
       <div class="steps-block">
@@ -283,10 +286,10 @@
 
       <div class="tiers-block">
         <div class="tier-control">
-          <label class="kicker" for="qty-range">How many?</label>
+          <label class="kicker" for="qty-range">How many? <span class="tbc" data-tbc="tiersConfirmed">tiers tbc</span></label>
           <output class="qty-out" id="qty-out" for="qty-range">24</output>
           <input type="range" id="qty-range" min="1" max="200" value="24" step="1">
-          <p class="kicker soft" id="tier-note">Tier pricing is being finalized.</p>
+          <p class="kicker soft" id="tier-note">Tiers and pricing are being finalized.</p>
         </div>
         <ol class="tiers" id="tiers">
           <li class="tier" data-min="1"><span class="tier-qty">1 to 9</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.0.price">price</span> each</span></li>
@@ -329,7 +332,7 @@
         </article>
         <article class="way">
           <p class="kicker">02 · VE marketplace</p>
-          <h3 class="way-title">Already shopping on the marketplace? Find us there.</h3>
+          <h3 class="way-title">Already shopping on the VE marketplace? Order from our store there.</h3>
           <a class="pill" id="marketplace-link" href="#" data-magnetic>Shop on the VE marketplace <span class="dot">·</span></a>
           <p class="kicker soft"><span class="ph" data-ph="marketplaceUrl">marketplace link</span></p>
         </article>
@@ -349,8 +352,8 @@
       <p class="kicker">About Seed Scent</p>
       <blockquote class="mission display sm" data-split>At Seed Scent, our mission is to redefine everyday freshness by creating innovative, plantable air fresheners that reduce waste, inspire sustainable choices, and turn small everyday actions into lasting environmental impact.</blockquote>
       <div class="about-meta">
-        <p class="kicker"><span class="ph" data-ph="school.name">school</span> · <span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></p>
-        <p class="about-copy">We're a student-run Virtual Enterprise firm. Every part of the company, from the paper to this page, is run by the team. <a class="text-link" href="team.html">Meet the team</a></p>
+        <p class="kicker" data-hide-empty><span class="ph" data-ph="school.name">school</span> · <span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></p>
+        <p class="about-copy">We're a student-run Virtual Enterprise firm. Every part of the company, from the product to this page, is run by the team. <a class="text-link" href="team.html">Meet the team</a></p>
       </div>
     </div>
   </section>
@@ -373,14 +376,14 @@
           <a class="pill" href="#firms" data-magnetic>Order <span class="dot">·</span></a>
         </div>
       </div>
-      <footer class="footer">
-        <p>A Virtual Enterprise company</p>
-        <p><span class="ph" data-ph="school.name">school</span> · <span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></p>
-        <p>Smells great. Leaves eventually.</p>
-      </footer>
     </div>
   </section>
 </main>
+<footer class="footer wrap">
+  <p>A Virtual Enterprise company</p>
+  <p data-hide-empty><span class="ph" data-ph="school.name">school</span> · <span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></p>
+  <p>Smells great. Leaves eventually.</p>
+</footer>
 
 <!-- Bag drawer -->
 <aside class="bag" id="bag" aria-hidden="true" aria-label="Your bag">
@@ -394,7 +397,7 @@
     <dl class="bag-totals">
       <div><dt>Units</dt><dd id="bag-units">0</dd></div>
       <div><dt>Tier</dt><dd id="bag-tier">1 to 9</dd></div>
-      <div><dt>Total</dt><dd id="bag-total">[TOTAL]</dd></div>
+      <div><dt>Total</dt><dd id="bag-total"><span class="ph">total</span></dd></div>
     </dl>
     <a class="pill" href="checkout.html" id="bag-checkout" data-magnetic>Check out <span class="dot">·</span></a>
   </div>
@@ -404,7 +407,7 @@
 <noscript><p class="noscript">This site needs JavaScript for the moving parts. The text and order details still work without it.</p></noscript>
 
 <script type="module" src="js/main.js"></script>
-<script type="module" src="js/sections.js"></script>
-<script type="module" src="js/cart.js"></script>
+<script type="module" src="js/sections.js" async></script>
+<script type="module" src="js/cart.js" async></script>
 </body>
 </html>

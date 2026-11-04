@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { scene, rig, view, rectAnchor, project, toWorldX, toWorldY, WORLD_H, blobTexture } from './scene.js'
 import { hangers, setBox, cursor, grab, stats } from './physics.js'
 import { chapters, ch, activeChapter, scroll, motion, isCoarse, clamp01, lerp, smoothstep, span } from './scroll.js'
-import { setNavActive, cfg, money } from './ui.js'
+import { setNavActive, cfg, money, maxNumberIn, navHeight } from './ui.js'
 
 const $ = s => document.querySelector(s)
 const $$ = s => [...document.querySelectorAll(s)]
@@ -16,7 +16,7 @@ const dom = {
   hangDrive: $('#hang-drive'), hangPlant: $('#hang-plant'),
   hangScents: $$('.hang-row .hang'), hangFinale: $('#hang-finale'),
   giants: $$('.giant'), beats: $$('.beat'),
-  sprout: { stem: $('#stem'), leafL: $('#leaf-l'), leafR: $('#leaf-r'), veinL: $('#vein-l'), veinR: $('#vein-r'), ext: $('#stem-ext'), day: $('#day-num'), copy: $('.sprout-copy'), svg: $('#sprout-svg') },
+  sprout: { stem: $('#stem'), leafL: $('#leaf-l'), leafR: $('#leaf-r'), veinL: $('#vein-l'), veinR: $('#vein-r'), ext: $('#stem-ext'), day: $('#day-num'), dayWord: $('.day-word'), copy: $('.sprout-copy'), svg: $('#sprout-svg') },
   labels: $('#labels'),
   meterStem: $('#meter-stem'), meterLeaves: $('#meter-leaves'),
   cue: $('#cue'),
@@ -64,28 +64,35 @@ export const state = {
   chips: [], scentsVisible: false,
 }
 
+/* the day counter: counts to the configured sprout time, or tells the story in words */
+const DAYS = maxNumberIn(cfg('product.daysToSprout'))
+const dayCap = DAYS ? Math.max(3, Math.min(60, Math.round(DAYS))) : null
+
 /* chips under the three scents */
 export function initChips() {
   const scents = cfg('scents') || []
+  const compact = innerWidth < 760
   state.chips = scents.map((s, i) => {
     const el = document.createElement('span')
     el.className = 'chip'
     const name = s.name ? s.name : `<span class="ph">scent name</span>`
-    const price = s.price != null ? money(s.price) : `<span class="ph">price</span>`
-    const compact = innerWidth < 760
+    const m = money(s.price)
+    const price = m != null ? m : `<span class="ph">price</span>`
     el.innerHTML = compact ? `${String(i + 1).padStart(2, '0')} · ${name}` : `${String(i + 1).padStart(2, '0')} · ${name} · ${price}`
     dom.labels.appendChild(el)
     return el
   })
 }
 
-const _slot = new THREE.Vector3(), _slotQ = new THREE.Quaternion(), _plantPos = new THREE.Vector3(), _tmpQ = new THREE.Quaternion()
+const _slot = new THREE.Vector3(), _slotQ = new THREE.Quaternion(), _plantPos = new THREE.Vector3(), _tmpQ = new THREE.Quaternion(), _off = new THREE.Vector3()
 const PLANT_TILT = new THREE.Quaternion().setFromEuler(new THREE.Euler(-1.15, 0.25, 0.35))
+const CREAM = new THREE.Color('#fbf6e5'), JUTE = new THREE.Color('#b59a6b'), _col = new THREE.Color()
 
 let lastTheme = ''
 function setTheme(t) { if (t !== lastTheme) { lastTheme = t; dom.body.dataset.theme = t } }
 let lastChapter = ''
 let lastCardCss = ''
+let cueOff = false
 
 /* ---------- the per-frame update, before physics ---------- */
 export function update(dt, time) {
@@ -107,22 +114,31 @@ export function update(dt, time) {
     dom.card.style.opacity = cardOpacity
     dom.card.style.setProperty('--reg-o', String(1 - open))
   }
-  if (dom.cue) dom.cue.style.opacity = String(0.65 * (1 - smoothstep(0, 0.6, hero.pin)))
+  // the hero copy fades as the card opens, so nothing scrolls under the nav or behind the pendant
+  if (dom.heroStage) dom.heroStage.style.opacity = (1 - smoothstep(0.05, 0.45, drive.enter) * (drive.local > 0 ? 1 : 0)).toFixed(3)
+  if (dom.cue) {
+    const off = hero.pin > 0.25 || drive.local > 0
+    if (off !== cueOff) { cueOff = off; dom.cue.classList.toggle('off', off) }
+  }
 
   /* --- beats inside the drive (drive.pin) --- */
   const dp = drive.pin
+  const pu = span(dp, 0.74, 1.0)
+  const soilRise = smoothstep(0.2, 0.95, pu)
   const beatWin = [[0, 0.26], [0.26, 0.5], [0.5, 0.74], [0.74, 1.0]]
   beatWin.forEach(([a, b], i) => {
     const u = span(dp, a, b)
     const inside = drive.local > 0 && drive.local < 1 && dp > a && dp < b
     const g = dom.giants[i], be = dom.beats[i]
+    // ink text must leave before the ink soil reaches it
+    const soilGate = i === 3 ? 1 - smoothstep(0.1, 0.5, soilRise) : 1
     if (g) {
-      const o = inside ? smoothstep(0, 0.14, u) * (1 - smoothstep(0.86, 1, u)) : 0
+      const o = inside ? smoothstep(0, 0.14, u) * (1 - smoothstep(0.86, 1, u)) * soilGate : 0
       g.style.opacity = o.toFixed(3)
       g.style.transform = `translate(calc(-50% + ${lerp(55, -55, u).toFixed(2)}vw), -50%)`
     }
     if (be) {
-      const o = inside ? smoothstep(0, 0.16, u) * (1 - smoothstep(0.84, 1, u)) : 0
+      const o = inside ? smoothstep(0, 0.16, u) * (1 - smoothstep(0.84, 1, u)) * soilGate : 0
       const y = (1 - smoothstep(0, 0.16, u)) * 26 - smoothstep(0.84, 1, u) * 26
       be.style.opacity = o.toFixed(3)
       be.style.transform = `translateY(${y.toFixed(1)}px)`
@@ -134,11 +150,9 @@ export function update(dt, time) {
   wispLevel = smoothstep(0.02, 0.2, dp) * (1 - state.fade) * (dp < 0.76 ? 1 : 0) * (drive.local < 1 ? 1 : 0)
 
   /* --- "Plant it": the disc leaves the holder, the soil rises --- */
-  const pu = span(dp, 0.74, 1.0)
   state.plant = drive.local > 0 ? pu : 0
-  const soilRise = smoothstep(0.2, 0.95, pu)
   let soil
-  if (scents.local > 0) soil = 1 - smoothstep(0, 1, scents.enter)       // drains as the scents arrive
+  if (scents.local > 0) soil = 1 - smoothstep(0, 0.75, scents.enter)    // drains before the scents' title arrives
   else if (sprout.local > 0) soil = 1                                     // full through the sprout chapter
   else soil = soilRise
   if (soil !== state.soil) {
@@ -147,13 +161,13 @@ export function update(dt, time) {
   }
   const soilY = -WORLD_H / 2 + soil * WORLD_H
   soilPlane.constant = -soilY + (soil <= 0 ? 100 : 0)
-  // the nav lives at the top edge, so the page reads as "soil" only once the soil reaches it
-  setTheme(soil > 0.93 ? 'soil' : 'cream')
+  // the nav lives at the top edge: flip the theme when the soil reaches the nav's own text line
+  setTheme(soil > 1 - (px.navH * 0.5) / view.h ? 'soil' : 'cream')
 
-  /* --- the sprout draws while its stage is pinned --- */
-  const sp = dom.sprout, s = sprout.pin
+  /* --- the sprout: starts as its stage arrives, draws while pinned, leaves before the wipe --- */
+  const sp = dom.sprout
+  const s = Math.max(sprout.pin, span(sprout.enter, 0.6, 1) * 0.1 * (sprout.local > 0 && sprout.pin === 0 ? 1 : 0))
   if (sp.stem) {
-    // an undrawn path with round caps renders as a dot, so hide it until it starts
     const setDraw = (el, v) => { el.style.strokeDashoffset = (1 - v).toFixed(4); el.style.opacity = v > 0.002 ? 1 : 0 }
     const draw = (el, a, b) => setDraw(el, smoothstep(a, b, s))
     draw(sp.stem, 0.02, 0.5); draw(sp.leafL, 0.3, 0.62); draw(sp.leafR, 0.4, 0.72)
@@ -161,11 +175,23 @@ export function update(dt, time) {
     // the stem keeps growing into a string as the stage leaves and the scents arrive
     const ext = Math.max(smoothstep(0.7, 1, s), smoothstep(0, 0.6, scents.enter) * (scents.local > 0 ? 1 : 0))
     setDraw(sp.ext, ext)
-    sp.ext.style.stroke = soil > 0.93 ? '' : '#b59a6b'
-    const day = 1 + Math.round(13 * smoothstep(0.02, 0.86, s))
-    const dayStr = String(day).padStart(2, '0')
-    if (sp.day.textContent !== dayStr) sp.day.textContent = dayStr
-    sp.copy.style.opacity = smoothstep(0, 0.1, s).toFixed(3)
+    // the drawing turns from cream to jute as the soil drains past it, so it reads on both grounds
+    _col.copy(CREAM).lerp(JUTE, 1 - smoothstep(0.6, 0.95, soil))
+    sp.svg.style.color = '#' + _col.getHexString()
+    if (dayCap) {
+      const day = 1 + Math.round((dayCap - 1) * smoothstep(0.02, 0.86, s))
+      const dayStr = String(day).padStart(2, '0')
+      if (sp.day.textContent !== dayStr) sp.day.textContent = dayStr
+    } else {
+      // no confirmed sprout time yet: tell it in words instead of inventing a number
+      const word = s < 0.35 ? 'one' : s < 0.72 ? 'after day' : 'sprouts'
+      const prefix = s < 0.72 ? 'Day' : 'First'
+      if (sp.day.textContent !== word) { sp.day.textContent = word; sp.day.classList.toggle('word', true) }
+      if (sp.dayWord && sp.dayWord.textContent !== prefix) sp.dayWord.textContent = prefix
+    }
+    const copyIn = smoothstep(0, 0.1, s)
+    const copyOut = 1 - smoothstep(0, 0.2, scents.local > 0 ? scents.enter : 0)
+    sp.copy.style.opacity = (copyIn * copyOut).toFixed(3)
     if (motion.active && cursor.active) {
       const lean = THREE.MathUtils.clamp((cursor.x / view.halfW) * 6, -6, 6)
       sp._lean = lerp(sp._lean || 0, lean, Math.min(1, dt * 4))
@@ -176,26 +202,25 @@ export function update(dt, time) {
   /* --- hangers --- */
   const cardRect = dom.card.getBoundingClientRect()
   if (H.hero) {
-    // from the card's top edge (66% across) in the hero, which converges on the drive hang point as the card opens
     const hd = rectAnchor(dom.hangDrive), hp = rectAnchor(dom.hangPlant)
     let ax, ay
     if (drive.local <= 0 || drive.enter < 1) { ax = toWorldX(cardRect.left + cardRect.width * 0.66); ay = toWorldY(cardRect.top) }
     else { ax = hd.x; ay = hd.y }
-    // drifts to the centre while the paper is planted
     const t2 = smoothstep(0, 0.35, pu) * (drive.local > 0 ? 1 : 0)
     ax = lerp(ax, hp.x, t2)
-    // the holder stays while the disc goes in, then fades as the drive stage slides away
-    const holder = drive.local <= 0 ? 1 : 1 - smoothstep(0.05, 0.7, sprout.enter) * (sprout.local > 0 ? 1 : 0)
+    // the holder stays while the disc goes in, hands over to the plant, then fades
+    const holder = drive.local <= 0 ? 1 : 1 - smoothstep(0.3, 0.9, sprout.enter) * (sprout.local > 0 ? 1 : 0)
     state.holder = holder
-    const on = holder > 0.02 && act.name !== 'scents' && act.name !== 'cards' && act.name !== 'inside' && act.name !== 'firms' && act.name !== 'about' && act.name !== 'finale'
+    const on = holder > 0.02 && !['scents', 'cards', 'inside', 'firms', 'about', 'finale'].includes(act.name)
     if (on && !H.hero.enabled) { H.hero.setEnabled(true); H.hero.reset(ax, ay) }
     if (!on && H.hero.enabled) H.hero.setEnabled(false)
     H.hero.setTarget(ax, ay)
     H.hero.woodMat.transparent = holder < 1; H.hero.woodMat.opacity = clamp01(holder)
     H.hero.cordMat.transparent = holder < 1; H.hero.cordMat.opacity = clamp01(holder)
     if (H.hero.fade) H.hero.fade.material[1].opacity = H.hero.fade.material[2].opacity = state.fade
-    // physics box: the card while it is a card, then the viewport
-    if (open < 1 && cardOpacity > 0) setBox({ xMin: toWorldX(cardRect.left), xMax: toWorldX(cardRect.right), yMin: toWorldY(cardRect.bottom) })
+    // the physics box only exists for the hero: the card while it is a card, then the viewport
+    if (!H.hero.enabled) setBox(null)
+    else if (open < 1 && cardOpacity > 0) setBox({ xMin: toWorldX(cardRect.left), xMax: toWorldX(cardRect.right), yMin: toWorldY(cardRect.bottom) })
     else setBox({ xMin: -view.halfW, xMax: view.halfW, yMin: -WORLD_H / 2 })
   }
 
@@ -205,16 +230,17 @@ export function update(dt, time) {
       const a = rectAnchor(dom.hangScents[i])
       let ax = a.x, ay = a.y
       if (scents.local > 0 && scents.enter < 1) {
-        // the stage is still rising from below: hang from the top edge instead and lower in
+        // the stage is still rising from below: hang from the top edge instead and lower in,
+        // parked just above the frame so the first disc appears while the stem line is still on screen
         const drop = 1 - smoothstep(0, 1, scents.enter)
-        ay = WORLD_H / 2 + drop * (h.L + h.R * 2 + 2.5)
+        ay = WORLD_H / 2 + drop * (h.L + h.R + 0.6)
       }
       const on = scents.local > 0 && ay > -WORLD_H * 1.2 && ay < WORLD_H * 2.5
       if (on && !h.enabled) { h.setEnabled(true); h.reset(ax, ay) }
       if (!on && h.enabled) h.setEnabled(false)
       h.setTarget(ax, ay)
     })
-    state.scentsVisible = scents.local < 1 && (scents.pin > 0 || (scents.local > 0 && scents.enter > 0.3))
+    state.scentsVisible = scents.pin > 0 || (scents.local > 0 && scents.enter > 0.2) || (scents.local >= 1)
   }
 
   /* --- the finale card --- */
@@ -234,14 +260,18 @@ export function update(dt, time) {
     dom.meterLeaves.style.transform = `scale(${(0.2 + 0.8 * leaf).toFixed(3)})`
   }
 
-  /* --- parallax: the whole rig leans a touch toward the pointer --- */
+  /* --- parallax: the whole rig leans and slides a touch toward the pointer --- */
   const k = Math.min(1, dt * 3)
   if (motion.active && cursor.active && !isCoarse) {
     rig.rotation.y = lerp(rig.rotation.y, (cursor.x / view.halfW) * 0.05, k)
     rig.rotation.x = lerp(rig.rotation.x, -(cursor.y / (WORLD_H / 2)) * 0.03, k)
+    rig.position.x = lerp(rig.position.x, (cursor.x / view.halfW) * 0.08, k)
+    rig.position.y = lerp(rig.position.y, (cursor.y / (WORLD_H / 2)) * 0.05, k)
   } else {
     rig.rotation.y = lerp(rig.rotation.y, 0, k)
     rig.rotation.x = lerp(rig.rotation.x, 0, k)
+    rig.position.x = lerp(rig.position.x, 0, k)
+    rig.position.y = lerp(rig.position.y, 0, k)
   }
 }
 
@@ -256,13 +286,16 @@ export function afterPhysics(dt, time) {
       _slot.set(0, 0, 0); h.mesh.localToWorld(_slot); h.mesh.getWorldQuaternion(_slotQ)
       const plant = rectAnchor(dom.hangPlant)
       _plantPos.set(plant.x, plant.y - 0.2, 0.2)
-      const pop = smoothstep(0, 0.28, pu), down = smoothstep(0.2, 0.92, pu)
+      // first it pops out through the face of the ring (in the ring's own frame), then it drops
+      const pop = smoothstep(0, 0.3, pu), down = smoothstep(0.25, 0.92, pu)
       const ease = down * down * (3 - 2 * down)
+      _off.set(0, 0.1 * pop, 1.25 * pop).applyQuaternion(_slotQ)
       h.disc.position.set(
-        lerp(_slot.x, _plantPos.x, ease),
-        lerp(_slot.y + pop * 0.15, _plantPos.y, ease),
-        lerp(_slot.z + pop * 0.9, _plantPos.z, ease))
-      _tmpQ.copy(_slotQ).slerp(PLANT_TILT, smoothstep(0.05, 0.6, pu))
+        lerp(_slot.x + _off.x, _plantPos.x, ease),
+        lerp(_slot.y + _off.y, _plantPos.y, ease),
+        lerp(_slot.z + _off.z, _plantPos.z, ease))
+      // it only tilts once it is clear of the ring
+      _tmpQ.copy(_slotQ).slerp(PLANT_TILT, smoothstep(0.4, 0.85, pu))
       h.disc.quaternion.copy(_tmpQ)
     } else if (state.detached) {
       h.mesh.attach(h.disc); state.detached = false
@@ -271,7 +304,7 @@ export function afterPhysics(dt, time) {
     const src = state.detached ? h.disc.position : h.mesh.position
     for (const s of wisps) {
       const u = s.userData
-      u.t += dt * u.speed * (motion.active ? 1 : 0.4)
+      if (motion.active) u.t += dt * u.speed
       if (u.t > 1) { u.t = 0; u.drift = Math.random() * Math.PI * 2 }
       const rise = u.t
       s.position.set(src.x + Math.sin(rise * 4 + u.drift) * 0.35 + Math.cos(u.drift) * 0.3, src.y + h.R * 0.1 + rise * h.R * 1.9, src.z + 0.2)
@@ -283,16 +316,21 @@ export function afterPhysics(dt, time) {
     for (const s of wisps) s.material.opacity = 0
   }
 
-  // chips under the three scents
+  // chips under the three scents: they belong to their disc, so they follow it in and out of the frame
   if (state.chips.length) {
     H.scents.forEach((hg, i) => {
       const el = state.chips[i]
       if (!el) return
       if (!hg.enabled || !state.scentsVisible) { el.style.opacity = 0; return }
       const p = hg.position()
+      const disc = project(_slot.set(p.x, p.y, p.z))
       const sc = project(_slot.set(p.x, p.y - hg.R - 0.55, p.z))
-      el.style.left = sc.x + 'px'; el.style.top = sc.y + 'px'
-      el.style.opacity = ((1 - state.soil) * (sc.y < view.h + 40 ? 1 : 0)).toFixed(3)
+      const rPx = hg.R / view.wpp
+      const onScreen = smoothstep(-rPx, rPx * 0.2, disc.y) * (1 - smoothstep(view.h - 10, view.h + 40, sc.y))
+      // on narrow screens the three chips would touch: the middle one sits a row lower
+      const stagger = view.w < 760 && i % 2 === 1 ? 36 : 0
+      el.style.left = sc.x + 'px'; el.style.top = (sc.y + stagger) + 'px'
+      el.style.opacity = ((1 - state.soil) * onScreen).toFixed(3)
     })
   }
 }

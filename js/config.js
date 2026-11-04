@@ -50,13 +50,15 @@ window.SEED_SCENT = {
     { id: "scent-3", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-1.jpg", accent: "sage" },
   ],
 
-  /* Bulk pricing for other firms. price is the per-unit price at that quantity. */
+  /* Bulk pricing for other firms. price is the per-unit price at that quantity.
+     The quantity breakpoints are a draft too: set tiersConfirmed to true once they are final. */
   bulkTiers: [
     { min: 1,   label: "1 to 9",  price: null },
     { min: 10,  label: "10+",     price: null },
     { min: 50,  label: "50+",     price: null },
     { min: 100, label: "100+",    price: null },
   ],
+  tiersConfirmed: false,
 
   leadTime: null,           // e.g. "Ships in 5 school days"
   paymentTerms: null,       // e.g. "Invoice through the VE bank"
@@ -64,6 +66,7 @@ window.SEED_SCENT = {
   product: {
     seeds: "wildflower mix",
     seedsConfirmed: false,  // set true once the mix is final
+    formatConfirmed: false, // set true once the holder, refills and mirror cord / vent clip formats are final
     scentDuration: null,    // e.g. "about three weeks"
     daysToSprout: null,     // e.g. "7 to 14 days"
     paperSource: null,      // e.g. "recycled cotton fibre"

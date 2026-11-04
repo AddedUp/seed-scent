@@ -15,7 +15,7 @@ export const tune = {
   breeze: 1.6,             // idle/touch breeze strength
   cursorRadius: 0.4,
   throw: 0.8,
-  maxSpeed: 9,             // a nudge should swing it, never launch it into orbit
+  maxSpeed: 7.5,           // a nudge should swing it, never launch it into orbit
   maxSpin: 10,
 }
 
@@ -276,33 +276,48 @@ function bindPointer() {
 
 /* ---------- step ---------- */
 let breezeT = Math.random() * 10
-let prevCursor = { x: 999, y: 999 }
+const prevCursor = new THREE.Vector3(999, 999, 0)
+const cursorVel = new THREE.Vector3()
+const _c = new THREE.Vector3()
 export function step(dt, { vel = 0, active = true } = {}) {
   if (!world) return
   breezeT += dt
   // cursor body (parked far away when the pointer is off the page or on touch)
   if (cursor.active && !grab.held) cursorBody.setNextKinematicTranslation({ x: cursor.x, y: cursor.y, z: 0 })
   else cursorBody.setNextKinematicTranslation({ x: 999, y: 999, z: 0 })
-  if (cursor.active && (Math.abs(cursor.x - prevCursor.x) > 0.3 || Math.abs(cursor.y - prevCursor.y) > 0.3)) {
-    // a moving cursor near a pendant counts as play
-    for (const h of hangers) if (h.enabled && h.position().distanceTo(new THREE.Vector3(cursor.x, cursor.y, 0)) < h.R + 0.6) { noteInteraction(); break }
-  }
-  prevCursor.x = cursor.x; prevCursor.y = cursor.y
+  // cursor velocity (world units per second), smoothed
+  if (cursor.active && prevCursor.x < 900) {
+    _c.set(cursor.x, cursor.y, 0).sub(prevCursor).divideScalar(Math.max(dt, 1 / 240))
+    cursorVel.lerp(_c, 0.5)
+  } else cursorVel.set(0, 0, 0)
+  prevCursor.set(cursor.active ? cursor.x : 999, cursor.active ? cursor.y : 999, 0)
 
   const v = Math.max(-90, Math.min(90, vel))
   const idle = performance.now() - stats.lastInteraction > 5000
+  const speedBefore = new Map()
   for (const h of hangers) {
     if (!h.enabled) continue
     // a big jump of the hang point (anchor links, instant scrolls) would yank the chain apart:
     // snap the whole hanger to the new place instead and let it settle from there
     const at = h.anchor.translation()
-    if (Math.hypot(h.target.x - at.x, h.target.y - at.y) > 2.2) { h.reset(h.target.x, h.target.y); continue }
+    if (Math.hypot(h.target.x - at.x, h.target.y - at.y) > 1.0) { h.reset(h.target.x, h.target.y); continue }
     h.anchor.setNextKinematicTranslation({ x: h.target.x, y: h.target.y, z: 0 })
     if (grab.held === h) continue
     const m = h.mass
+    const lv0 = h.body.linvel(); speedBefore.set(h, Math.hypot(lv0.x, lv0.y, lv0.z))
     if (active && Math.abs(v) > 1.5) {
       // scrolling is driving: the pendant swings back as the car corners
       h.body.applyImpulse({ x: -v * tune.scrollImpulse * m * dt * 60 * 0.25, y: 0, z: v * tune.scrollZ * m * dt * 60 * 0.25 }, true)
+    }
+    if (active && cursor.active) {
+      // the moving cursor pushes air: a soft wind that falls off with distance, so a wiggle anywhere near counts
+      const p = h.position()
+      const d = Math.hypot(p.x - cursor.x, p.y - cursor.y)
+      const reach = h.R + 2.6
+      if (d < reach && d > h.R * 0.2) {
+        const w = (1 - d / reach) * 0.012 * m
+        h.body.applyImpulse({ x: cursorVel.x * w, y: cursorVel.y * w * 0.4, z: 0 }, true)
+      }
     }
     if (active && (isCoarse || idle)) {
       const f = tune.breeze * m * dt
@@ -311,13 +326,21 @@ export function step(dt, { vel = 0, active = true } = {}) {
   }
   world.timestep = Math.min(Math.max(dt, 1 / 120), 1 / 30)
   world.step()
-  // soft speed caps: paper on a string swings, it does not get launched
   for (const h of hangers) {
     if (!h.enabled || grab.held === h) continue
     const lv = h.body.linvel(), sp = Math.hypot(lv.x, lv.y, lv.z)
+    // soft speed caps: paper on a string swings, it does not get launched
     if (sp > tune.maxSpeed) { const k = tune.maxSpeed / sp; h.body.setLinvel({ x: lv.x * k, y: lv.y * k, z: lv.z * k }, true) }
     const av = h.body.angvel(), an = Math.hypot(av.x, av.y, av.z)
     if (an > tune.maxSpin) { const k = tune.maxSpin / an; h.body.setAngvel({ x: av.x * k, y: av.y * k, z: av.z * k }, true) }
+    // motion paused: bleed energy fast so it comes to rest within a second
+    if (!active) { h.body.setLinvel({ x: lv.x * 0.9, y: lv.y * 0.9, z: lv.z * 0.9 }, true); h.body.setAngvel({ x: av.x * 0.9, y: av.y * 0.9, z: av.z * 0.9 }, true) }
+    // a sudden change of speed while the cursor is close means the visitor touched it
+    const before = speedBefore.get(h)
+    if (before !== undefined && cursor.active) {
+      const p = h.position()
+      if (Math.abs(sp - before) > 0.25 && Math.hypot(p.x - cursor.x, p.y - cursor.y) < h.R + 0.8) noteInteraction()
+    }
   }
   for (const h of hangers) if (h.enabled) h.sync()
 }

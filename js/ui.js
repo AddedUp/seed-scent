@@ -8,10 +8,24 @@ const CFG = window.SEED_SCENT || {}
 export function cfg(path) {
   return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), CFG)
 }
-export function money(n) {
-  if (n == null || isNaN(n)) return null
-  try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: CFG.currency || 'USD' }).format(n) }
-  catch { return '$' + Number(n).toFixed(2) }
+/* one numeric reader for every price: 4.5, "4.5" and "4.50" all count, "abc" and "" do not */
+export function num(v) {
+  if (v === null || v === undefined || v === '' || typeof v === 'boolean') return null
+  const n = Number(String(v).replace(/[$,\s]/g, ''))
+  return Number.isFinite(n) ? n : null
+}
+export function money(v) {
+  const n = num(v)
+  if (n == null) return null
+  try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: CFG.currency || 'USD' }).format(n) }
+  catch { return '$' + n.toFixed(2) }
+}
+/* "7 to 14 days" -> 14; null when nothing numeric is in there */
+export function maxNumberIn(text) {
+  if (text == null) return null
+  const m = String(text).match(/\d+(\.\d+)?/g)
+  if (!m) return null
+  return Math.max(...m.map(Number))
 }
 
 /* ---------- placeholders: fill what the config knows, chip the rest ---------- */
@@ -20,7 +34,7 @@ export function fillPlaceholders() {
     const path = el.dataset.ph
     let v = cfg(path)
     if (v === null || v === undefined || v === '') return
-    if (el.classList.contains('price')) v = money(v)
+    if (el.classList.contains('price')) { v = money(v); if (v == null) return }   // a bad number keeps its chip
     if (path === 'product.fixativeName') v = ' · ' + v
     if (path === 'contact.instagram') v = '@' + String(v).replace(/^@/, '')
     el.textContent = v
@@ -30,18 +44,23 @@ export function fillPlaceholders() {
   document.querySelectorAll('[data-tbc]').forEach(el => { if (cfg(el.dataset.tbc) === true) el.hidden = true })
   document.querySelectorAll('.tbc').forEach(el => { if (!el.title) el.title = 'To be confirmed by the team' })
 
+  // lines that only hold unfilled chips stay out of the way until there is something to say
+  document.querySelectorAll('[data-hide-empty]').forEach(el => {
+    const chips = el.querySelectorAll('.ph'), text = el.textContent.replace(/\s+/g, ' ').trim()
+    const filled = [...el.querySelectorAll('[data-ph]')].length < chips.length
+    if (chips.length && !filled && text.length < 60) el.hidden = true
+  })
+
   const mp = document.getElementById('marketplace-link')
   if (mp) {
     if (CFG.marketplaceUrl) { mp.href = CFG.marketplaceUrl; mp.target = '_blank'; mp.rel = 'noopener' }
-    else { mp.setAttribute('aria-disabled', 'true'); mp.href = '#firms' }
+    else { mp.setAttribute('aria-disabled', 'true'); mp.href = '#firms'; mp.tabIndex = -1 }
   }
-  // planting steps from config (if edited there)
   const steps = cfg('product.plantingSteps')
   const list = document.getElementById('planting-steps')
   if (Array.isArray(steps) && list && steps.length) {
     list.innerHTML = steps.map((s, i) => `<li><span class="step-num">${String(i + 1).padStart(2, '0')}</span><p>${escapeHtml(s)}</p></li>`).join('')
   }
-  // scent options in the order form
   const sel = document.getElementById('f-scent')
   if (sel) (CFG.scents || []).forEach((s, i) => { const o = sel.querySelector(`option[value="${i}"]`); if (o && s.name) o.textContent = s.name })
 }
@@ -95,18 +114,33 @@ export function initMagnetic() {
 }
 
 /* ---------- anchors scroll smoothly through Lenis ---------- */
+export function navHeight() {
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 76
+}
 export function initAnchors() {
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
+  document.querySelectorAll('a[href^="#"]:not(.skip)').forEach(a => {
     a.addEventListener('click', e => {
       const id = a.getAttribute('href').slice(1)
       const target = document.getElementById(id)
-      if (!target || a.getAttribute('aria-disabled') === 'true') { if (!target) return; e.preventDefault(); return }
+      if (!target) return
       e.preventDefault()
-      // pinned chapters: land a little way in so the first beat shows
-      const extra = target.classList.contains('ch-drive') ? innerHeight * 0.35 : 0
+      if (a.getAttribute('aria-disabled') === 'true') return
+      // pinned chapters: land a little way in so the first beat shows; flow sections: clear the nav
+      const pinned = target.querySelector(':scope > .stage')
+      const extra = target.classList.contains('ch-drive') ? innerHeight * 0.35 : pinned ? 0 : -(navHeight() + 12)
       if (lenis) lenis.scrollTo(target, { offset: extra, duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) })
       else window.scrollTo({ top: target.offsetTop + extra, behavior: 'smooth' })
     })
+  })
+  const skip = document.querySelector('.skip')
+  if (skip) skip.addEventListener('click', e => {
+    const main = document.getElementById('main')
+    if (!main) return
+    e.preventDefault()
+    main.setAttribute('tabindex', '-1')
+    main.focus({ preventScroll: true })
+    const first = main.querySelector('h1, h2, a, button')
+    if (first) first.scrollIntoView({ block: 'start' })
   })
 }
 
@@ -123,10 +157,14 @@ export function initHint() {
 export function initMenu() {
   const btn = document.getElementById('menu-toggle'), nav = document.getElementById('nav')
   if (!btn || !nav) return
-  const set = open => { nav.classList.toggle('menu-open', open); btn.setAttribute('aria-expanded', String(open)) }
+  const set = open => {
+    nav.classList.toggle('menu-open', open)
+    btn.setAttribute('aria-expanded', String(open))
+    if (open) { const first = nav.querySelector('.nav-links a'); if (first) first.focus() }
+  }
   btn.addEventListener('click', () => set(!nav.classList.contains('menu-open')))
   nav.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => set(false)))
-  addEventListener('keydown', e => { if (e.key === 'Escape') set(false) })
+  addEventListener('keydown', e => { if (e.key === 'Escape' && nav.classList.contains('menu-open')) { set(false); btn.focus() } })
 }
 
 export function initMotionToggle() {
@@ -138,7 +176,7 @@ export function initMotionToggle() {
     document.body.classList.toggle('reduced', motion.paused)
   }
   apply()
-  btn.addEventListener('click', () => { motion.paused = !motion.paused; apply() })
+  btn.addEventListener('click', () => { motion.paused = !motion.paused; apply(); dispatchEvent(new CustomEvent('motion:toggle', { detail: { paused: motion.paused } })) })
 }
 
 /* nav: dotted underline follows the chapter */
