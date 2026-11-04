@@ -102,7 +102,7 @@ export function initAnchors() {
       if (!target || a.getAttribute('aria-disabled') === 'true') { if (!target) return; e.preventDefault(); return }
       e.preventDefault()
       // pinned chapters: land a little way in so the first beat shows
-      const extra = target.classList.contains('ch-drive') ? innerHeight * 0.55 : 0
+      const extra = target.classList.contains('ch-drive') ? innerHeight * 0.35 : 0
       if (lenis) lenis.scrollTo(target, { offset: extra, duration: 1.6, easing: t => 1 - Math.pow(1 - t, 4) })
       else window.scrollTo({ top: target.offsetTop + extra, behavior: 'smooth' })
     })

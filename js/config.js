@@ -44,9 +44,10 @@ window.SEED_SCENT = {
 
   /* The three scents. Prices are numbers, e.g. 4.5 for $4.50. */
   scents: [
-    { id: "scent-1", name: null, notes: null, price: null, packSize: null, image: "images/scent-1.jpg", accent: "ink" },
-    { id: "scent-2", name: null, notes: null, price: null, packSize: null, image: "images/scent-2.jpg", accent: "moss" },
-    { id: "scent-3", name: null, notes: null, price: null, packSize: null, image: "images/scent-3.jpg", accent: "sage" },
+    /* image: replace with your own photo file when the product shots are final */
+    { id: "scent-1", name: null, notes: null, price: null, packSize: null, image: "images/product-studio-1.jpg", accent: "ink" },
+    { id: "scent-2", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-2.jpg", accent: "moss" },
+    { id: "scent-3", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-1.jpg", accent: "sage" },
   ],
 
   /* Bulk pricing for other firms. price is the per-unit price at that quantity. */

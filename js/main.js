@@ -42,6 +42,10 @@ async function boot() {
     new Hanger({ name: 'scent-2', R: 1.05 * scale, L: 3.3, segs: 7, textures: { wood, paper: paper3 } }),
   ]
   chap.H.finale = new Hanger({ name: 'finale', R: 1.2 * scale, L: 2.4, segs: 8, textures: { wood, paper } })
+  // the planted disc sinks below the soil surface
+  const clip = m => { if (m) m.clippingPlanes = [chap.soilPlane] }
+  chap.H.hero.disc.material.forEach(clip)
+  if (chap.H.hero.fade) chap.H.hero.fade.material.forEach(clip)
   chap.initWisps()
   chap.initChips()
   ready = true

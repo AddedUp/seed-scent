@@ -27,7 +27,7 @@
   --gutter: clamp(20px, 3.2vw, 48px);
   --card-inset: 22px;
 
-  --hang-x: 64vw;      /* where the paper hangs during the drive chapter */
+  --hang-x: 66vw;      /* where the paper hangs during the drive chapter */
   --horizon: 44vh;     /* soil line during the planting and sprout beats */
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -38,7 +38,7 @@
   :root {
     --nav-h: 64px;
     --card-inset: 12px;
-    --hang-x: 68vw;
+    --hang-x: 70vw;
     --horizon: 48vh;
   }
 }

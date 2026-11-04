@@ -13,8 +13,10 @@ export const tune = {
   scrollImpulse: 0.02,     // per px/frame of scroll velocity, times mass
   scrollZ: 0.009,
   breeze: 1.6,             // idle/touch breeze strength
-  cursorRadius: 0.5,
-  throw: 1.0,
+  cursorRadius: 0.4,
+  throw: 0.8,
+  maxSpeed: 9,             // a nudge should swing it, never launch it into orbit
+  maxSpin: 10,
 }
 
 let cursorBody = null
@@ -29,6 +31,8 @@ const Q_X90 = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0
 export async function initPhysics() {
   await RAPIER.init()
   world = new RAPIER.World({ x: 0, y: tune.gravity, z: 0 })
+  // chains of joints need a few more solver passes than a pile of boxes
+  world.integrationParameters.numSolverIterations = 8
   shadowTex = blobTexture('rgba(0,0,0,1)', 'rgba(0,0,0,0)')
 
   cursorBody = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(999, 999, 0))
@@ -78,7 +82,14 @@ export class Hanger {
         RAPIER.RigidBodyDesc.dynamic()
           .setTranslation(0, 60 - segLen * (i + 0.5), 0)
           .setLinearDamping(1.6).setAngularDamping(2.0)
-          .setAdditionalMass(0.012).setCanSleep(false))
+          .setCanSleep(false))
+      // a real capsule so the segment has mass AND angular inertia (a chain of
+      // inertia-less bodies cannot bend and the solver blows up to NaN);
+      // collision group 2 with an empty filter: the rope touches nothing
+      world.createCollider(
+        RAPIER.ColliderDesc.capsule(Math.max(0.01, segLen / 2 - 0.03), 0.03)
+          .setDensity(14).setCollisionGroups((0x0002 << 16) | 0x0000),
+        b)
       const j = RAPIER.JointData.spherical({ x: 0, y: i === 0 ? 0 : -segLen / 2, z: 0 }, { x: 0, y: segLen / 2, z: 0 })
       world.createImpulseJoint(j, prev, b, true)
       this.ropeBodies.push(b); prev = b
@@ -86,12 +97,12 @@ export class Hanger {
     this.body = world.createRigidBody(
       RAPIER.RigidBodyDesc.dynamic()
         .setTranslation(0, 60 - L - R, 0)
-        .setLinearDamping(0.4).setAngularDamping(1.7)
+        .setLinearDamping(0.9).setAngularDamping(2.4)
         .setCanSleep(false).setCcdEnabled(true))
     this.collider = world.createCollider(
       RAPIER.ColliderDesc.cylinder(R * 0.08, R)
         .setRotation({ x: Q_X90.x, y: Q_X90.y, z: Q_X90.z, w: Q_X90.w })
-        .setDensity(0.5).setRestitution(0.25).setFriction(0.7),
+        .setDensity(0.08).setRestitution(0.25).setFriction(0.7),
       this.body)
     world.createImpulseJoint(RAPIER.JointData.spherical({ x: 0, y: -segLen / 2, z: 0 }, { x: 0, y: R, z: 0 }), prev, this.body, true)
     this.mass = this.body.mass()
@@ -293,5 +304,13 @@ export function step(dt, { vel = 0, active = true } = {}) {
   }
   world.timestep = Math.min(Math.max(dt, 1 / 120), 1 / 30)
   world.step()
+  // soft speed caps: paper on a string swings, it does not get launched
+  for (const h of hangers) {
+    if (!h.enabled || grab.held === h) continue
+    const lv = h.body.linvel(), sp = Math.hypot(lv.x, lv.y, lv.z)
+    if (sp > tune.maxSpeed) { const k = tune.maxSpeed / sp; h.body.setLinvel({ x: lv.x * k, y: lv.y * k, z: lv.z * k }, true) }
+    const av = h.body.angvel(), an = Math.hypot(av.x, av.y, av.z)
+    if (an > tune.maxSpin) { const k = tune.maxSpin / an; h.body.setAngvel({ x: av.x * k, y: av.y * k, z: av.z * k }, true) }
+  }
   for (const h of hangers) if (h.enabled) h.sync()
 }

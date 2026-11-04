@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/sections.css">
+<link rel="stylesheet" href="css/cart.css">
 <!-- Everything is served locally so the site works offline on a booth laptop. -->
 <script src="vendor/gsap.min.js"></script>
 <script src="vendor/ScrollTrigger.min.js"></script>
@@ -235,17 +237,33 @@
           <figcaption class="kicker">Seed paper, up close · fibre, seeds, oil · move your cursor to stir the seeds</figcaption>
         </figure>
       </div>
+      <div class="inside-photos">
+        <figure class="photo" data-tilt>
+          <img src="images/refills-flatlay.jpg" alt="The wooden holder open beside three seed paper refill discs" loading="lazy" width="1280" height="720">
+          <figcaption class="kicker">The holder opens. The discs are the refills. <span class="tbc">tbc</span></figcaption>
+        </figure>
+        <figure class="photo" data-tilt>
+          <img src="images/product-vent-clip.jpg" alt="The vent clip version on a car dashboard vent" loading="lazy" width="1280" height="720">
+          <figcaption class="kicker">Vent clip version <span class="tbc">tbc</span></figcaption>
+        </figure>
+      </div>
       <div class="steps-block">
         <div class="section-head small">
           <h3 class="display sm" data-split>How to plant it.</h3>
           <p class="annotation"><span class="tbc" data-tbc="product.plantingConfirmed">Steps are a draft until the team confirms them</span></p>
         </div>
-        <ol class="steps" id="planting-steps">
-          <li><span class="step-num">01</span><p>Tear the paper into pieces about the size of a coin.</p></li>
-          <li><span class="step-num">02</span><p>Press them into a pot or a patch of soil, no deeper than a fingertip.</p></li>
-          <li><span class="step-num">03</span><p>Water well and keep the soil damp.</p></li>
-          <li><span class="step-num">04</span><p>Give it sun and wait for the first sprouts.</p></li>
-        </ol>
+        <div class="steps-grid">
+          <ol class="steps" id="planting-steps">
+            <li><span class="step-num">01</span><p>Tear the paper into pieces about the size of a coin.</p></li>
+            <li><span class="step-num">02</span><p>Press them into a pot or a patch of soil, no deeper than a fingertip.</p></li>
+            <li><span class="step-num">03</span><p>Water well and keep the soil damp.</p></li>
+            <li><span class="step-num">04</span><p>Give it sun and wait for the first sprouts.</p></li>
+          </ol>
+          <figure class="photo steps-photo" data-tilt>
+            <img src="images/planted-pot.jpg" alt="Torn seed paper in a pot of soil with the first seedlings coming through" loading="lazy" width="1280" height="720">
+            <figcaption class="kicker">Where every disc ends up</figcaption>
+          </figure>
+        </div>
       </div>
     </div>
   </section>
@@ -381,5 +399,7 @@
 <noscript><p class="noscript">This site needs JavaScript for the moving parts. The text and order details still work without it.</p></noscript>
 
 <script type="module" src="js/main.js"></script>
+<script type="module" src="js/sections.js"></script>
+<script type="module" src="js/cart.js"></script>
 </body>
 </html>

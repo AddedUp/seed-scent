@@ -49,24 +49,28 @@ export function buildChapters() {
   for (const el of sections) {
     const top = el.offsetTop
     const h = el.offsetHeight
-    // a chapter's progress runs while its section scrolls past the top of the viewport:
-    // local 0 when the section top reaches the viewport top, 1 when its bottom does
-    // (for the last section, 1 at the end of the page)
-    const start = Math.min(1, top / total)
-    const end = Math.min(1, Math.max(start + 0.0001, (top + h - innerHeight) / total))
-    const c = { name: el.dataset.ch, el, start, end, local: 0, top, h }
+    // A chapter owns the scroll from the moment its section's top enters at the bottom of the
+    // viewport (start) until its bottom reaches the bottom of the viewport (end). In between,
+    // pinStart is when the section's top reaches the top of the viewport, i.e. when its sticky
+    // stage is pinned. So: `enter` runs 0..1 while the previous stage slides away and this one
+    // arrives, `pin` runs 0..1 while the stage is pinned. Chapters tile the page with no gaps.
+    const start = Math.max(0, (top - innerHeight) / total)
+    const pinStart = Math.min(1, Math.max(start, top / total))
+    const end = Math.min(1, Math.max(pinStart + 0.0001, (top + h - innerHeight) / total))
+    const c = { name: el.dataset.ch, el, start, pinStart, end, enterFrac: 0, local: 0, enter: 0, pin: 0, top, h }
     chapters.push(c); byName.set(c.name, c)
   }
-  // the hero starts at 0 regardless of nav offset
-  if (chapters[0]) chapters[0].start = 0
-  // the finale reaches 1 at the page end
+  if (chapters[0]) { chapters[0].start = 0; chapters[0].pinStart = 0 }
   if (chapters.length) chapters[chapters.length - 1].end = 1
+  for (const c of chapters) c.enterFrac = (c.pinStart - c.start) / Math.max(1e-6, c.end - c.start)
 }
 
 export function updateChapters() {
   const p = scroll.progress
   for (const c of chapters) {
     c.local = Math.min(1, Math.max(0, (p - c.start) / (c.end - c.start)))
+    c.enter = c.enterFrac > 0 ? Math.min(1, c.local / c.enterFrac) : 1
+    c.pin = c.enterFrac < 1 ? Math.min(1, Math.max(0, (c.local - c.enterFrac) / (1 - c.enterFrac))) : 0
   }
 }
 

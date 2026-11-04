@@ -76,7 +76,7 @@ ul, ol { list-style: none; }
   color: var(--fg);
 }
 .display.sm { font-size: clamp(30px, 3.6vw, 56px); line-height: 1.08; }
-h1.display { font-size: clamp(36px, 4.4vw, 74px); line-height: 1.02; max-width: 15ch; }
+h1.display { font-size: clamp(32px, 3.9vw, 68px); line-height: 1.02; max-width: 17ch; }
 
 .kicker, .annotation, .cue, .text-btn, .nav-links a {
   font-family: var(--font-body);
@@ -96,7 +96,7 @@ h1.display { font-size: clamp(36px, 4.4vw, 74px); line-height: 1.02; max-width: 
 .giant {
   font-family: var(--font-punch);
   font-weight: 800;
-  font-size: clamp(84px, 19vw, 340px);
+  font-size: clamp(84px, 17vw, 300px);
   line-height: .9;
   color: var(--ink);
   white-space: nowrap;
@@ -208,12 +208,14 @@ body[data-theme="soil"] .nav .pill .dot { color: var(--moss); }
 .ch-hero { height: 150vh; }
 .card-area { position: absolute; inset: calc(var(--nav-h) + 6px) var(--card-inset) var(--card-inset); }
 #hang-hero { left: 66%; top: 0; }
+.layer-card .reg { opacity: calc(.75 * var(--reg-o, 1)); }
 .hero-logo {
   position: absolute; left: 4.5%; top: 0;
   width: clamp(200px, 28%, 480px); height: auto;
+  max-height: 36%; object-fit: contain; object-position: left top;
 }
 .hint {
-  position: absolute; left: calc(66% + 110px); top: 36%;
+  position: absolute; left: calc(66% + 150px); top: 62%;
   font: 500 11px/1.5 var(--font-body); letter-spacing: .09em; text-transform: uppercase;
   color: var(--ink); opacity: 0; transition: opacity .6s;
   display: inline-flex; gap: 8px; align-items: center;
@@ -241,7 +243,7 @@ body[data-theme="soil"] .nav .pill .dot { color: var(--moss); }
 .giant-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .giant { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
 .beats {
-  position: absolute; left: var(--gutter); top: 30%;
+  position: absolute; left: var(--gutter); top: 21%;
   width: min(520px, 36vw);
 }
 .beat { position: absolute; left: 0; top: 0; width: 100%; opacity: 0; }
@@ -268,7 +270,7 @@ body[data-theme="soil"] .nav .pill .dot { color: var(--moss); }
 
 /* 04 · scents */
 .ch-scents { height: 230vh; }
-.ch-scents .section-head { position: absolute; left: var(--gutter); right: var(--gutter); top: calc(var(--nav-h) + 3vh); margin: 0; }
+.ch-scents .section-head { position: absolute; left: var(--gutter); right: var(--gutter); bottom: 7vh; margin: 0; }
 .hang-row { position: absolute; inset: 0; }
 .hang-row .hang:nth-child(1) { left: 26%; top: 0; }
 .hang-row .hang:nth-child(2) { left: 50%; top: 0; }
@@ -324,8 +326,15 @@ body[data-theme="soil"] .nav .pill .dot { color: var(--moss); }
 .xsec { background: var(--paper-2); border-radius: var(--radius); padding: 18px 18px 14px; }
 #paper-xsec { width: 100%; height: auto; border-radius: var(--radius-sm); background: var(--paper); }
 .xsec figcaption { margin-top: 12px; }
+.inside-photos { display: grid; grid-template-columns: 1.25fr 1fr; gap: 28px; margin-top: 9vh; }
+.photo { position: relative; border-radius: var(--radius); overflow: hidden; background: var(--paper-2); }
+.photo img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 16 / 10; transition: transform 1.2s var(--ease-out); }
+.photo:hover img { transform: scale(1.04); }
+.photo figcaption { position: absolute; left: 16px; bottom: 14px; padding: 8px 12px; border-radius: var(--pill); background: color-mix(in oklab, var(--paper) 86%, transparent); color: var(--ink); backdrop-filter: blur(6px); }
 .steps-block { margin-top: 14vh; }
-.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.steps-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 40px; align-items: start; }
+.steps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px 32px; }
+.steps-photo img { aspect-ratio: 4 / 3; }
 .steps li { border-top: 1.5px solid var(--moss); padding-top: 16px; }
 .step-num { display: block; font-family: var(--font-display); font-weight: 700; font-size: 28px; color: var(--moss); margin-bottom: 8px; }
 
@@ -438,12 +447,12 @@ input[type="range"] { width: 100%; accent-color: var(--moss); }
   .hero-copy { max-width: 92%; bottom: 7%; }
   .beats { width: min(420px, 62vw); top: 24%; }
   .giant { font-size: 28vw; }
-  .cards, .inside-grid, .about-meta, .tiers-block, .ways { grid-template-columns: 1fr; }
+  .cards, .inside-grid, .about-meta, .tiers-block, .ways, .inside-photos, .steps-grid { grid-template-columns: 1fr; }
   .ways .way:first-child { grid-column: auto; }
   .steps { grid-template-columns: 1fr 1fr; }
   .section-head { flex-direction: column; align-items: flex-start; gap: 16px; }
   .section-head .annotation { text-align: left; }
-  .ch-scents .section-head { top: calc(var(--nav-h) + 1vh); }
+  .ch-scents .section-head { bottom: 4vh; }
   .hang-row .hang:nth-child(1) { left: 20%; }
   .hang-row .hang:nth-child(3) { left: 80%; }
   .biz-card { min-height: 80vh; padding: 24px; }
