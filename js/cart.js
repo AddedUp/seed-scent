@@ -2,19 +2,26 @@
    index.html gets the drawer, checkout.html gets the summary and the firm form.
    State lives in localStorage under "seedscent.bag" as [{ scentIndex, format, qty }].
    Every hook is optional, so the module runs quietly on a page that lacks it. */
-import { cfg, money, escapeHtml, initMagnetic } from './ui.js'
+import { cfg, num, money, escapeHtml, initMagnetic } from './ui.js'
 import { motion, lenis } from './scroll.js'
 
 const KEY = 'seedscent.bag'
 const FORMATS = { mirror: 'Mirror cord', vent: 'Vent clip' }
+const MODES = ['email', 'marketplace', 'gateway']
 const MAX_QTY = 9999
 const WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+const TBC_TITLE = 'To be confirmed by the team'
 
 const $ = (sel, root = document) => root.querySelector(sel)
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)]
 const isFormat = f => f === 'mirror' || f === 'vent'
 const str = v => (v == null || v === '' ? null : String(v))
 const chip = text => `<span class="ph">${escapeHtml(text)}</span>`
+
+/* the tier breakpoints are a draft until the team flips tiersConfirmed, so the label carries a chip */
+const tiersTbc = () => cfg('tiersConfirmed') !== true
+const tierHtml = label => escapeHtml(label) + (tiersTbc() ? ` <span class="tbc" data-tbc="tiersConfirmed" title="${TBC_TITLE}">tbc</span>` : '')
+const tierText = label => label + (tiersTbc() ? ' (to be confirmed)' : '')
 
 const ICON = {
   minus: '<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2 6h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
@@ -23,9 +30,13 @@ const ICON = {
 
 /* ---------- config readers ---------- */
 function scents() { const s = cfg('scents'); return Array.isArray(s) ? s : [] }
+/* num() reads every number in a tier, so 10, "10" and "4.50" all count and "abc" drops to a chip */
 function tiers() {
   const t = cfg('bulkTiers')
-  return (Array.isArray(t) ? t : []).filter(x => x && Number.isFinite(Number(x.min))).slice().sort((a, b) => a.min - b.min)
+  return (Array.isArray(t) ? t : [])
+    .map(x => (x && num(x.min) != null ? { ...x, min: num(x.min) } : null))
+    .filter(Boolean)
+    .sort((a, b) => a.min - b.min)
 }
 function scentName(i) { const s = scents()[i]; return s && s.name ? String(s.name) : null }
 function scentText(i) { return scentName(i) || `Scent ${WORDS[i] || i + 1} (name tbc)` }
@@ -56,8 +67,8 @@ function totals() {
   const units = lines.reduce((s, l) => s + l.qty, 0)
   const T = tiers()
   let tier = T[0] || null
-  for (const t of T) if (units >= Number(t.min)) tier = t
-  const unit = tier && tier.price != null && Number.isFinite(Number(tier.price)) ? Number(tier.price) : null
+  for (const t of T) if (units >= t.min) tier = t
+  const unit = tier ? num(tier.price) : null
   return { units, tier, label: tier ? String(tier.label ?? '') : '', unit, total: unit == null ? null : unit * units }
 }
 function snapshot() {
@@ -105,10 +116,14 @@ function render() {
     v.lines.innerHTML = lines.map((l, i) => lineHtml(l, i, t.unit)).join('')
     if (v.empty) v.empty.hidden = lines.length > 0
     if (v.units) v.units.textContent = String(t.units)
-    if (v.tier) v.tier.textContent = t.label
+    if (v.tier) v.tier.innerHTML = tierHtml(t.label)
     if (v.each) v.each.innerHTML = t.unit == null ? chip('price') : escapeHtml(money(t.unit))
     if (v.total) v.total.innerHTML = t.total == null ? chip('total') : escapeHtml(money(t.total))
-    if (v.checkout) { if (lines.length) v.checkout.removeAttribute('aria-disabled'); else v.checkout.setAttribute('aria-disabled', 'true') }
+    if (v.checkout) {
+      // an empty bag has nothing to check out: the link is dimmed and leaves the tab order
+      if (lines.length) { v.checkout.removeAttribute('aria-disabled'); v.checkout.removeAttribute('tabindex') }
+      else { v.checkout.setAttribute('aria-disabled', 'true'); v.checkout.tabIndex = -1 }
+    }
     restoreFocus(v, keep)
   }
   document.dispatchEvent(new CustomEvent('bag:change', { detail: snapshot() }))
@@ -203,12 +218,30 @@ function initDrawer() {
     opener = null
   }
 
+  // everything a keyboard can land on inside the drawer, in document order
+  const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]'
+  const focusables = () => $$(FOCUSABLE, bag).filter(el =>
+    !el.disabled && el.tabIndex >= 0 && !el.hidden && el.getAttribute('aria-hidden') !== 'true' && el.getClientRects().length > 0)
+  // while the drawer is open, Tab and Shift+Tab stay inside it and wrap at the ends
+  function trapTab(e) {
+    const f = focusables()
+    if (!f.length) { e.preventDefault(); return }
+    const first = f[0], last = f[f.length - 1], a = document.activeElement
+    if (!bag.contains(a)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return }
+    if (e.shiftKey && a === first) { e.preventDefault(); last.focus() }
+    else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus() }
+  }
+
   markClosed()
   if (toggle) toggle.addEventListener('click', () => (isOpen() ? close() : open(toggle)))
   if (openBtn) openBtn.addEventListener('click', () => open(openBtn))
   if (closeBtn) closeBtn.addEventListener('click', close)
   if (scrim) scrim.addEventListener('click', close)
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen()) close() })
+  document.addEventListener('keydown', e => {
+    if (!isOpen()) return
+    if (e.key === 'Escape') close()
+    else if (e.key === 'Tab') trapTab(e)
+  })
   if (checkout) checkout.addEventListener('click', e => { if (checkout.getAttribute('aria-disabled') === 'true') e.preventDefault() })
 
   // a one-line explanation under the totals; the markup has no slot for it, so it is added here
@@ -263,8 +296,10 @@ async function copyText(text) {
   } catch { return false }
 }
 function scrollToEl(el) {
-  if (lenis) lenis.scrollTo(el, { offset: -24, duration: 1.2, easing: t => 1 - Math.pow(1 - t, 4) })
-  else el.scrollIntoView({ behavior: motion.active ? 'smooth' : 'auto', block: 'start' })
+  if (lenis) {
+    lenis.resize()   // the page just grew (the order appeared); Lenis clamps to its cached height otherwise
+    lenis.scrollTo(el, { offset: -24, duration: 1.2, easing: t => 1 - Math.pow(1 - t, 4) })
+  } else el.scrollIntoView({ behavior: motion.active ? 'smooth' : 'auto', block: 'start' })
 }
 
 /* the order, written out in plain text for an email, a clipboard or a gateway */
@@ -278,7 +313,7 @@ function orderText(d) {
   ]
   lines.forEach(l => L.push(`${l.qty} x ${scentText(l.scentIndex)}, ${FORMATS[l.format].toLowerCase()}`))
   L.push('',
-    `Units: ${t.units}`, `Tier: ${t.label}`,
+    `Units: ${t.units}`, `Tier: ${tierText(t.label)}`,
     `Each: ${t.unit == null ? 'price tbc' : money(t.unit)}`,
     `Total: ${t.total == null ? 'total tbc' : money(t.total)}`, '',
     'Delivery notes', d.notes || 'none', '',
@@ -286,40 +321,52 @@ function orderText(d) {
   return L.join('\n')
 }
 
-/* the final button follows checkout.mode in js/config.js */
+/* the final step follows the checkout mode the team picked. When the address that mode needs is
+   missing, the primary is dimmed and a ghost button writes the order out on screen instead;
+   the notes talk like a storefront, never about where the team sets things */
 function finalHtml(mode, { email, market, gateway }) {
   const dot = '<span class="dot">·</span>'
   const writeOut = '<button class="pill ghost small" type="submit">Write out the order</button>'
+  const off = label => `<span class="pill" aria-disabled="true" tabindex="-1">${label} ${dot}</span>`
+  const note = text => `<p class="kicker soft co-note">${text}</p>`
+  const copyIt = 'Write the order out below and copy it.'
   if (mode === 'marketplace') {
     return market
       ? `<a class="pill" id="co-go" href="${escapeHtml(market)}" target="_blank" rel="noopener" data-magnetic>Finish on the VE marketplace ${dot}</a>
-         <p class="kicker soft co-note">Opens your firm's marketplace page in a new tab.</p>${writeOut}`
-      : `<span class="pill" aria-disabled="true">Finish on the VE marketplace ${dot}</span>
-         <p class="kicker soft co-note">${chip('marketplace url')} is not set in js/config.js yet.</p>${writeOut}`
+         ${note('Opens the Seed Scent page on the VE marketplace in a new tab.')}${writeOut}`
+      : `${off('Finish on the VE marketplace')}
+         ${note(`The team has not published a marketplace link yet. ${copyIt}`)}${writeOut}`
   }
   if (mode === 'gateway') {
     return gateway
       ? `<button class="pill" type="submit" data-magnetic>Send the order ${dot}</button>
-         <p class="kicker soft co-note">Posts the order to ${escapeHtml(hostOf(gateway))}.</p>`
-      : `<span class="pill" aria-disabled="true">Send the order ${dot}</span>
-         <p class="kicker soft co-note">${chip('gateway url')} is not set in js/config.js yet.</p>${writeOut}`
+         ${note(`Posts the order to ${escapeHtml(hostOf(gateway))}.`)}`
+      : `${off('Send the order')}
+         ${note(`The team has not switched on online payment yet. ${copyIt}`)}${writeOut}`
   }
-  return `<button class="pill" type="submit" data-magnetic>Send the order ${dot}</button>
-    <p class="kicker soft co-note">${email
-      ? `Opens an email to ${escapeHtml(email)}.`
-      : `No ${chip('contact email')} in js/config.js yet, so the order is written out here for you to copy.`}</p>`
+  return email
+    ? `<button class="pill" type="submit" data-magnetic>Send the order ${dot}</button>
+       ${note(`Opens an email to ${escapeHtml(email)}.`)}`
+    : `${off('Send the order')}
+       ${note(`The team has not published an order email yet. ${copyIt}`)}${writeOut}`
 }
+
+let lastMailto = null   // the last mailto: link we opened, for verification
 
 function initCheckout() {
   const form = $('#co-form'); if (!form) return false
-  const mode = String(cfg('checkout.mode') || 'email').toLowerCase()
+  let mode = String(cfg('checkout.mode') || 'email').toLowerCase().trim()
+  if (!MODES.includes(mode)) {
+    // an unknown word falls back to email, which only promises an email when there is an address
+    console.warn(`Seed Scent: checkout.mode "${mode}" is not one of ${MODES.join(', ')}. Using "email".`)
+    mode = 'email'
+  }
   const email = str(cfg('contact.email')), market = str(cfg('marketplaceUrl')), gateway = str(cfg('checkout.gatewayUrl'))
   const finalEl = $('#co-final'), errEl = $('#co-error'), result = $('#co-result'), orderEl = $('#co-order')
-  const noteEl = $('#co-result-note'), copyBtn = $('#co-copy'), modeEl = $('#co-mode')
+  const noteEl = $('#co-result-note'), copyBtn = $('#co-copy')
   const fields = { firm: $('#co-firm'), name: $('#co-name'), email: $('#co-email'), account: $('#co-account'), notes: $('#co-notes') }
   let lastText = ''
 
-  if (modeEl) modeEl.textContent = mode
   if (finalEl) finalEl.innerHTML = finalHtml(mode, { email, market, gateway })
   if (mode === 'gateway' && gateway) { form.action = gateway; form.method = 'post' }
 
@@ -377,14 +424,15 @@ function initCheckout() {
     e.preventDefault()
     let note
     if (mode === 'email' && email) {
-      location.href = mailtoUrl(email, `Seed Scent order from ${d.firm}`, text)
+      lastMailto = mailtoUrl(email, `Seed Scent order from ${d.firm}`, text)
+      location.href = lastMailto
       note = `We opened your email app with this order, addressed to ${escapeHtml(email)}. If nothing opened, copy the order and send it yourself.`
     } else if (mode === 'email') {
-      note = `The contact email is not set in js/config.js yet. ${fallback}`
+      note = `The team has not published an order email yet. ${fallback}`
     } else if (mode === 'marketplace') {
-      note = market ? 'Paste this into your marketplace order so the firm knows who you are.' : `The marketplace link is not set in js/config.js yet. ${fallback}`
+      note = market ? 'Paste this into your marketplace order so the firm knows who you are.' : `The team has not published a marketplace link yet. ${fallback}`
     } else {
-      note = `The gateway URL is not set in js/config.js yet. ${fallback}`
+      note = `The team has not switched on online payment yet. ${fallback}`
     }
     showResult(text, note)
   })
@@ -416,4 +464,5 @@ const dbg = (window.__dbg = window.__dbg || {})
 dbg.bag = snapshot
 dbg.bagSet = arr => { lines = clean(arr); commit() }
 dbg.bagClear = () => { lines = []; commit() }
+dbg.mailto = () => lastMailto
 if (drawer) { dbg.bagOpen = () => drawer.open(); dbg.bagClose = () => drawer.close() }

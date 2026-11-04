@@ -101,6 +101,7 @@ body.co { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: 
 .co-summary .line-format, .co-summary .line-remove, .co-summary .bag-totals dt { color: var(--ink); opacity: .72; }
 .co-summary .line-remove:hover { opacity: 1; }
 .co-summary .ph { color: var(--ink); border-color: var(--ink); }
+.co-summary .tbc { color: var(--ink); }
 .co-summary .bag-line { border-top-color: var(--sage-3); }
 .co-summary .qty-btn { background: var(--sage-2); }
 .co-summary .qty-btn:hover { background: var(--paper); }
@@ -131,13 +132,9 @@ body.co { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: 
 .co-result-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
 .co-result-note { max-width: 44ch; }
 
-/* how the last step is configured */
+/* how this works */
 .co-how { margin-top: 7vh; max-width: 64ch; display: grid; gap: 10px; }
 .co-how p:not(.kicker) { font-size: 16px; line-height: 1.6; }
-.co-how code {
-  font: 500 .86em/1 var(--font-body); color: var(--moss-2);
-  background: var(--paper-2); border-radius: 6px; padding: 2px 5px;
-}
 .co-footer { margin-top: 8vh; padding: 28px 0 0; border-top: 1px solid var(--paper-3); }
 
 /* --------------------------------------------------------------------------

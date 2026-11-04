@@ -10,7 +10,7 @@ function renderTeam(team) {
   const list = document.getElementById('team-grid')
   if (!list) return []
   if (!team.length) {
-    list.innerHTML = '<li class="team-empty"><p class="kicker">No team members in js/config.js yet. Add them under <code>team</code>.</p></li>'
+    list.innerHTML = '<li class="team-empty"><p class="kicker">The team is still filling this in.</p></li>'
     return []
   }
   // Values are never written into the markup here: the chips carry a config
@@ -97,10 +97,43 @@ function initReveal(cards) {
   }))
 }
 
-/* ---------- the bag lives on the home page ---------- */
-function initBagLink() {
-  const bag = document.getElementById('bag-toggle')
-  if (bag) bag.addEventListener('click', () => { location.href = 'index.html#firms' })
+/* ---------- the bag lives on the home page; only its count shows here ----------
+   cart.js is not loaded on this page, so the unit total is read straight from the
+   saved bag (localStorage "seedscent.bag", an array of lines with a qty each) and
+   kept current when another tab changes it. The Bag link itself is plain markup. */
+const BAG_KEY = 'seedscent.bag'
+function bagUnits() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(BAG_KEY) || '[]')
+    if (!Array.isArray(raw)) return 0
+    return raw.reduce((s, l) => {
+      const q = l && typeof l === 'object' ? Math.floor(Number(l.qty)) : NaN
+      return Number.isFinite(q) && q >= 1 ? s + q : s
+    }, 0)
+  } catch { return 0 }
+}
+function initBagCount() {
+  const count = document.getElementById('bag-count')
+  if (!count) return
+  const render = () => { count.textContent = String(bagUnits()) }
+  render()
+  addEventListener('storage', e => { if (e.key === BAG_KEY || e.key === null) render() })
+}
+
+/* ---------- phone menu: same behaviour as the home page ----------
+   Click toggles .menu-open on #nav, opening moves focus to the first link,
+   Escape closes and returns focus to the button, following a link closes. */
+function initMenu() {
+  const btn = document.getElementById('menu-toggle'), nav = document.getElementById('nav')
+  if (!btn || !nav) return
+  const set = open => {
+    nav.classList.toggle('menu-open', open)
+    btn.setAttribute('aria-expanded', String(open))
+    if (open) { const first = nav.querySelector('.nav-links a'); if (first) first.focus() }
+  }
+  btn.addEventListener('click', () => set(!nav.classList.contains('menu-open')))
+  nav.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => set(false)))
+  addEventListener('keydown', e => { if (e.key === 'Escape' && nav.classList.contains('menu-open')) { set(false); btn.focus() } })
 }
 
 /* ---------- boot ---------- */
@@ -111,7 +144,8 @@ fillPlaceholders()
 fillSlots()
 initMagnetic()
 initMotionToggle()
-initBagLink()
+initBagCount()
+initMenu()
 initTilt(cards)
 initReveal(cards)
 
@@ -141,6 +175,8 @@ window.__team = {
   }),
   revealed: () => revealed,
   revealTotal: () => revealTotal,
+  bagUnits,
+  menuOpen: () => document.getElementById('nav').classList.contains('menu-open'),
   tilt: () => tilts.map(t => ({ rx: +t.rx.toFixed(3), ry: +t.ry.toFixed(3) })),
   scrollTo: y => { lenis ? lenis.scrollTo(y, { immediate: true }) : window.scrollTo(0, y) },
   hasLenis: !!lenis,

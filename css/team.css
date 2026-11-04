@@ -6,6 +6,9 @@
 
 .team-page { padding-bottom: 36px; }
 
+/* the Bag control is a link here (it goes back to the scents), styled like the home button */
+.nav-actions a.text-btn { text-decoration: none; }
+
 /* --------------------------------------------------------------------------
    Header card: the home hero's sage panel, placed in the page flow
    -------------------------------------------------------------------------- */
@@ -22,10 +25,11 @@
 .team-hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
 .team-hero-top .kicker { padding-top: 8px; }
 .team-hero-logo { width: clamp(120px, 13vw, 200px); height: auto; flex: 0 0 auto; }
-/* ink on sage, per the brand readability rules */
+/* ink on sage, per the brand readability rules: kickers, annotations and every
+   kind of chip. Moss on sage is under 3:1; ink at .9 opacity is about 5.8:1. */
 .team-hero .kicker, .team-hero .annotation { color: var(--ink); }
-.team-hero .kicker { opacity: .8; }
-.team-hero .ph { color: var(--ink); border-color: var(--ink); }
+.team-hero .kicker { opacity: .9; }
+.team-hero .ph, .team-hero .tbc { color: var(--ink); border-color: var(--ink); }
 .team-hero-copy { display: grid; gap: 18px; max-width: min(760px, 72%); }
 .team-hero-copy .annotation { max-width: none; }
 
@@ -35,8 +39,11 @@
 .team-sec .wrap { padding-top: 9vh; padding-bottom: 4vh; }
 .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
 .team-card { display: flex; flex-direction: column; }
-.team-card .ghost-num { top: auto; right: -12px; bottom: -44px; font-size: 170px; }
+/* the numerals carry the grid while the photos are missing */
+.team-card .ghost-num { top: auto; right: -12px; bottom: -44px; font-size: 170px; opacity: .12; }
 .team-card .card-media { height: auto; aspect-ratio: 4 / 5; margin-bottom: 20px; }
+/* no photo yet: a short band instead of a tall empty portrait (wins over the phone 1 / 1 rule too) */
+.team-card .card-media:has(> img[hidden]) { aspect-ratio: 16 / 7; }
 .team-card .card-title { font-size: 26px; margin-bottom: 10px; }
 .team-role { margin-bottom: 12px; }
 .team-role .ph { font-size: 10px; }

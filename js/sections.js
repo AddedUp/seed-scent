@@ -3,7 +3,7 @@
    the spec rows and planting steps, and the first-view reveal.
    Everything here is progressive: no hook, no effect, no error. */
 import { motion, prefersReduced, isCoarse, scroll } from './scroll.js'
-import { cfg, money, escapeHtml } from './ui.js'
+import { cfg, num, money, escapeHtml } from './ui.js'
 
 const $ = (s, r = document) => r.querySelector(s)
 const $$ = (s, r = document) => [...r.querySelectorAll(s)]
@@ -25,12 +25,18 @@ const loop = (() => {
     remove(fn) { fns.delete(fn) },
     has: fn => fns.has(fn),
     get size() { return fns.size },
+    /* true while a frame is on the queue; false means nothing here will run until something asks again */
+    pending: () => raf !== 0,
   }
 })()
 
-/* motion.paused has no event: anyone who cares re-checks after the toggle is clicked */
+/* motion.paused flips at runtime: ui.js dispatches 'motion:toggle' on window with detail.paused.
+   Every part below registers a watcher and gets the new state the moment it changes. */
 const motionWatchers = new Set()
-$('#motion-toggle')?.addEventListener('click', () => setTimeout(() => motionWatchers.forEach(fn => fn()), 0))
+addEventListener('motion:toggle', e => {
+  const paused = typeof e.detail?.paused === 'boolean' ? e.detail.paused : !!motion.paused
+  motionWatchers.forEach(fn => fn(paused))
+})
 
 /* deterministic random so the drawing is the same on every visit */
 function rng(seed) {
@@ -202,7 +208,9 @@ function initCrossSection() {
     if (!inView) { loop.remove(update); return }
     step(dt, t)
   }
-  const kick = () => { if (inView && !motion.paused) loop.add(update); else if (motion.paused) { rest(); loop.remove(update) } }
+  /* paused: every seed snaps home in the same tick and the figure lets go of the loop,
+     so nothing here schedules a frame while motion is off. Play again: the idle drift resumes. */
+  const kick = () => { if (motion.paused) { rest(); loop.remove(update) } else if (inView) loop.add(update) }
   motionWatchers.add(kick)
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(entries => { inView = entries[0].isIntersecting; kick() }, { rootMargin: '12% 0px' }).observe(svg)
@@ -242,6 +250,7 @@ function initCrossSection() {
     sprouts: () => svg.querySelectorAll('.xsec-sprout').length,
     running: () => loop.has(update),
     inView: () => inView,
+    pointerActive: () => pointer.active,
     tick: (dt = 1 / 60, n = 1) => { for (let i = 0; i < n; i++) step(dt, performance.now() / 1000) },
     point: (clientX, clientY) => point(clientX, clientY),
     release: () => { pointer.active = false },
@@ -263,11 +272,12 @@ function initTiers() {
     for (const li of tiers) { const m = Number(li.dataset.min); if (m <= n && (!best || m > Number(best.dataset.min))) best = li }
     return best
   }
+  /* the per-unit price as a number, or null: 4.5, "4.5" and "4.50" all count, "abc" and "" do not */
   const priceFor = li => {
     if (!li) return null
     const m = Number(li.dataset.min)
-    const t = cfgTiers.find(t => Number(t.min) === m) || cfgTiers[tiers.indexOf(li)]
-    return t && typeof t.price === 'number' && isFinite(t.price) ? t.price : null
+    const t = cfgTiers.find(t => t && Number(t.min) === m) || cfgTiers[tiers.indexOf(li)]
+    return t ? num(t.price) : null
   }
   const labelFor = li => li ? (li.querySelector('.tier-qty')?.textContent || '').trim() : ''
 
@@ -283,8 +293,8 @@ function initTiers() {
       if (on) t.setAttribute('aria-current', 'true'); else t.removeAttribute('aria-current')
     })
     if (note) {
-      const p = priceFor(li)
-      note.textContent = p != null ? `${money(p)} each at ${n} ${n === 1 ? 'unit' : 'units'}` : 'Tier pricing is being finalized.'
+      const m = money(priceFor(li))
+      note.textContent = m != null ? `${m} each at ${n} ${n === 1 ? 'unit' : 'units'}` : 'Tiers and pricing are being finalized.'
     }
     if (!animate || motion.paused || !haveGsap) {
       if (haveGsap) gsap.killTweensOf(shown)
@@ -353,9 +363,10 @@ function initOrderForm(tiersApi) {
 
   function buildText({ firm, name, email, qty }) {
     const li = tiersApi?.tierFor ? tiersApi.tierFor(qty) : null
-    const price = tiersApi?.priceFor ? tiersApi.priceFor(li) : null
+    const price = tiersApi?.priceFor ? tiersApi.priceFor(li) : null   // a number or null, never raw config text
     const label = tiersApi?.labelFor ? tiersApi.labelFor(li) : ''
-    const tierLine = li ? `${label} at ${price != null ? money(price) : '[ price ]'} each` : 'to be confirmed'
+    const tierLine = li ? `${label} at ${money(price) ?? '[ price ]'} each` : 'to be confirmed'
+    const tierLabel = cfg('tiersConfirmed') === true ? 'Bulk tier' : 'Bulk tier (tiers to be confirmed)'
     const notes = (f.notes?.value || '').trim()
     return [
       'Order request for Seed Scent',
@@ -365,7 +376,7 @@ function initOrderForm(tiersApi) {
       `Email: ${email}`,
       `Scent: ${scentLabel()}`,
       `Quantity: ${qty}`,
-      `Bulk tier: ${tierLine}`,
+      `${tierLabel}: ${tierLine}`,
       `Notes: ${notes || 'none'}`,
       '',
       'Sent from the Seed Scent website',
@@ -379,7 +390,7 @@ function initOrderForm(tiersApi) {
       ? (opened
         ? `An email draft to ${escapeHtml(contactEmail)} should have opened in your mail app. If it did not, copy the request and send it there yourself.`
         : `Copy the request and send it to ${escapeHtml(contactEmail)}.`)
-      : 'Nothing was sent. The contact email is still a placeholder, so copy the request and send it your own way.'
+      : 'The team has not published an order email yet. Nothing was sent. Copy the request and send it to them another way.'
     summary.innerHTML =
       `<p class="kicker">Your order request</p>` +
       `<pre class="summary-text">${escapeHtml(text)}</pre>` +
@@ -415,7 +426,7 @@ function initOrderForm(tiersApi) {
     let opened = false
     if (to) {
       const subject = 'Order request for Seed Scent'
-      const href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text.replace(/\n/g, '\r\n'))}`
+      const href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text.replace(/\n/g, '\r\n'))}`
       try { window.location.href = href; opened = true } catch { opened = false }
     }
     render(text, to, opened)
@@ -442,8 +453,10 @@ function initTilt() {
       el.style.transform = `perspective(900px) rotateX(${st.rx.toFixed(3)}deg) rotateY(${st.ry.toFixed(3)}deg)`
     }
     const off = () => { if (st.on) active--; st.on = false; st.tx = st.ty = 0; loop.add(update) }
+    /* paused: no easing back, the card is flat at once and asks for no more frames */
+    const flat = () => { if (st.on) active--; st.on = false; st.tx = st.ty = st.rx = st.ry = 0; el.style.transform = ''; loop.remove(update) }
     el.addEventListener('pointermove', e => {
-      if (motion.paused) { if (st.on) off(); return }
+      if (motion.paused) { if (st.on || st.rx || st.ry) flat(); return }
       const r = el.getBoundingClientRect()
       if (!r.width || !r.height) return
       const nx = clamp(((e.clientX - r.left) / r.width) * 2 - 1, -1, 1)
@@ -453,7 +466,7 @@ function initTilt() {
       loop.add(update)
     })
     el.addEventListener('pointerleave', off)
-    motionWatchers.add(() => { if (motion.paused) off() })
+    motionWatchers.add(paused => { if (paused) flat() })
   })
   return { count: els.length, active: () => active }
 }
@@ -468,16 +481,23 @@ function initSkew() {
   const MAX = 4, GAIN = 0.08
   let cur = 0, inView = false, lastRaw = 0, stale = 0, applied = 0
 
+  /* straighten every row in the same tick and stop asking for frames */
+  const reset = () => {
+    cur = 0; lastRaw = 0; stale = 0
+    if (applied !== 0) { applied = 0; rows.forEach(r => { r.style.transform = '' }) }
+    loop.remove(update)
+  }
   const update = () => {
+    if (motion.paused) { reset(); return }
     let v = Number(scroll.vel) || 0
     // if the upstream reader stopped updating, a stuck velocity must not leave rows leaning
     if (v === lastRaw && v !== 0) { if (++stale > 8) v = 0 } else stale = 0
     lastRaw = Number(scroll.vel) || 0
-    const target = motion.paused ? 0 : clamp(v * GAIN, -MAX, MAX)
+    const target = clamp(v * GAIN, -MAX, MAX)
     cur += (target - cur) * 0.12
     if (Math.abs(cur) < 0.005 && Math.abs(target) < 0.005) {
       if (applied !== 0) { applied = 0; cur = 0; rows.forEach(r => { r.style.transform = '' }) }
-      if (!inView || motion.paused) loop.remove(update)
+      if (!inView) loop.remove(update)
       return
     }
     if (Math.abs(cur - applied) > 0.004) {
@@ -486,13 +506,14 @@ function initSkew() {
       rows.forEach(r => { r.style.transform = `skewY(${s}deg)` })
     }
   }
-  // always (re)start: update unwinds to 0 and removes itself when out of view or paused
-  const kick = () => loop.add(update)
-  motionWatchers.add(kick)
+  // (re)start while motion is on: update unwinds to 0 and removes itself once out of view
+  const kick = () => { if (motion.paused) reset(); else loop.add(update) }
+  // the toggle: paused means straight rows now, not after an ease; play means pick the velocity back up
+  motionWatchers.add(paused => { if (paused) reset(); else kick() })
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(entries => { inView = entries[0].isIntersecting; kick() }, { rootMargin: '10% 0px' }).observe(section)
   } else { inView = true; kick() }
-  return { skew: () => applied, rows: rows.length }
+  return { skew: () => applied, rows: rows.length, running: () => loop.has(update) }
 }
 
 /* ==========================================================================
@@ -501,23 +522,37 @@ function initSkew() {
 function initReveal() {
   const els = $$('.tier, .way, .steps li, .card')
   let revealed = 0
-  if (!els.length || prefersReduced || !('IntersectionObserver' in window)) return { total: els.length, revealed: () => (prefersReduced ? els.length : 0) }
+  // motion off from the start (the preference, or paused before this module ran): everything is simply there
+  if (!els.length || prefersReduced || motion.paused || !('IntersectionObserver' in window)) {
+    return { total: els.length, revealed: () => ((prefersReduced || motion.paused) ? els.length : 0), pending: () => 0 }
+  }
   els.forEach(el => el.classList.add('rv'))
+  const pending = new Set(els)
+  const strip = el => { el.classList.remove('rv', 'in'); el.style.removeProperty('--rv-delay') }
   const io = new IntersectionObserver(entries => {
     const batch = entries.filter(e => e.isIntersecting)
       .sort((a, b) => (a.boundingClientRect.top - b.boundingClientRect.top) || (a.boundingClientRect.left - b.boundingClientRect.left))
     batch.forEach((e, i) => {
       const el = e.target
       io.unobserve(el)
+      if (!pending.delete(el)) return
       const delay = Math.min(i, 5) * 80
       el.style.setProperty('--rv-delay', `${delay}ms`)
       requestAnimationFrame(() => el.classList.add('in'))
-      setTimeout(() => { el.classList.remove('rv', 'in'); el.style.removeProperty('--rv-delay') }, 1000 + delay)
+      setTimeout(() => strip(el), 1000 + delay)
       revealed++
     })
   }, { threshold: 0.08, rootMargin: '0px 0px -6% 0px' })
   els.forEach(el => io.observe(el))
-  return { total: els.length, revealed: () => revealed }
+  /* motion paused mid-page: nothing stays hidden waiting for a rise it will never get, and
+     anything mid-transition lands at once. Playing again does not hide what is already shown. */
+  motionWatchers.add(paused => {
+    if (!paused) return
+    for (const el of pending) { io.unobserve(el); revealed++ }
+    pending.clear()
+    els.forEach(strip)
+  })
+  return { total: els.length, revealed: () => revealed, pending: () => pending.size }
 }
 
 /* ---------- go ---------- */
@@ -531,11 +566,14 @@ const reveal = initReveal()
 /* numbers for verification */
 window.__sections = {
   loop: () => loop.size,
-  reveal: () => ({ total: reveal.total, revealed: reveal.revealed() }),
+  rafPending: () => loop.pending(),
+  paused: () => !!motion.paused,
+  reveal: () => ({ total: reveal.total, revealed: reveal.revealed(), pending: reveal.pending ? reveal.pending() : 0 }),
   skew: () => skew.skew(),
+  skewRunning: () => (skew.running ? skew.running() : false),
   skewRows: skew.rows,
   tilt: () => ({ count: tilt.count, active: tilt.active() }),
   tier: n => { const li = tiers.tierFor(n); return li ? { label: tiers.labelFor(li), min: Number(li.dataset.min), price: tiers.priceFor(li) } : null },
   order: () => (order ? order.last() : ''),
-  xsec: () => (xsec ? { seeds: xsec.seeds(), displaced: xsec.displaced(), fibres: xsec.fibres(), drops: xsec.drops(), sprouts: xsec.sprouts(), running: xsec.running() } : null),
+  xsec: () => (xsec ? { seeds: xsec.seeds(), displaced: xsec.displaced(), fibres: xsec.fibres(), drops: xsec.drops(), sprouts: xsec.sprouts(), running: xsec.running(), pointerActive: xsec.pointerActive() } : null),
 }

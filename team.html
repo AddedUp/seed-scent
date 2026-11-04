@@ -26,7 +26,7 @@
     <img class="brand-mark" src="brand/mark-ss.png" alt="">
     <span class="brand-name">Seed Scent</span>
   </a>
-  <nav class="nav-links" aria-label="Sections">
+  <nav class="nav-links" id="nav-links" aria-label="Sections">
     <a href="index.html#drive">How it works</a>
     <a href="index.html#scents">Scents</a>
     <a href="index.html#inside">Inside</a>
@@ -35,9 +35,10 @@
     <a href="index.html#contact">Contact</a>
   </nav>
   <div class="nav-actions">
+    <button class="text-btn menu-btn" id="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">Menu <span class="dot">··</span></button>
     <button class="text-btn" id="motion-toggle" type="button" aria-pressed="false">Pause motion</button>
-    <!-- The bag lives on the home page. Here the button just takes you there. -->
-    <button class="text-btn" id="bag-toggle" type="button">Bag (<span id="bag-count">0</span>)</button>
+    <!-- The bag itself lives on the home page. The count here is read from the saved bag; the link takes you to the scents. -->
+    <a class="text-btn" id="bag-toggle" href="index.html#scents">Bag (<span id="bag-count">0</span>)</a>
     <a class="pill" href="index.html#firms" data-magnetic>Order <span class="dot">·</span></a>
   </div>
 </header>
@@ -62,11 +63,11 @@
     </div>
   </section>
 
-  <!-- Team cards, rendered from js/config.js by js/team.js -->
+  <!-- Team cards: the team script builds them from the site data (see the README) -->
   <section class="team-sec" id="team" aria-label="Team members">
     <div class="wrap">
       <ul class="team-grid" id="team-grid"></ul>
-      <noscript><p class="kicker">The team list loads from the site config and needs JavaScript.</p></noscript>
+      <noscript><p class="kicker">The team list needs JavaScript to appear.</p></noscript>
       <p class="kicker soft team-note" id="team-note" hidden>Chips mark what the team is still filling in.</p>
     </div>
   </section>
@@ -85,11 +86,11 @@
         </li>
         <li>
           <p class="kicker">02 · Decided together</p>
-          <p>Decisions are made as a team. Nobody outranks a good idea.</p>
+          <p>Decisions are made together, and the best idea in the room usually wins.</p>
         </li>
         <li>
           <p class="kicker">03 · Made by us</p>
-          <p>The team made the paper. The team made this page. Same hands.</p>
+          <p>The team made the product. The team made this page. Same hands.</p>
         </li>
       </ol>
     </div>
