@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seed Scent · the air freshener that grows</title>
+<meta name="description" content="Seed Scent makes a plantable car air freshener: a wooden holder with a seed paper disc scented with natural essential oils. When the scent fades, plant the paper and it grows.">
+<meta name="theme-color" content="#fbf6e5">
+<link rel="icon" type="image/png" href="brand/favicon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
+<!-- Everything is served locally so the site works offline on a booth laptop. -->
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/SplitText.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "@dimforge/rapier3d-compat": "./vendor/rapier.es.js" } }
+</script>
+<script src="js/config.js"></script>
+</head>
+<body data-chapter="hero" data-theme="cream">
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- Fixed background layers, back to front -->
+<div class="layer layer-card" id="card-panel" aria-hidden="true">
+  <span class="reg tl">+</span><span class="reg tr">+</span>
+  <span class="reg bl">+</span><span class="reg br">+</span>
+</div>
+<div class="layer layer-soil" id="soil" aria-hidden="true"></div>
+
+<!-- One persistent WebGL canvas for the whole page -->
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<!-- Labels projected from 3D objects -->
+<div id="labels" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#hero" aria-label="Seed Scent, back to top">
+    <img class="brand-mark" src="brand/mark-ss.png" alt="">
+    <span class="brand-name">Seed Scent</span>
+  </a>
+  <nav class="nav-links" aria-label="Sections">
+    <a href="#drive" data-nav="drive">How it works</a>
+    <a href="#scents" data-nav="scents">Scents</a>
+    <a href="#inside" data-nav="inside">Inside</a>
+    <a href="#firms" data-nav="firms">For VE firms</a>
+    <a href="team.html">Team</a>
+    <a href="#contact" data-nav="finale">Contact</a>
+  </nav>
+  <div class="nav-actions">
+    <button class="text-btn" id="motion-toggle" type="button" aria-pressed="false">Pause motion</button>
+    <button class="text-btn" id="bag-toggle" type="button" aria-controls="bag" aria-expanded="false">Bag (<span id="bag-count">0</span>)</button>
+    <a class="pill" href="#firms" data-magnetic>Order <span class="dot">·</span></a>
+  </div>
+</header>
+
+<!-- Progress: a stem that grows as you scroll -->
+<aside class="meter" aria-hidden="true">
+  <svg viewBox="0 0 24 300" width="24" height="300" fill="none">
+    <path id="meter-track" d="M12 296 V 14" stroke="currentColor" stroke-opacity=".18" stroke-width="2" stroke-linecap="round"/>
+    <path id="meter-stem" d="M12 296 V 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <g id="meter-leaves" fill="currentColor">
+      <path d="M12 26 C 4 24, 1 14, 2 6 C 9 7, 13 15, 12 26 Z"/>
+      <path d="M12 20 C 20 18, 23 8, 22 0 C 15 1, 11 9, 12 20 Z"/>
+    </g>
+  </svg>
+</aside>
+
+<main id="main" class="page">
+
+  <!-- 01 · The card -->
+  <section class="ch ch-hero" id="hero" data-ch="hero">
+    <div class="stage">
+      <div class="card-area">
+        <span class="hang" id="hang-hero" aria-hidden="true"></span>
+        <img class="hero-logo" src="brand/logo-primary.png" alt="Seed Scent. From scent to sprout." width="2300" height="1600">
+        <p class="hint" id="push-hint"><span class="hint-arrow">↗</span> Give it a push</p>
+        <div class="hero-copy">
+          <p class="kicker">Seed Scent · A plantable car air freshener</p>
+          <h1 class="display" data-split>The air freshener that doesn't end when the scent does.</h1>
+          <p class="lede">A wooden holder, a disc of seed paper, natural essential oils and a plant-based fixative. Hang it, breathe it, then plant the paper.</p>
+          <div class="actions">
+            <a class="pill" href="#firms" data-magnetic>Order for your firm <span class="dot">·</span></a>
+            <a class="pill ghost" href="#drive" data-magnetic>How it works</a>
+          </div>
+        </div>
+        <p class="cue" id="cue">Scroll to drive</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 · The drive -->
+  <section class="ch ch-drive" id="drive" data-ch="drive">
+    <div class="stage">
+      <span class="hang" id="hang-drive" aria-hidden="true"></span>
+      <span class="hang" id="hang-plant" aria-hidden="true"></span>
+      <div class="giant-layer" aria-hidden="true">
+        <p class="giant" data-beat="0">Hang it.</p>
+        <p class="giant" data-beat="1">Breathe.</p>
+        <p class="giant" data-beat="2">It fades.</p>
+        <p class="giant" data-beat="3">Plant it.</p>
+      </div>
+      <ol class="beats">
+        <li class="beat" data-beat="0">
+          <p class="kicker">01 · Hang it</p>
+          <p class="beat-copy">Loop it over the mirror. The holder is wood, the disc is seed paper, and the whole thing weighs almost nothing, so it swings when you corner.</p>
+        </li>
+        <li class="beat" data-beat="1">
+          <p class="kicker">02 · Breathe</p>
+          <p class="beat-copy">Natural essential oils, held in the paper by a plant-based fixative so the scent lasts <span class="ph" data-ph="product.scentDuration">scent duration</span>.</p>
+        </li>
+        <li class="beat" data-beat="2">
+          <p class="kicker">03 · It fades</p>
+          <p class="beat-copy">Every air freshener fades. Most go in the trash. This one is just getting started.</p>
+        </li>
+        <li class="beat" data-beat="3">
+          <p class="kicker">04 · Plant it</p>
+          <p class="beat-copy">Pop the disc out of the holder, tear it up, press it into soil and water it. The paper breaks down and the seeds take over. The holder stays in the car for the next one.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 03 · The sprout -->
+  <section class="ch ch-sprout" id="sprout" data-ch="sprout">
+    <div class="stage">
+      <svg class="sprout-draw" id="sprout-svg" viewBox="0 0 240 520" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path id="stem" d="M120 520 C 118 440, 124 380, 120 300 C 117 250, 122 215, 120 180"/>
+        <path id="leaf-l" d="M120 236 C 86 232, 56 206, 46 164 C 92 160, 122 192, 120 236 Z"/>
+        <path id="leaf-r" d="M120 196 C 154 192, 184 166, 194 124 C 148 120, 118 152, 120 196 Z"/>
+        <path id="vein-l" d="M118 232 C 100 214, 78 196, 58 172"/>
+        <path id="vein-r" d="M122 192 C 140 174, 162 156, 182 132"/>
+        <path id="stem-ext" d="M120 180 C 118 120, 122 60, 120 -40"/>
+      </svg>
+      <div class="sprout-copy">
+        <p class="kicker">From scent to sprout</p>
+        <p class="day"><span class="day-word">Day</span> <span id="day-num">01</span></p>
+        <p class="kicker soft">Wildflower mix · <span class="tbc">sprout time to be confirmed</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 · Three scents -->
+  <section class="ch ch-scents" id="scents" data-ch="scents">
+    <div class="stage">
+      <div class="section-head">
+        <h2 class="display" data-split>Three scents, one happy ending.</h2>
+        <p class="annotation">Same wooden holder. Same seed paper. Same wildflower mix. Three moods for the drive.</p>
+      </div>
+      <div class="hang-row" aria-hidden="true">
+        <span class="hang" data-hang="scent-0"></span>
+        <span class="hang" data-hang="scent-1"></span>
+        <span class="hang" data-hang="scent-2"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="ch ch-cards" id="cards" data-ch="cards">
+    <div class="wrap">
+      <ul class="cards" id="scent-cards">
+        <li class="card" data-scent="0" data-tilt>
+          <span class="ghost-num">01</span>
+          <figure class="card-media"><img class="slot" data-slot="scents.0.image" alt="" hidden><span class="slot-label">[Photo: scent one]</span></figure>
+          <h3 class="card-title"><span class="ph" data-ph="scents.0.name">scent name</span></h3>
+          <p class="card-notes"><span class="ph" data-ph="scents.0.notes">scent notes</span></p>
+          <dl class="card-meta">
+            <div><dt>Pack</dt><dd><span class="ph" data-ph="scents.0.packSize">pack size</span></dd></div>
+            <div><dt>Price</dt><dd><span class="ph price" data-ph="scents.0.price">price</span></dd></div>
+          </dl>
+          <fieldset class="format"><legend class="kicker">Format <span class="tbc">tbc</span></legend>
+            <label><input type="radio" name="format-0" value="mirror" checked> Mirror cord</label>
+            <label><input type="radio" name="format-0" value="vent"> Vent clip</label>
+          </fieldset>
+          <button class="pill small add-to-bag" type="button" data-add="0">Add to bag <span class="dot">·</span></button>
+        </li>
+        <li class="card" data-scent="1" data-tilt>
+          <span class="ghost-num">02</span>
+          <figure class="card-media"><img class="slot" data-slot="scents.1.image" alt="" hidden><span class="slot-label">[Photo: scent two]</span></figure>
+          <h3 class="card-title"><span class="ph" data-ph="scents.1.name">scent name</span></h3>
+          <p class="card-notes"><span class="ph" data-ph="scents.1.notes">scent notes</span></p>
+          <dl class="card-meta">
+            <div><dt>Pack</dt><dd><span class="ph" data-ph="scents.1.packSize">pack size</span></dd></div>
+            <div><dt>Price</dt><dd><span class="ph price" data-ph="scents.1.price">price</span></dd></div>
+          </dl>
+          <fieldset class="format"><legend class="kicker">Format <span class="tbc">tbc</span></legend>
+            <label><input type="radio" name="format-1" value="mirror" checked> Mirror cord</label>
+            <label><input type="radio" name="format-1" value="vent"> Vent clip</label>
+          </fieldset>
+          <button class="pill small add-to-bag" type="button" data-add="1">Add to bag <span class="dot">·</span></button>
+        </li>
+        <li class="card" data-scent="2" data-tilt>
+          <span class="ghost-num">03</span>
+          <figure class="card-media"><img class="slot" data-slot="scents.2.image" alt="" hidden><span class="slot-label">[Photo: scent three]</span></figure>
+          <h3 class="card-title"><span class="ph" data-ph="scents.2.name">scent name</span></h3>
+          <p class="card-notes"><span class="ph" data-ph="scents.2.notes">scent notes</span></p>
+          <dl class="card-meta">
+            <div><dt>Pack</dt><dd><span class="ph" data-ph="scents.2.packSize">pack size</span></dd></div>
+            <div><dt>Price</dt><dd><span class="ph price" data-ph="scents.2.price">price</span></dd></div>
+          </dl>
+          <fieldset class="format"><legend class="kicker">Format <span class="tbc">tbc</span></legend>
+            <label><input type="radio" name="format-2" value="mirror" checked> Mirror cord</label>
+            <label><input type="radio" name="format-2" value="vent"> Vent clip</label>
+          </fieldset>
+          <button class="pill small add-to-bag" type="button" data-add="2">Add to bag <span class="dot">·</span></button>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 05 · What's inside -->
+  <section class="ch ch-inside" id="inside" data-ch="inside">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="display" data-split>What's in the paper.</h2>
+        <p class="annotation">Everything in the disc is meant to end up in the ground. The holder is the only part you keep.</p>
+      </div>
+      <div class="inside-grid">
+        <table class="spec" id="spec">
+          <tbody>
+            <tr><th scope="row">Holder</th><td>Wood, reusable. Refill discs slot in. <span class="tbc">tbc</span></td></tr>
+            <tr><th scope="row">Paper</th><td>Plantable seed paper, <span class="ph" data-ph="product.paperSource">paper source</span></td></tr>
+            <tr><th scope="row">Seeds</th><td>Wildflower mix <span class="tbc" data-tbc="product.seedsConfirmed">tbc</span></td></tr>
+            <tr><th scope="row">Scent</th><td>Natural essential oils</td></tr>
+            <tr><th scope="row">Fixative</th><td><span id="fixative-text">Natural, plant-based</span><span class="ph optional" data-ph="product.fixativeName">ingredient</span></td></tr>
+            <tr><th scope="row">Lasts</th><td><span class="ph" data-ph="product.scentDuration">scent duration</span></td></tr>
+            <tr><th scope="row">After</th><td>Plant it. First sprouts in <span class="ph" data-ph="product.daysToSprout">days to sprout</span></td></tr>
+            <tr><th scope="row">Mounts</th><td>Mirror cord or vent clip <span class="tbc">tbc</span></td></tr>
+            <tr><th scope="row">End of life</th><td>Biodegradable</td></tr>
+          </tbody>
+        </table>
+        <figure class="xsec">
+          <svg id="paper-xsec" viewBox="0 0 600 420" role="img" aria-label="A close-up drawing of seed paper: plant fibre, wildflower seeds and drops of essential oil"></svg>
+          <figcaption class="kicker">Seed paper, up close · fibre, seeds, oil · move your cursor to stir the seeds</figcaption>
+        </figure>
+      </div>
+      <div class="steps-block">
+        <div class="section-head small">
+          <h3 class="display sm" data-split>How to plant it.</h3>
+          <p class="annotation"><span class="tbc" data-tbc="product.plantingConfirmed">Steps are a draft until the team confirms them</span></p>
+        </div>
+        <ol class="steps" id="planting-steps">
+          <li><span class="step-num">01</span><p>Tear the paper into pieces about the size of a coin.</p></li>
+          <li><span class="step-num">02</span><p>Press them into a pot or a patch of soil, no deeper than a fingertip.</p></li>
+          <li><span class="step-num">03</span><p>Water well and keep the soil damp.</p></li>
+          <li><span class="step-num">04</span><p>Give it sun and wait for the first sprouts.</p></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 · For VE firms -->
+  <section class="ch ch-firms" id="firms" data-ch="firms">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="display" data-split>Stock it in your store.</h2>
+        <p class="annotation">Built for firm-to-firm orders inside Virtual Enterprise: bulk tiers, one contact, three ways to buy.</p>
+      </div>
+
+      <div class="tiers-block">
+        <div class="tier-control">
+          <label class="kicker" for="qty-range">How many?</label>
+          <output class="qty-out" id="qty-out" for="qty-range">24</output>
+          <input type="range" id="qty-range" min="1" max="200" value="24" step="1">
+          <p class="kicker soft" id="tier-note">Tier pricing is being finalized.</p>
+        </div>
+        <ol class="tiers" id="tiers">
+          <li class="tier" data-min="1"><span class="tier-qty">1 to 9</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.0.price">price</span> each</span></li>
+          <li class="tier" data-min="10"><span class="tier-qty">10+</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.1.price">price</span> each</span></li>
+          <li class="tier" data-min="50"><span class="tier-qty">50+</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.2.price">price</span> each</span></li>
+          <li class="tier" data-min="100"><span class="tier-qty">100+</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.3.price">price</span> each</span></li>
+        </ol>
+        <dl class="terms">
+          <div><dt>Lead time</dt><dd><span class="ph" data-ph="leadTime">lead time</span></dd></div>
+          <div><dt>Payment</dt><dd><span class="ph" data-ph="paymentTerms">payment terms</span></dd></div>
+        </dl>
+      </div>
+
+      <div class="ways">
+        <article class="way">
+          <p class="kicker">01 · Request an order</p>
+          <h3 class="way-title">Tell us what you need and we'll confirm it by email.</h3>
+          <form class="order-form" id="order-form" novalidate>
+            <div class="field"><label for="f-firm">Your firm</label><input id="f-firm" name="firm" type="text" autocomplete="organization" required></div>
+            <div class="field"><label for="f-name">Contact name</label><input id="f-name" name="name" type="text" autocomplete="name" required></div>
+            <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
+            <div class="field-row">
+              <div class="field"><label for="f-scent">Scent</label>
+                <select id="f-scent" name="scent">
+                  <option value="mix">A mix of all three</option>
+                  <option value="0">Scent one</option>
+                  <option value="1">Scent two</option>
+                  <option value="2">Scent three</option>
+                </select>
+              </div>
+              <div class="field"><label for="f-qty">Quantity</label><input id="f-qty" name="qty" type="number" min="1" max="10000" value="24" required></div>
+            </div>
+            <div class="field"><label for="f-notes">Notes</label><textarea id="f-notes" name="notes" rows="3" placeholder="Format, delivery date, anything else"></textarea></div>
+            <div class="form-actions">
+              <button class="pill" type="submit" data-magnetic>Send request <span class="dot">·</span></button>
+              <p class="kicker soft form-note">Opens an email to <span class="ph" data-ph="contact.email">contact email</span></p>
+            </div>
+            <div class="form-summary" id="form-summary" hidden></div>
+          </form>
+        </article>
+        <article class="way">
+          <p class="kicker">02 · VE marketplace</p>
+          <h3 class="way-title">Already shopping on the marketplace? Find us there.</h3>
+          <a class="pill" id="marketplace-link" href="#" data-magnetic>Shop on the VE marketplace <span class="dot">·</span></a>
+          <p class="kicker soft"><span class="ph" data-ph="marketplaceUrl">marketplace link</span></p>
+        </article>
+        <article class="way">
+          <p class="kicker">03 · Order here</p>
+          <h3 class="way-title">Add scents to your bag and check out on this site.</h3>
+          <button class="pill" type="button" id="open-bag" data-magnetic>Open the bag <span class="dot">·</span></button>
+          <p class="kicker soft">Bulk tiers apply automatically.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 · About -->
+  <section class="ch ch-about" id="about" data-ch="about">
+    <div class="wrap">
+      <p class="kicker">About Seed Scent</p>
+      <blockquote class="mission display sm" data-split>At Seed Scent, our mission is to redefine everyday freshness by creating innovative, plantable air fresheners that reduce waste, inspire sustainable choices, and turn small everyday actions into lasting environmental impact.</blockquote>
+      <div class="about-meta">
+        <p class="kicker"><span class="ph" data-ph="school.name">school</span> · <span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></p>
+        <p class="about-copy">We're a student-run Virtual Enterprise firm. Every part of the company, from the paper to this page, is run by the team. <a class="text-link" href="team.html">Meet the team</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 · The business card -->
+  <section class="ch ch-finale" id="contact" data-ch="finale">
+    <div class="wrap">
+      <div class="biz-card">
+        <span class="reg tl">+</span><span class="reg tr">+</span><span class="reg bl">+</span><span class="reg br">+</span>
+        <span class="hang" id="hang-finale" aria-hidden="true"></span>
+        <div class="biz-copy">
+          <p class="biz-name">Seed Scent</p>
+          <p class="biz-tag">from scent to sprout.</p>
+          <dl class="biz-rows">
+            <div><dt>Email</dt><dd><span class="ph" data-ph="contact.email">contact email</span></dd></div>
+            <div><dt>School</dt><dd><span class="ph" data-ph="school.name">school</span></dd></div>
+            <div><dt>Where</dt><dd><span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></dd></div>
+            <div><dt>Social</dt><dd><span class="ph" data-ph="contact.instagram">instagram</span></dd></div>
+          </dl>
+          <a class="pill" href="#firms" data-magnetic>Order <span class="dot">·</span></a>
+        </div>
+      </div>
+      <footer class="footer">
+        <p>A Virtual Enterprise company</p>
+        <p><span class="ph" data-ph="school.name">school</span> · <span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></p>
+        <p>Smells great. Leaves eventually.</p>
+      </footer>
+    </div>
+  </section>
+</main>
+
+<!-- Bag drawer -->
+<aside class="bag" id="bag" aria-hidden="true" aria-label="Your bag">
+  <div class="bag-head">
+    <p class="kicker">Your bag</p>
+    <button class="text-btn" id="bag-close" type="button">Close</button>
+  </div>
+  <ul class="bag-lines" id="bag-lines"></ul>
+  <p class="bag-empty" id="bag-empty">Nothing in the bag yet.</p>
+  <div class="bag-foot">
+    <dl class="bag-totals">
+      <div><dt>Units</dt><dd id="bag-units">0</dd></div>
+      <div><dt>Tier</dt><dd id="bag-tier">1 to 9</dd></div>
+      <div><dt>Total</dt><dd id="bag-total">[TOTAL]</dd></div>
+    </dl>
+    <a class="pill" href="checkout.html" id="bag-checkout" data-magnetic>Check out <span class="dot">·</span></a>
+  </div>
+</aside>
+<div class="scrim" id="scrim" hidden></div>
+
+<noscript><p class="noscript">This site needs JavaScript for the moving parts. The text and order details still work without it.</p></noscript>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

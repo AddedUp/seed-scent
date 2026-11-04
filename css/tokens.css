@@ -1,0 +1,44 @@
+/* Seed Scent design tokens. Colors are the four from the brand deck; the
+   extra entries are tints of those four, never new hues. */
+:root {
+  --paper: #fbf6e5;   /* cream: page background */
+  --ink:   #203419;   /* deep forest: logo, text, buttons, soil */
+  --moss:  #587541;   /* headings, tagline, links, marks */
+  --sage:  #a8c88f;   /* the card surface, alternate sections */
+
+  --paper-2: #f3ebd3; /* darker cream tint: cards, seed paper */
+  --paper-3: #e9dfc0; /* deeper cream: borders, rules */
+  --sage-2:  #c2d8b1; /* lighter sage: hover, chips on sage */
+  --sage-3:  #8fb376; /* deeper sage: rules on sage */
+  --moss-2:  #4a6336; /* moss hover */
+  --ink-2:   #172610; /* soil depth */
+
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-punch: "Sniglet", "Fraunces", Georgia, serif;
+  --font-body: "Hanken Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
+
+  --display-settings: "SOFT" 100, "opsz" 144;
+
+  --radius: 28px;
+  --radius-sm: 16px;
+  --pill: 999px;
+
+  --nav-h: 76px;
+  --gutter: clamp(20px, 3.2vw, 48px);
+  --card-inset: 22px;
+
+  --hang-x: 64vw;      /* where the paper hangs during the drive chapter */
+  --horizon: 44vh;     /* soil line during the planting and sprout beats */
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-4: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@media (max-width: 760px) {
+  :root {
+    --nav-h: 64px;
+    --card-inset: 12px;
+    --hang-x: 68vw;
+    --horizon: 48vh;
+  }
+}

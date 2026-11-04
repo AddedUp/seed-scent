@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "seed-scent",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "3001", "--bind", "127.0.0.1"],
+      "port": 3001
+    }
+  ]
+}
