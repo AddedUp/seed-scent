@@ -1,0 +1,159 @@
+/* ==========================================================================
+   Seed Scent · the bag drawer's lines, the quantity stepper, checkout.html
+   Builds on site.css: same tokens, same chips, same pills.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Utility
+   -------------------------------------------------------------------------- */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Lines (the drawer and the checkout summary share the template)
+   -------------------------------------------------------------------------- */
+.bag[data-lenis-prevent] .bag-lines { overscroll-behavior: contain; }
+.bag-line { grid-template-columns: 1fr auto; align-items: start; }
+.line-head { display: grid; gap: 4px; min-width: 0; }
+.line-name {
+  font-family: var(--font-display); font-variation-settings: var(--display-settings);
+  font-weight: 700; font-size: 20px; line-height: 1.15; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.line-format {
+  font: 500 11px/1.5 var(--font-body); letter-spacing: .09em; text-transform: uppercase;
+  color: var(--moss);
+}
+.line-price {
+  font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 1.15;
+  text-align: right; font-variant-numeric: tabular-nums; color: var(--ink);
+  padding-top: 2px;
+}
+.line-name .ph, .line-price .ph, .bag-totals dd .ph { font-size: 10px; }
+
+/* stepper */
+.qty { display: inline-flex; align-items: center; gap: 4px; align-self: center; }
+.qty-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: inline-grid; place-items: center;
+  background: var(--paper-2); color: var(--ink);
+  transition: background .25s, opacity .25s;
+}
+.qty-btn:hover { background: var(--sage-2); }
+.qty-btn:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+.qty-btn:disabled { opacity: .3; cursor: default; background: var(--paper-2); }
+.qty-btn svg { width: 12px; height: 12px; }
+.qty-num {
+  width: 52px; text-align: center; padding: 4px 0;
+  border: 0; border-bottom: 1.5px solid transparent; border-radius: 0; background: transparent;
+  font: 700 18px/1 var(--font-display); font-variation-settings: var(--display-settings);
+  color: var(--ink); font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.qty-num::-webkit-outer-spin-button, .qty-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.qty-num:focus { outline: none; border-bottom-color: var(--moss); }
+
+.line-remove {
+  justify-self: end; align-self: center;
+  font: 500 11px/1.5 var(--font-body); letter-spacing: .09em; text-transform: uppercase;
+  color: var(--moss); padding: 6px 0; border-bottom: 1px dotted transparent;
+  transition: color .25s, border-color .25s;
+}
+.line-remove:hover { color: var(--moss-2); border-bottom-color: currentColor; }
+.line-remove:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; border-radius: 4px; }
+
+/* --------------------------------------------------------------------------
+   The drawer's extras
+   -------------------------------------------------------------------------- */
+.bag-lines:empty { display: none; }
+.bag .bag-empty { flex: 1; }          /* keeps the totals and the button at the bottom while the bag is empty */
+.bag-empty[hidden] { display: none; }
+.bag-foot .pill { justify-content: center; }
+.bag-note { text-align: center; }
+.add-to-bag.is-added { background: var(--moss); }
+
+/* --------------------------------------------------------------------------
+   checkout.html
+   -------------------------------------------------------------------------- */
+body.co { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; }
+.co-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  height: var(--nav-h); padding: 0 var(--gutter); color: var(--fg);
+}
+.co-nav .text-btn { text-decoration: none; }
+
+.co-page { flex: 1; width: 100%; padding-top: clamp(20px, 4vh, 48px); padding-bottom: 6vh; }
+.co-head { margin-bottom: 5vh; }
+.co-head .kicker { margin-bottom: 14px; }
+.co-head .display { max-width: 14ch; }
+
+.co-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px; align-items: start; }
+.co-panel { position: relative; border-radius: var(--radius); padding: 30px; background: var(--paper-2); }
+.co-panel-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 10px; }
+.co-panel-head .text-btn { text-decoration: none; padding: 4px 0; }
+
+/* the order sits on the sage card, with the registration marks from the brand deck */
+.co-summary { background: var(--sage); color: var(--ink); padding: 34px 30px 30px; }
+.co-summary .reg { color: var(--ink); opacity: .55; }
+.co-summary .text-btn, .co-summary .text-link { color: var(--ink); }
+.co-summary .line-format, .co-summary .line-remove, .co-summary .bag-totals dt { color: var(--ink); opacity: .72; }
+.co-summary .line-remove:hover { opacity: 1; }
+.co-summary .ph { color: var(--ink); border-color: var(--ink); }
+.co-summary .bag-line { border-top-color: var(--sage-3); }
+.co-summary .qty-btn { background: var(--sage-2); }
+.co-summary .qty-btn:hover { background: var(--paper); }
+.co-summary .qty-btn:disabled { background: var(--sage-2); }
+.co-summary .qty-num:focus { border-bottom-color: var(--ink); }
+.co-summary .qty-btn:focus-visible, .co-summary .line-remove:focus-visible { outline-color: var(--ink); }
+.co-summary .bag-empty { margin: 10px 0 4px; opacity: .9; }
+.co-totals {
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--sage-3); padding-top: 18px; margin-top: 8px;
+}
+
+/* the firm form */
+.co-details .kicker { margin-bottom: 8px; }
+.co-form { display: grid; gap: 18px; margin-top: 12px; }
+.co-final { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 6px; }
+.co-note { max-width: 34ch; }
+.co-error { color: var(--moss-2); }
+.co-error[hidden] { display: none; }
+.co-form .field textarea { resize: vertical; min-height: 72px; }
+
+.co-result {
+  margin-top: 24px; padding: 20px 22px; border-radius: var(--radius-sm);
+  background: var(--paper); display: grid; gap: 14px;
+}
+.co-result[hidden] { display: none; }
+.co-order { white-space: pre-wrap; font: 400 14px/1.55 var(--font-body); color: var(--ink); margin: 0; }
+.co-result-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.co-result-note { max-width: 44ch; }
+
+/* how the last step is configured */
+.co-how { margin-top: 7vh; max-width: 64ch; display: grid; gap: 10px; }
+.co-how p:not(.kicker) { font-size: 16px; line-height: 1.6; }
+.co-how code {
+  font: 500 .86em/1 var(--font-body); color: var(--moss-2);
+  background: var(--paper-2); border-radius: 6px; padding: 2px 5px;
+}
+.co-footer { margin-top: 8vh; padding: 28px 0 0; border-top: 1px solid var(--paper-3); }
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .co-grid { grid-template-columns: 1fr; }
+  .co-panel, .co-summary { padding: 24px 22px; }
+  .co-totals { grid-template-columns: 1fr 1fr; gap: 16px 10px; }
+  .co-head .display { max-width: none; }
+}
+@media (max-width: 560px) {
+  .line-name { font-size: 18px; }
+  .bag-totals dd { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qty-btn, .line-remove, .add-to-bag { transition: none; }
+}

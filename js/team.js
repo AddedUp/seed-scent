@@ -112,14 +112,24 @@ fillSlots()
 initMagnetic()
 initMotionToggle()
 initBagLink()
-initSplit()
 initTilt(cards)
 initReveal(cards)
+
+/* Split the headings once the fonts are in, so the lines are measured in
+   Fraunces and SplitText does not warn. The headings hide for those few
+   milliseconds so the reveal is the first thing you see. */
+const splitEls = [...document.querySelectorAll('[data-split]')]
+if (!prefersReduced) splitEls.forEach(el => { el.style.visibility = 'hidden' })
+const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve()
+fontsReady.then(() => {
+  splitEls.forEach(el => { el.style.visibility = '' })
+  initSplit()
+  ScrollTrigger.refresh()
+})
 
 const refresh = () => ScrollTrigger.refresh()
 addEventListener('load', refresh)
 addEventListener('resize', refresh)
-document.fonts && document.fonts.ready.then(refresh)
 
 /* ---------- numbers for verification ---------- */
 window.__team = {

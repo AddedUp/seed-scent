@@ -240,6 +240,7 @@ function bindPointer() {
     if (e.target.closest('a, button, input, select, textarea, label, .bag')) return
     pointerToWorld(e)
     const h = hitHanger()
+    stats.lastDown = { x: e.clientX, y: e.clientY, hit: !!h, target: e.target.tagName + (e.target.className ? '.' + e.target.className : ''), type: e.pointerType }
     if (!h) return
     e.preventDefault()
     grab.held = h
@@ -264,6 +265,8 @@ function bindPointer() {
     document.body.style.cursor = cursor.over ? 'grab' : ''
     lenis && lenis.start()
   }
+  // while a finger holds the pendant, the page must not scroll under it
+  addEventListener('touchmove', e => { if (grab.held) e.preventDefault() }, { passive: false })
   addEventListener('pointerup', release)
   addEventListener('pointercancel', release)
   addEventListener('blur', release)

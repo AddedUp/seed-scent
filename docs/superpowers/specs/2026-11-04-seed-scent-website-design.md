@@ -320,7 +320,27 @@ replaces the placeholder with no code change.
    script with wifi off.
 8. Placeholder report generated and handed over.
 
-## 11. Open assumptions to confirm
+## 11. Build log (what changed after approval)
+
+- **The product is not the S.** During the build the owner shared two mockups: a
+  round walnut wood holder with a seed paper disc inside, hanging from the mirror on
+  a jute cord with a wooden bead, and a vent-clip version with a ring of holes. The 3D
+  object is now that pendant (ring, paper disc, cord, bead), built procedurally. The
+  logo stays printed beside it in the hero and as the mark printed on the paper disc.
+- **The story adapted:** on "Plant it" the disc pops out of the holder and sinks
+  into the soil; the holder stays (refills slot in). Copy and the spec table say so,
+  with "tbc" chips on the holder, refill and vent-clip claims until the team confirms.
+- **Photos:** eight product photos were generated to match the mockups and live in
+  `images/` (mirror hanger, studio shots, vent clip, refill flat lay, sprouting pot,
+  a seed paper macro used as the 3D paper texture, and a three-scents row that is
+  not shown because it would imply lavender, orange and mint as the scents).
+- **Chapter model:** each chapter has `enter` (its stage arriving while the previous
+  one leaves) and `pin` (its stage pinned). Transitions run on `enter`, content on
+  `pin`, so chapters tile the page with no gaps and every cut has both frames on screen.
+- **Hero tuning:** paper and wood are light, so the cursor is a small ball, speeds
+  are capped, and a big jump of a hang point snaps the chain instead of tearing it.
+
+## 12. Open assumptions to confirm
 
 - The S-shaped tag stands in for the product in 3D until photos arrive (one
   mask file to swap).

@@ -72,7 +72,8 @@ export function initChips() {
     el.className = 'chip'
     const name = s.name ? s.name : `<span class="ph">scent name</span>`
     const price = s.price != null ? money(s.price) : `<span class="ph">price</span>`
-    el.innerHTML = `${String(i + 1).padStart(2, '0')} · ${name} · ${price}`
+    const compact = innerWidth < 760
+    el.innerHTML = compact ? `${String(i + 1).padStart(2, '0')} · ${name}` : `${String(i + 1).padStart(2, '0')} · ${name} · ${price}`
     dom.labels.appendChild(el)
     return el
   })
@@ -146,7 +147,8 @@ export function update(dt, time) {
   }
   const soilY = -WORLD_H / 2 + soil * WORLD_H
   soilPlane.constant = -soilY + (soil <= 0 ? 100 : 0)
-  setTheme(soil > 0.55 ? 'soil' : 'cream')
+  // the nav lives at the top edge, so the page reads as "soil" only once the soil reaches it
+  setTheme(soil > 0.93 ? 'soil' : 'cream')
 
   /* --- the sprout draws while its stage is pinned --- */
   const sp = dom.sprout, s = sprout.pin
@@ -159,7 +161,7 @@ export function update(dt, time) {
     // the stem keeps growing into a string as the stage leaves and the scents arrive
     const ext = Math.max(smoothstep(0.7, 1, s), smoothstep(0, 0.6, scents.enter) * (scents.local > 0 ? 1 : 0))
     setDraw(sp.ext, ext)
-    sp.ext.style.stroke = soil > 0.5 ? '' : '#b59a6b'
+    sp.ext.style.stroke = soil > 0.93 ? '' : '#b59a6b'
     const day = 1 + Math.round(13 * smoothstep(0.02, 0.86, s))
     const dayStr = String(day).padStart(2, '0')
     if (sp.day.textContent !== dayStr) sp.day.textContent = dayStr

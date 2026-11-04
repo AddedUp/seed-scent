@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { renderer, scene, camera, rig, woodTexture, paperTexture, loadImage, view } from './scene.js'
 import { initPhysics, Hanger, step as physicsStep, hangers, tune, stats, grab } from './physics.js'
 import { buildChapters, updateChapters, readScroll, scroll, motion, lenis, chapters, ch } from './scroll.js'
-import { fillPlaceholders, fillSlots, initSplit, initMagnetic, initAnchors, initHint, initMotionToggle } from './ui.js'
+import { fillPlaceholders, fillSlots, initSplit, initMagnetic, initAnchors, initHint, initMotionToggle, initMenu } from './ui.js'
 import * as chap from './chapters.js'
 
 /* ---------- shell ---------- */
@@ -13,6 +13,7 @@ initAnchors()
 initMagnetic()
 initHint()
 initMotionToggle()
+initMenu()
 initSplit()
 
 /* chapter ranges from the live layout */
@@ -24,7 +25,8 @@ document.fonts && document.fonts.ready.then(() => { layout(); ScrollTrigger.refr
 
 /* ---------- scene + physics ---------- */
 const isSmall = Math.min(innerWidth, innerHeight) < 700
-const scale = isSmall ? 0.78 : 1
+const scale = isSmall ? 0.62 : 1
+const ropes = isSmall ? { hero: 1.9, scents: 2.6, finale: 2.0 } : { hero: 2.5, scents: 3.3, finale: 2.4 }
 
 let ready = false
 async function boot() {
@@ -39,13 +41,13 @@ async function boot() {
   const paper2 = paperTexture({ markImg, photo, seed: 11 })
   const paper3 = paperTexture({ markImg, photo, seed: 19 })
 
-  chap.H.hero = new Hanger({ name: 'hero', R: 1.35 * scale, L: 2.5, segs: 8, textures: { wood, paper, paperFaded } })
+  chap.H.hero = new Hanger({ name: 'hero', R: 1.35 * scale, L: ropes.hero, segs: 8, textures: { wood, paper, paperFaded } })
   chap.H.scents = [
-    new Hanger({ name: 'scent-0', R: 1.05 * scale, L: 3.3, segs: 7, textures: { wood, paper } }),
-    new Hanger({ name: 'scent-1', R: 1.05 * scale, L: 3.3, segs: 7, textures: { wood, paper: paper2 } }),
-    new Hanger({ name: 'scent-2', R: 1.05 * scale, L: 3.3, segs: 7, textures: { wood, paper: paper3 } }),
+    new Hanger({ name: 'scent-0', R: 1.05 * scale, L: ropes.scents, segs: 7, textures: { wood, paper } }),
+    new Hanger({ name: 'scent-1', R: 1.05 * scale, L: ropes.scents, segs: 7, textures: { wood, paper: paper2 } }),
+    new Hanger({ name: 'scent-2', R: 1.05 * scale, L: ropes.scents, segs: 7, textures: { wood, paper: paper3 } }),
   ]
-  chap.H.finale = new Hanger({ name: 'finale', R: 1.2 * scale, L: 2.4, segs: 8, textures: { wood, paper } })
+  chap.H.finale = new Hanger({ name: 'finale', R: 1.2 * scale, L: ropes.finale, segs: 8, textures: { wood, paper } })
   // the planted disc sinks below the soil surface
   const clip = m => { if (m) m.clippingPlanes = [chap.soilPlane] }
   chap.H.hero.disc.material.forEach(clip)
@@ -59,6 +61,7 @@ boot().catch(err => { console.error('[seed scent] scene failed to start', err); 
 /* ---------- one loop ---------- */
 let last = performance.now()
 let frames = 0
+let kicked = false
 gsap.ticker.add(() => {
   const now = performance.now()
   const dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000))
@@ -69,6 +72,11 @@ gsap.ticker.add(() => {
   if (!ready) return
   const t = now / 1000
   chap.update(dt, t)
+  // the first thing the visitor sees is a pendant already in motion, as if just hung up
+  if (!kicked && chap.H.hero && chap.H.hero.enabled) {
+    kicked = true
+    if (motion.active) chap.H.hero.body.applyImpulse({ x: 1.6 * chap.H.hero.mass, y: 0, z: 0.6 * chap.H.hero.mass }, true)
+  }
   physicsStep(dt, { vel: scroll.vel, active: motion.active })
   chap.afterPhysics(dt, t)
   renderer.render(scene, camera)

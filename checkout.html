@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check out · Seed Scent</title>
+<meta name="description" content="Check out your Seed Scent order: a plantable car air freshener for your Virtual Enterprise store. Bulk tiers apply automatically.">
+<meta name="theme-color" content="#fbf6e5">
+<link rel="icon" type="image/png" href="brand/favicon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/cart.css">
+<!-- Everything is served locally so the site works offline on a booth laptop. -->
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/SplitText.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "@dimforge/rapier3d-compat": "./vendor/rapier.es.js" } }
+</script>
+<script src="js/config.js"></script>
+</head>
+<body class="co" data-theme="cream">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="co-nav">
+  <a class="brand" href="index.html" aria-label="Seed Scent, back to the site">
+    <img class="brand-mark" src="brand/mark-ss.png" alt="">
+    <span class="brand-name">Seed Scent</span>
+  </a>
+  <a class="text-btn" href="index.html#firms">Back to the site</a>
+</header>
+
+<main id="main" class="co-page wrap">
+  <div class="section-head co-head">
+    <div>
+      <p class="kicker">Checkout · firm to firm</p>
+      <h1 class="display">Check out.</h1>
+    </div>
+    <p class="annotation">Fix the quantities on the left. Tell us who you are on the right. The bulk tier sorts itself out.</p>
+  </div>
+
+  <div class="co-grid">
+    <!-- Left: the order, on the card -->
+    <section class="co-panel co-summary" aria-labelledby="co-summary-title">
+      <span class="reg tl">+</span><span class="reg tr">+</span><span class="reg bl">+</span><span class="reg br">+</span>
+      <div class="co-panel-head">
+        <h2 class="kicker" id="co-summary-title">Your order</h2>
+        <a class="text-btn" id="co-add-more" href="index.html#scents">Add more</a>
+      </div>
+      <ul class="bag-lines" id="co-lines"></ul>
+      <p class="bag-empty" id="co-empty">Nothing in the bag yet. <a class="text-link" href="index.html#scents">Pick a scent</a> and come back.</p>
+      <dl class="bag-totals co-totals">
+        <div><dt>Units</dt><dd id="co-units">0</dd></div>
+        <div><dt>Tier</dt><dd id="co-tier">1 to 9</dd></div>
+        <div><dt>Each</dt><dd id="co-each"><span class="ph">price</span></dd></div>
+        <div><dt>Total</dt><dd id="co-total"><span class="ph">total</span></dd></div>
+      </dl>
+    </section>
+
+    <!-- Right: who is ordering -->
+    <section class="co-panel co-details" aria-labelledby="co-details-title">
+      <h2 class="kicker" id="co-details-title">Your firm</h2>
+      <form class="co-form" id="co-form" novalidate>
+        <div class="field"><label for="co-firm">Firm</label><input id="co-firm" name="firm" type="text" autocomplete="organization" required></div>
+        <div class="field-row">
+          <div class="field"><label for="co-name">Contact name</label><input id="co-name" name="contact" type="text" autocomplete="name" required></div>
+          <div class="field"><label for="co-email">Email</label><input id="co-email" name="email" type="email" autocomplete="email" required></div>
+        </div>
+        <div class="field"><label for="co-account">VE account or firm ID <span class="tbc">if you have one</span></label><input id="co-account" name="account" type="text" autocomplete="off"></div>
+        <div class="field"><label for="co-notes">Delivery notes</label><textarea id="co-notes" name="notes" rows="3" placeholder="Where it should go, when you need it, anything else"></textarea></div>
+        <div class="co-final" id="co-final"></div>
+        <p class="kicker soft co-error" id="co-error" role="alert" hidden></p>
+      </form>
+
+      <section class="co-result" id="co-result" aria-live="polite" aria-labelledby="co-result-title" hidden>
+        <p class="kicker" id="co-result-title">Your order, written out</p>
+        <pre class="co-order" id="co-order"></pre>
+        <div class="co-result-actions">
+          <button class="pill ghost small" type="button" id="co-copy">Copy order <span class="dot">·</span></button>
+          <p class="kicker soft co-result-note" id="co-result-note"></p>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <aside class="co-how" aria-labelledby="co-how-title">
+    <p class="kicker" id="co-how-title">How this works</p>
+    <p>Your bag lives in this browser. Nothing leaves the page until you press the button.</p>
+    <p>The last step is set in <code>js/config.js</code> under <code>checkout.mode</code>, currently <code id="co-mode">email</code>. With <code>email</code>, the order opens as a prefilled email to the contact address and stays written out on screen. Switch to <code>marketplace</code> to send buyers to your store on the VE marketplace, or <code>gateway</code> to post the order to the URL VE gives you.</p>
+  </aside>
+
+  <footer class="footer co-footer">
+    <p>A Virtual Enterprise company</p>
+    <p>Smells great. Leaves eventually.</p>
+  </footer>
+</main>
+
+<noscript><p class="noscript">This page needs JavaScript to read your bag. Email the team with your order instead.</p></noscript>
+
+<script type="module" src="js/cart.js"></script>
+</body>
+</html>

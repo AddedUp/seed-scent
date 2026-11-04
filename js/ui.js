@@ -28,6 +28,7 @@ export function fillPlaceholders() {
     el.removeAttribute('data-ph')
   })
   document.querySelectorAll('[data-tbc]').forEach(el => { if (cfg(el.dataset.tbc) === true) el.hidden = true })
+  document.querySelectorAll('.tbc').forEach(el => { if (!el.title) el.title = 'To be confirmed by the team' })
 
   const mp = document.getElementById('marketplace-link')
   if (mp) {
@@ -117,6 +118,15 @@ export function initHint() {
   const t = setTimeout(() => { if (!matchMedia('(pointer: coarse)').matches) { hint.classList.add('show'); shown = true } }, 1800)
   addEventListener('pendant:interact', () => { clearTimeout(t); hint.classList.remove('show') }, { once: true })
   addEventListener('scroll', () => { if (shown && scrollY > innerHeight * 0.3) hint.classList.remove('show') }, { passive: true })
+}
+
+export function initMenu() {
+  const btn = document.getElementById('menu-toggle'), nav = document.getElementById('nav')
+  if (!btn || !nav) return
+  const set = open => { nav.classList.toggle('menu-open', open); btn.setAttribute('aria-expanded', String(open)) }
+  btn.addEventListener('click', () => set(!nav.classList.contains('menu-open')))
+  nav.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => set(false)))
+  addEventListener('keydown', e => { if (e.key === 'Escape') set(false) })
 }
 
 export function initMotionToggle() {
