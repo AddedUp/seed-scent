@@ -1,0 +1,75 @@
+/* ==========================================================================
+   Seed Scent · team page
+   Only what team.html needs. The shell (nav, type, pills, cards, footer)
+   comes from site.css; every color is a token from tokens.css.
+   ========================================================================== */
+
+.team-page { padding-bottom: 36px; }
+
+/* --------------------------------------------------------------------------
+   Header card: the home hero's sage panel, placed in the page flow
+   -------------------------------------------------------------------------- */
+.team-hero {
+  position: relative;
+  margin: calc(var(--nav-h) + 6px) var(--card-inset) 0;
+  min-height: min(68vh, 640px);
+  padding: clamp(26px, 4vw, 56px);
+  background: var(--sage);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 48px;
+}
+.team-hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+.team-hero-top .kicker { padding-top: 8px; }
+.team-hero-logo { width: clamp(120px, 13vw, 200px); height: auto; flex: 0 0 auto; }
+/* ink on sage, per the brand readability rules */
+.team-hero .kicker, .team-hero .annotation { color: var(--ink); }
+.team-hero .kicker { opacity: .8; }
+.team-hero .ph { color: var(--ink); border-color: var(--ink); }
+.team-hero-copy { display: grid; gap: 18px; max-width: min(760px, 72%); }
+.team-hero-copy .annotation { max-width: none; }
+
+/* --------------------------------------------------------------------------
+   Team cards (the .card look from the home page, portrait photo slot)
+   -------------------------------------------------------------------------- */
+.team-sec .wrap { padding-top: 9vh; padding-bottom: 4vh; }
+.team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.team-card { display: flex; flex-direction: column; }
+.team-card .ghost-num { top: auto; right: -12px; bottom: -44px; font-size: 170px; }
+.team-card .card-media { height: auto; aspect-ratio: 4 / 5; margin-bottom: 20px; }
+.team-card .card-title { font-size: 26px; margin-bottom: 10px; }
+.team-role { margin-bottom: 12px; }
+.team-role .ph { font-size: 10px; }
+.team-bio { font-size: 16px; line-height: 1.5; opacity: .85; }
+.team-note { margin-top: 28px; }
+.team-note[hidden] { display: none; }
+.team-empty { grid-column: 1 / -1; }
+
+/* --------------------------------------------------------------------------
+   How we work: three fragments on moss rules, like the planting steps
+   -------------------------------------------------------------------------- */
+.how-sec .wrap { padding-top: 10vh; padding-bottom: 10vh; }
+.how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.how li { border-top: 1.5px solid var(--moss); padding-top: 18px; }
+.how li p:last-child { margin-top: 10px; font-size: 18px; line-height: 1.45; max-width: 30ch; }
+
+.team-foot { padding-bottom: 8px; }
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .team-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .how { gap: 22px; }
+}
+@media (max-width: 900px) {
+  .team-hero { min-height: 0; gap: 64px; }
+  .team-hero-copy { max-width: none; }
+  .team-hero-logo { width: 112px; }
+  .how { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .team-grid { grid-template-columns: 1fr; }
+  .team-card .card-media { aspect-ratio: 1 / 1; }
+  .team-card .ghost-num { font-size: 150px; bottom: -38px; }
+}

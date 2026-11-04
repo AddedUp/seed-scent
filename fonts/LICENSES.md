@@ -10,9 +10,11 @@ can be copied, hosted and handed over without buying or sharing licences.
 | Kawaii RT | Sniglet (400 and 800) | a few single-word punches | `sniglet-normal-400.woff2`, `sniglet-normal-800.woff2` |
 | HK Gothic | Hanken Grotesk (variable, weights 300 to 800) | body text and the small uppercase labels | `hanken-normal-300-800.woff2` |
 
-`fonts.css` declares the three families. `fraunces.css`, `sniglet.css` and
-`hanken.css` are the original stylesheets the files were taken from, kept for
-reference.
+`fonts.css` is the stylesheet the site loads; it points only at the .woff2
+files in this folder, so the fonts work offline. `fraunces.css`, `sniglet.css`
+and `hanken.css` are the stylesheets Google Fonts serves for each family,
+kept for reference. They point at Google's servers and the site does not
+load them.
 
 ## Licence
 
@@ -22,7 +24,7 @@ All three fonts are published under the SIL Open Font License, Version 1.1
 - Fraunces: https://fonts.google.com/specimen/Fraunces (licence on the About tab)
 - Sniglet: https://fonts.google.com/specimen/Sniglet
 - Hanken Grotesk: https://fonts.google.com/specimen/Hanken+Grotesk
-- The OFL 1.1 text: https://openfontlicense.org/open-font-license-official-text/
+- The OFL 1.1 text: https://openfontlicense.org/open-font-license-official-text/ (also at https://scripts.sil.org/OFL)
 
 In plain words, the OFL lets us:
 

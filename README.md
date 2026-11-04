@@ -70,9 +70,10 @@ Rules of the file:
 What each field does:
 
 **brand**
-- `name`: the company name as written on the site.
+- `name`: the company name.
 - `tagline`: the small line under the name. Keep the period.
-- `descriptor`: the one-line description used in the hero kicker.
+- `descriptor`: a one-line description of the product.
+- Note: the home page has these three typeset into its design, so editing them here does not rewrite the home page. They live here so every page and future edit agrees on the spelling.
 
 **contact**
 - `email`: where the order-request form and the email checkout send orders. The single most important field.
@@ -104,19 +105,19 @@ What each field does:
 - `price`: price for one unit, as a number.
 - `packSize`: what one unit is, for example "1 disc and holder" or "3 refill discs".
 - `image`: the photo file for this scent's card. See section 3.
-- `accent`: which brand colour tints this scent's 3D tag: `"ink"`, `"moss"` or `"sage"`.
+- `accent`: a brand colour name for the scent, `"ink"`, `"moss"` or `"sage"`, kept with the scent so anything that colour-codes the three agrees on it.
 
 **bulkTiers** (four entries, for firm orders)
 - `min`: the quantity where this tier starts. Leave as is unless the tiers change.
-- `label`: the text shown for the tier, for example "10+".
-- `price`: the per-unit price at that quantity, as a number.
+- `label`: the text for the tier, for example "10+". The home page tier list is typeset to match these four (1 to 9, 10+, 50+, 100+), so if the tiers themselves change, the words in `index.html` need changing too.
+- `price`: the per-unit price at that quantity, as a number. This is the value the dashed `[ PRICE ]` chips are waiting for.
 
 **leadTime**: how long an order takes, for example "Ships in 5 school days".
 
 **paymentTerms**: how firms pay, for example "Invoice through the VE bank".
 
 **product**
-- `seeds`: what is in the paper. Currently "wildflower mix".
+- `seeds`: what is in the paper. Currently "wildflower mix". The home page has those words typeset, so if the mix changes, the words in `index.html` need changing too.
 - `seedsConfirmed`: set to `true` once the seed mix is final. Removes the "tbc" tag next to it.
 - `scentDuration`: how long the scent lasts, for example "about three weeks".
 - `daysToSprout`: how long until the first sprouts, for example "7 to 14 days".

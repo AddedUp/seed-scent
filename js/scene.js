@@ -88,19 +88,26 @@ export function woodTexture() {
 }
 
 /* seed paper: cream sheet, fibre flecks, seeds, the brand mark printed in the middle */
-export function paperTexture({ markImg, faded = false, seed = 3 } = {}) {
+export function paperTexture({ markImg, photo = null, faded = false, seed = 3 } = {}) {
   const S = 1024, c = makeCanvas(S, S), g = c.getContext('2d'), r = rnd(seed)
   g.fillStyle = faded ? '#f4eedb' : '#efe5cb'
   g.fillRect(0, 0, S, S)
+  if (photo) {
+    // a real macro of seed paper, cropped square from a random spot so the three discs differ
+    const side = Math.min(photo.width, photo.height)
+    const sx = Math.floor(r() * (photo.width - side)), sy = Math.floor(r() * (photo.height - side))
+    g.drawImage(photo, sx, sy, side, side, 0, 0, S, S)
+    if (faded) { g.fillStyle = 'rgba(248,243,226,0.55)'; g.fillRect(0, 0, S, S) }
+  }
   // fibres
-  for (let i = 0; i < 900; i++) {
+  for (let i = 0; i < (photo ? 120 : 900); i++) {
     const x = r() * S, y = r() * S, len = 6 + r() * 26, a = r() * Math.PI
     g.strokeStyle = r() < 0.5 ? `rgba(190,176,138,${0.25 + r() * 0.35})` : `rgba(140,150,110,${0.15 + r() * 0.3})`
     g.lineWidth = 0.8 + r() * 1.4
     g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); g.stroke()
   }
   // seeds
-  for (let i = 0; i < 110; i++) {
+  for (let i = 0; i < (photo ? 24 : 110); i++) {
     const x = r() * S, y = r() * S, w = 5 + r() * 7, h = 3 + r() * 4, a = r() * Math.PI
     g.save(); g.translate(x, y); g.rotate(a)
     g.fillStyle = r() < 0.6 ? `rgba(80,62,40,${0.55 + r() * 0.35})` : `rgba(130,118,80,${0.5 + r() * 0.4})`

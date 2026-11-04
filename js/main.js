@@ -28,12 +28,16 @@ const scale = isSmall ? 0.78 : 1
 
 let ready = false
 async function boot() {
-  const [markImg] = await Promise.all([loadImage('brand/mark-print.png').catch(() => null), initPhysics()])
+  const [markImg, photo] = await Promise.all([
+    loadImage('brand/mark-print.png').catch(() => null),
+    loadImage('images/paper-texture.jpg').catch(() => null),
+    initPhysics(),
+  ])
   const wood = woodTexture()
-  const paper = paperTexture({ markImg, seed: 3 })
-  const paperFaded = paperTexture({ markImg, faded: true, seed: 3 })
-  const paper2 = paperTexture({ markImg, seed: 11 })
-  const paper3 = paperTexture({ markImg, seed: 19 })
+  const paper = paperTexture({ markImg, photo, seed: 3 })
+  const paperFaded = paperTexture({ markImg, photo, faded: true, seed: 3 })
+  const paper2 = paperTexture({ markImg, photo, seed: 11 })
+  const paper3 = paperTexture({ markImg, photo, seed: 19 })
 
   chap.H.hero = new Hanger({ name: 'hero', R: 1.35 * scale, L: 2.5, segs: 8, textures: { wood, paper, paperFaded } })
   chap.H.scents = [

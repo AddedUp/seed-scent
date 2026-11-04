@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seed Scent · The team</title>
+<meta name="description" content="The students behind Seed Scent, a Virtual Enterprise firm that makes a plantable car air freshener: a wooden holder, a disc of seed paper, natural essential oils.">
+<meta name="theme-color" content="#fbf6e5">
+<link rel="icon" type="image/png" href="brand/favicon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/team.css">
+<!-- Everything is served locally so the site works offline on a booth laptop. -->
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/SplitText.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="js/config.js"></script>
+</head>
+<body data-theme="cream" data-page="team">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <a class="brand" href="index.html" aria-label="Seed Scent, back to the home page">
+    <img class="brand-mark" src="brand/mark-ss.png" alt="">
+    <span class="brand-name">Seed Scent</span>
+  </a>
+  <nav class="nav-links" aria-label="Sections">
+    <a href="index.html#drive">How it works</a>
+    <a href="index.html#scents">Scents</a>
+    <a href="index.html#inside">Inside</a>
+    <a href="index.html#firms">For VE firms</a>
+    <a href="team.html" class="active" aria-current="page">Team</a>
+    <a href="index.html#contact">Contact</a>
+  </nav>
+  <div class="nav-actions">
+    <button class="text-btn" id="motion-toggle" type="button" aria-pressed="false">Pause motion</button>
+    <!-- The bag lives on the home page. Here the button just takes you there. -->
+    <button class="text-btn" id="bag-toggle" type="button">Bag (<span id="bag-count">0</span>)</button>
+    <a class="pill" href="index.html#firms" data-magnetic>Order <span class="dot">·</span></a>
+  </div>
+</header>
+
+<main id="main" class="page team-page">
+
+  <!-- Header card: the home hero's sage panel, with the logo in the corner -->
+  <section class="team-hero" id="top" aria-labelledby="team-title">
+    <span class="reg tl" aria-hidden="true">+</span><span class="reg tr" aria-hidden="true">+</span>
+    <span class="reg bl" aria-hidden="true">+</span><span class="reg br" aria-hidden="true">+</span>
+    <div class="team-hero-top">
+      <p class="kicker">The team</p>
+      <img class="team-hero-logo" src="brand/logo-primary.png" alt="" width="2300" height="1600">
+    </div>
+    <div class="team-hero-copy">
+      <h1 class="display" id="team-title" data-split>The people behind the paper.</h1>
+      <p class="annotation"><span class="ph" data-ph="school.name">school</span> · <span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></p>
+      <div class="actions">
+        <a class="pill" href="index.html#firms" data-magnetic>Order for your firm <span class="dot">·</span></a>
+        <a class="pill ghost" href="index.html" data-magnetic>Back to the home page</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team cards, rendered from js/config.js by js/team.js -->
+  <section class="team-sec" id="team" aria-label="Team members">
+    <div class="wrap">
+      <ul class="team-grid" id="team-grid"></ul>
+      <noscript><p class="kicker">The team list loads from the site config and needs JavaScript.</p></noscript>
+      <p class="kicker soft team-note" id="team-note" hidden>Chips mark what the team is still filling in.</p>
+    </div>
+  </section>
+
+  <!-- How we work -->
+  <section class="how-sec" id="how-we-work" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="section-head small">
+        <h2 class="display sm" id="how-title" data-split>How we work.</h2>
+        <p class="annotation">A student-run firm, in three lines.</p>
+      </div>
+      <ol class="how" id="how">
+        <li>
+          <p class="kicker">01 · Student run</p>
+          <p>Every job here is held by a student. The ordering, the making, the selling, the counting.</p>
+        </li>
+        <li>
+          <p class="kicker">02 · Decided together</p>
+          <p>Decisions are made as a team. Nobody outranks a good idea.</p>
+        </li>
+        <li>
+          <p class="kicker">03 · Made by us</p>
+          <p>The team made the paper. The team made this page. Same hands.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="wrap team-foot">
+    <footer class="footer">
+      <p>A Virtual Enterprise company</p>
+      <p><span class="ph" data-ph="school.name">school</span> · <span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></p>
+      <p>Smells great. Leaves eventually.</p>
+    </footer>
+  </div>
+</main>
+
+<noscript><p class="noscript">This site needs JavaScript for the moving parts. The text and order details still work without it.</p></noscript>
+
+<script type="module" src="js/team.js"></script>
+</body>
+</html>

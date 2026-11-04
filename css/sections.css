@@ -1,0 +1,130 @@
+/* ==========================================================================
+   Seed Scent · 2D section behaviour styles (paired with js/sections.js)
+   Reveal, tilt, velocity skew, the seed paper cross-section, the tier slider
+   and the order-request summary. Colors only from tokens.css.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Reveal: rise + fade on first view. js adds .rv at init and .in on entry,
+   then strips both once the transition is done so stock styles return.
+   Uses the individual `translate` property so it never fights a transform
+   set elsewhere (.tier.active, the tilt, the skew).
+   -------------------------------------------------------------------------- */
+.rv {
+  opacity: 0;
+  translate: 0 28px;
+  transition:
+    opacity .9s cubic-bezier(0.16, 1, 0.3, 1) var(--rv-delay, 0ms),
+    translate .9s cubic-bezier(0.16, 1, 0.3, 1) var(--rv-delay, 0ms);
+}
+.rv.in { opacity: 1; translate: 0 0; }
+/* .tier keeps its own background and transform transitions while revealing */
+.tier.rv {
+  transition:
+    background .4s,
+    transform .5s var(--ease-out),
+    opacity .9s cubic-bezier(0.16, 1, 0.3, 1) var(--rv-delay, 0ms),
+    translate .9s cubic-bezier(0.16, 1, 0.3, 1) var(--rv-delay, 0ms);
+}
+body.reduced .rv, body.reduced .tier.rv { transition: none; }
+
+/* --------------------------------------------------------------------------
+   Scent cards: hover tilt (transform is set inline by js) and photo zoom
+   -------------------------------------------------------------------------- */
+.card[data-tilt] {
+  transform-origin: center;
+  transition: box-shadow .7s var(--ease-out);
+}
+.card .card-media img {
+  transform-origin: center;
+  transition: transform .9s var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .card[data-tilt]:hover {
+    box-shadow: 0 28px 60px -34px color-mix(in srgb, var(--ink) 38%, transparent);
+  }
+  .card:hover .card-media img { transform: scale(1.05); }
+  body.reduced .card:hover .card-media img { transform: none; }
+}
+body.reduced .card .card-media img { transition: none; }
+
+/* --------------------------------------------------------------------------
+   Spec table and planting steps: velocity skew is inline; these are the
+   quiet hover states the storyboard asked for
+   -------------------------------------------------------------------------- */
+.spec tbody tr { transition: background .35s; }
+.spec tbody tr:hover { background: color-mix(in srgb, var(--paper-2) 70%, transparent); }
+.spec tbody tr:hover th { color: var(--moss-2); }
+.steps li { transition: border-color .4s; }
+.steps li:hover { border-top-color: var(--moss-2); }
+.steps li:hover .step-num { color: var(--moss-2); }
+
+/* --------------------------------------------------------------------------
+   Seed paper cross-section
+   -------------------------------------------------------------------------- */
+#paper-xsec { user-select: none; -webkit-user-select: none; touch-action: pan-y; overflow: hidden; }
+.xsec-shadow { fill: var(--paper-3); }
+.xsec-sheet  { fill: var(--paper-2); stroke: var(--paper-3); stroke-width: 1.5; }
+.xsec-rule   { fill: none; stroke: var(--paper-3); stroke-width: 1; }
+.xsec-fibres path { fill: none; stroke-linecap: round; }
+.fb-ink   { stroke: var(--ink); }
+.fb-moss  { stroke: var(--moss); }
+.fb-light { stroke: var(--paper-3); }
+.xsec-grain circle { fill: var(--ink); stroke: none; }
+.seed-a { fill: var(--ink); }
+.seed-b { fill: var(--ink-2); }
+.seed-c { fill: var(--moss-2); }
+.oil-sage { fill: var(--sage); stroke: var(--sage); stroke-width: 1; }
+.oil-moss { fill: var(--moss); stroke: var(--moss); stroke-width: 1; }
+.oil-hi   { fill: var(--paper); }
+.xsec-sprout { fill: none; stroke: var(--moss); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.xsec-label { font: 500 10px var(--font-body); letter-spacing: .09em; text-transform: uppercase; fill: var(--moss); }
+
+/* --------------------------------------------------------------------------
+   Bulk tiers
+   -------------------------------------------------------------------------- */
+.tier[aria-current="true"] .tier-qty { color: var(--ink); }
+#tier-note { min-height: 1.5em; transition: opacity .3s; }
+
+/* --------------------------------------------------------------------------
+   Order form: inline validation hints and the request summary
+   -------------------------------------------------------------------------- */
+.field[data-error]::after {
+  content: attr(data-error);
+  justify-self: start;
+  font: 600 10px/1 var(--font-body);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--moss);
+  border: 1px dashed var(--moss);
+  border-radius: var(--pill);
+  padding: 4px 8px;
+}
+.field select[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-bottom-color: var(--moss-2); }
+
+.form-summary {
+  display: grid;
+  gap: 14px;
+  white-space: normal;
+  outline: none;
+}
+.form-summary[hidden] { display: none; }
+.form-summary:focus-visible { box-shadow: 0 0 0 2px var(--sage); }
+.summary-text {
+  margin: 0;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.summary-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.summary-actions .pill { transition: background .3s, color .3s; }
+.summary-actions .pill.copied { background: var(--moss); color: var(--paper); box-shadow: none; }
+.summary-note { max-width: 44ch; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rv, .tier.rv { transition: none; opacity: 1; translate: 0 0; }
+  .card .card-media img { transition: none; }
+  .card:hover .card-media img { transform: none; }
+}

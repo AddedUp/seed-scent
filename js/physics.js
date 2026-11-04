@@ -290,6 +290,10 @@ export function step(dt, { vel = 0, active = true } = {}) {
   const idle = performance.now() - stats.lastInteraction > 5000
   for (const h of hangers) {
     if (!h.enabled) continue
+    // a big jump of the hang point (anchor links, instant scrolls) would yank the chain apart:
+    // snap the whole hanger to the new place instead and let it settle from there
+    const at = h.anchor.translation()
+    if (Math.hypot(h.target.x - at.x, h.target.y - at.y) > 2.2) { h.reset(h.target.x, h.target.y); continue }
     h.anchor.setNextKinematicTranslation({ x: h.target.x, y: h.target.y, z: 0 })
     if (grab.held === h) continue
     const m = h.mass
