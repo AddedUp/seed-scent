@@ -4,7 +4,8 @@ import fs from 'fs'
 import { fileURLToPath } from 'url'
 
 export { chromium }
-export const base = 'http://127.0.0.1:3001/'
+// SITE_BASE=https://addedup.github.io/seed-scent/ node review-net.mjs  runs a probe against the live site
+export const base = process.env.SITE_BASE || 'http://127.0.0.1:3001/'
 export const out = fileURLToPath(new URL('./out/', import.meta.url))
 fs.mkdirSync(out, { recursive: true })
 export const bust = () => '?bust=' + Date.now()

@@ -3,6 +3,10 @@
 This folder is the whole Seed Scent website. Nothing needs installing, building
 or logging into. Copy the folder and you have copied the site.
 
+**Live site:** https://addedup.github.io/seed-scent/ (GitHub Pages, served from
+the `main` branch of https://github.com/AddedUp/seed-scent; every push updates
+it within about a minute, see section 4).
+
 **What it is:** one long home page that tells the story of the plantable car
 air freshener (hang it, breathe, it fades, plant it), shows the three scents,
 the spec sheet, bulk tiers and three ways for other VE firms to order, plus a
@@ -191,33 +195,53 @@ under 500 KB each if you can. Big files make the page slow on booth wifi.
 
 ---
 
-## 4. Put it online for free
+## 4. The site online
 
-Everything the site needs is in this folder, so hosting is drag and drop.
-The `tools/` folder is only for checks and screenshots; you can leave it out
-of what you upload.
+The site is live at **https://addedup.github.io/seed-scent/**. It is served by
+GitHub Pages straight from the `main` branch of the repository
+https://github.com/AddedUp/seed-scent (Settings, Pages: Deploy from a branch,
+`main`, `/ (root)`). The `.nojekyll` file in the folder tells GitHub to serve
+the files exactly as they are; keep it.
 
-### Netlify Drop (fastest, no account to start)
+The repository is public, which is what GitHub Pages needs on a free account.
+Everything in this folder is therefore readable by anyone, so never put
+passwords, personal addresses or unreleased numbers in it. The site itself
+only shows what is in `js/config.js`.
 
-1. Go to https://app.netlify.com/drop
-2. Drag this whole folder (the one containing `index.html`) onto the page.
-3. You get a link like `https://something-random.netlify.app` within a minute.
-4. To keep the site longer than a day or rename it, make a free Netlify
-   account, then Site settings, Change site name.
+### Updating the live site
 
-To update the site, open the site in Netlify, go to Deploys, and drag the
-folder again.
+Whatever lands on `main` is live about a minute later. Three ways to get a
+change there, easiest first:
 
-### GitHub Pages
+1. **In the browser.** Open the file on GitHub (for example
+   https://github.com/AddedUp/seed-scent/blob/main/js/config.js), click the
+   pencil, edit, then "Commit changes". Good for filling in the facts. For
+   photos, open the `images` folder on GitHub, "Add file", "Upload files".
+2. **GitHub Desktop.** Add this folder as a repository, make your edits, write
+   a one-line summary, Commit, then Push.
+3. **Terminal**, from inside this folder:
 
-1. Make a free GitHub account and a new repository, for example `seed-scent`.
-2. Push this folder to it (GitHub Desktop is the easiest way: add the folder,
-   commit, publish).
-3. In the repository, open Settings, then Pages. Under "Build and deployment"
-   choose Source: Deploy from a branch, Branch: `main`, Folder: `/ (root)`. Save.
-4. After a minute the site is live at `https://YOUR-NAME.github.io/seed-scent/`.
+   ```
+   git add -A
+   git commit -m "Fill in the scent names and prices"
+   git push
+   ```
 
-Every later push updates the site automatically.
+If a change does not show up, hard-refresh the page (Shift and Reload) or add
+`?v=2` to the address; the browser may be holding the old copy. The build
+log is under the repository's Actions tab, "pages build and deployment".
+
+To check the live site the way the local checks do, from `tools/playwright`:
+`SITE_BASE=https://addedup.github.io/seed-scent/ node review-net.mjs`
+(zero external requests, no 404s) and `... node tour.mjs all` (the scroll
+tour at desktop and phone sizes).
+
+### Backup: Netlify Drop
+
+If GitHub is ever a problem, go to https://app.netlify.com/drop and drag this
+whole folder (the one containing `index.html`) onto the page. You get a link
+like `https://something-random.netlify.app` within a minute. To keep it longer
+than a day, make a free Netlify account, then Site settings, Change site name.
 
 ---
 
@@ -262,7 +286,7 @@ every dashed chip on the page is a value still set to `null` in `js/config.js`.
 - [ ] Do that on the actual booth laptop, not just your own.
 - [ ] Set the booth laptop so the screen does not sleep, and bring the charger.
 - [ ] Keep a copy of the folder on a USB stick, and the public link on a card, in case the laptop dies.
-- [ ] Try the public link (Netlify or GitHub Pages) on a phone.
+- [ ] Try the live link https://addedup.github.io/seed-scent/ on a phone.
 
 ---
 

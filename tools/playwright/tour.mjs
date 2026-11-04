@@ -2,7 +2,7 @@
 import { chromium } from 'playwright'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
-const base = 'http://127.0.0.1:3001/index.html'
+const base = (process.env.SITE_BASE || 'http://127.0.0.1:3001/') + 'index.html'
 const out = fileURLToPath(new URL('./out/', import.meta.url))
 fs.mkdirSync(out, { recursive: true })
 const which = process.argv[2] || 'all'

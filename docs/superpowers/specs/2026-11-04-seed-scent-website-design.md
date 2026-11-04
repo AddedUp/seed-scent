@@ -356,6 +356,14 @@ replaces the placeholder with no code change.
   link, anchor offsets, menu focus and contrast on sage were fixed; the buyer-facing
   checkout no longer talks about config files; the placeholder report checks types,
   photo paths and checkout modes.
+- **Published (2026-11-04).** The folder is the public GitHub repository
+  `AddedUp/seed-scent`, and GitHub Pages serves `main` at
+  https://addedup.github.io/seed-scent/ (legacy build from the branch root,
+  `.nojekyll` so nothing is processed). The live site passed the same probes
+  as the local one: 33 requests all from its own origin, no 404s on the home
+  and checkout pages (the team page's six missing photos 404 by design until
+  they are added), 60 fps on the scroll tour at 1440x900 and 390x844, no
+  console errors. `SITE_BASE=<url>` points the Playwright probes at any host.
 
 ## 12. Open assumptions to confirm
 
