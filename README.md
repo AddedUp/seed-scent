@@ -18,7 +18,9 @@ yet shows as a dashed chip like `[ PRICE ]`. You fill those in from one file,
 `js/config.js`, and the chips disappear.
 
 **What the chips mean:** a dashed `[ chip ]` is a value that is still `null`
-in `js/config.js`; fill it in and the chip goes. A small `tbc` tag is a fact
+in `js/config.js`, or one the page cannot use as typed (a price in quotes, an
+Instagram handle with a space in it, an email address that is not one); fill
+it in properly and the chip goes. A small `tbc` tag is a fact
 the team has not confirmed yet (the seed mix, the holder and mount formats,
 the planting steps, the bulk tiers). Each tag is tied to a `...Confirmed`
 flag in the same file; set the flag to `true` and the tag goes.
@@ -86,9 +88,9 @@ What each field does:
 - Note: the home page has these three typeset into its design, so editing them here does not rewrite the home page. They live here so every page and future edit agrees on the spelling.
 
 **contact**
-- `email`: where the order-request form and the email checkout send orders. The single most important field.
+- `email`: where the order-request form and the email checkout send orders. The single most important field. Type the address on its own, like `"orders@school.org"`. On the business card it becomes a link that opens an email. If the chip stays after you fill it in, the value is not an address an email app can use, and no order email is sent until it is; the report (section 5) says so under Looks wrong.
 - `phone`: a phone number, if the team wants one shown.
-- `instagram`: the handle without the @. Shown on the business card.
+- `instagram`: the handle, for example `"seedscent.ve"`. An @ in front or a pasted profile link works too. Shown on the business card as a link that opens the profile in a new tab. If the chip stays after you fill it in, the value is not a handle Instagram accepts (letters, numbers, dots and underscores, 30 at most), or the link is to a post and not to the profile; the report says so under Looks wrong.
 - `tiktok`: the handle, for when a TikTok link is added.
 - `linkedin`: the profile or page link, for when a LinkedIn link is added.
 
@@ -115,7 +117,8 @@ What each field does:
 - `notes`: one short line describing the smell.
 - `price`: price for one unit, as a number without quotes: `price: 4.5`, not `price: "4.50"`.
 - `packSize`: what one unit is, for example "1 disc and holder" or "3 refill discs".
-- `image`: the photo file for this scent's card, starting with `images/`. See section 3.
+- `image`: the photo of this scent's mirror cord version, starting with `images/`. See section 3.
+- `imageVent`: the photo of this scent's vent clip version. The card shows `image` while Mirror cord is picked and switches to `imageVent` when the visitor picks Vent clip. If that file is missing, the card keeps the mirror cord photo.
 - `accent`: a brand colour name for the scent, `"ink"`, `"moss"` or `"sage"`, kept with the scent so anything that colour-codes the three agrees on it.
 
 **bulkTiers** (four entries, for firm orders)
@@ -158,13 +161,17 @@ Team photos: `team-1.jpg`, `team-2.jpg`, `team-3.jpg` ... matching the order
 of the `team` list in `js/config.js`. Square or portrait works best. Any JPG
 around 800 to 1200 pixels wide is plenty.
 
-Scent photos: the three scent cards read their file names from `js/config.js`
-(`scents[0].image`, `scents[1].image`, `scents[2].image`). Right now they
-point at three generated mock-up images:
+Scent photos: each scent card has two photos, one per format, and reads
+their file names from `js/config.js`: `image` is the mirror cord version and
+`imageVent` is the vent clip version. The card shows the one that matches
+the format the visitor picks. Right now they point at six generated mock-up
+images:
 
-- `images/product-studio-1.jpg`
-- `images/product-mirror-2.jpg`
-- `images/product-studio-2.jpg`
+| Card | Mirror cord (`image`) | Vent clip (`imageVent`) |
+| --- | --- | --- |
+| Scent one | `images/product-studio-1.jpg` | `images/product-vent-studio.jpg` |
+| Scent two | `images/product-mirror-2.jpg` | `images/product-vent-clip.jpg` |
+| Scent three | `images/product-mirror-1.jpg` | `images/product-vent-2.jpg` |
 
 File names must match exactly, capitals included. A Mac will find
 `Product-Studio-1.jpg` when the config says `product-studio-1.jpg`; a web
@@ -173,7 +180,8 @@ host will not, and the slot stays empty online. The placeholder report
 
 ### The rest of the images folder
 
-- `product-mirror-1.jpg` and `product-vent-clip.jpg`: the two photos in the Inside section (mirror cord version, vent clip version). These are fixed in `index.html`, not in the config. The mirror photo is also the preview image when the link is shared.
+- `product-mirror-1.jpg` and `product-vent-clip.jpg`: besides their scent cards, these are the two photos in the Inside section (mirror cord version, vent clip version). That use is fixed in `index.html`, not in the config. The mirror photo is also the preview image when the link is shared.
+- `product-studio-2.jpg`: a spare studio shot of the mirror cord version, not shown at the moment.
 - `planted-pot.jpg`: the photo beside the planting steps. Also fixed in `index.html`.
 - `paper-texture.jpg`: the paper grain behind the 3D scene. Loaded by the site code.
 - `refills-flatlay.jpg`: kept in the folder but not shown: the flat lay shows a different holder design from the one in the other photos.
@@ -186,9 +194,10 @@ When the real product is photographed, either:
 
 1. Keep the file names. Save your real photo over the old file with the same
    name, then reload. Nothing else changes.
-2. Or use new names. Drop the new files into `images/` (say `scent-1.jpg`,
-   `scent-2.jpg`, `scent-3.jpg`) and change the `image:` value of each scent
-   in `js/config.js` to match. Delete the old mock-ups when you are done.
+2. Or use new names. Drop the new files into `images/` (say `scent-1.jpg`
+   and `scent-1-vent.jpg`, and so on) and change the `image:` and
+   `imageVent:` values of each scent in `js/config.js` to match. Delete the
+   old mock-ups when you are done.
 
 Photo tips: JPG, landscape or square, about 1600 pixels on the long side,
 under 500 KB each if you can. Big files make the page slow on booth wifi.
@@ -233,8 +242,10 @@ log is under the repository's Actions tab, "pages build and deployment".
 
 To check the live site the way the local checks do, from `tools/playwright`:
 `SITE_BASE=https://addedup.github.io/seed-scent/ node review-net.mjs`
-(zero external requests, no 404s) and `... node tour.mjs all` (the scroll
-tour at desktop and phone sizes).
+(zero external requests, no 404s), `... node tour.mjs all` (the scroll
+tour at desktop and phone sizes) and `... node check-facts.mjs` (every fact
+filled in so far shows where it should, and the Instagram link opens the
+profile by click, tap and keyboard).
 
 ### Backup: Netlify Drop
 
@@ -251,7 +262,7 @@ The report reads `js/config.js` and prints, in this order:
 
 - **Still null**: every value still `null`, one per line. These are the dashed chips on the site. A line you deleted from a scent, tier or team entry is listed here too, with a note to add it back.
 - **Optional, fine to leave null**: the handful that may stay empty (phone, TikTok, LinkedIn, the marketplace link, the gateway address when the mode does not use it, the fixative name).
-- **Looks wrong**: values the page cannot use as they are: a price in quotes (`"4.50"` or `"abc"`), a `checkout.mode` that is not one of the three words, a store or gateway address the mode needs but is not set, a currency that is not a 3-letter code, a `...Confirmed` flag in quotes, the wrong number of scents or tiers, an empty team. Each line says what to change.
+- **Looks wrong**: values the page cannot use as they are: a price in quotes (`"4.50"` or `"abc"`), a `checkout.mode` that is not one of the three words, a store or gateway address the mode needs but is not set, a currency that is not a 3-letter code, a `...Confirmed` flag in quotes, the wrong number of scents or tiers, an empty team, an email address or an Instagram handle that is not one. Each line says what to change.
 - **Photos the config points at**: each photo file with "ok" and its size, "MISSING", "must start with images/", or "found as ...: fix the capitals, web hosts care" when the only difference is capital letters.
 - **Still marked to be confirmed**: every `...Confirmed` flag still `false` and what setting it to `true` removes.
 - A summary line: "N placeholders to fill, M photos missing, K facts to confirm".
@@ -270,7 +281,8 @@ window, press Return.
 
 The report is a checklist, not a test: it prints and exits normally even when
 things look wrong. If you do not have Node, the site itself is the report:
-every dashed chip on the page is a value still set to `null` in `js/config.js`.
+every dashed chip on the page is a value still set to `null` in `js/config.js`,
+or one that is not usable as typed.
 
 ---
 

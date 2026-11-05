@@ -61,6 +61,7 @@
 .how li p:last-child { margin-top: 10px; font-size: 18px; line-height: 1.45; max-width: 30ch; }
 
 .team-foot { padding-bottom: 8px; }
+.team-foot .footer { padding-left: 0; padding-right: 0; }   /* the wrap around it already adds the gutter */
 
 /* --------------------------------------------------------------------------
    Responsive

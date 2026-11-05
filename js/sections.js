@@ -3,7 +3,7 @@
    the spec rows and planting steps, and the first-view reveal.
    Everything here is progressive: no hook, no effect, no error. */
 import { motion, prefersReduced, isCoarse, scroll } from './scroll.js'
-import { cfg, num, money, escapeHtml } from './ui.js'
+import { cfg, num, money, escapeHtml, contactEmail } from './ui.js'
 
 const $ = (s, r = document) => r.querySelector(s)
 const $$ = (s, r = document) => [...r.querySelectorAll(s)]
@@ -421,8 +421,7 @@ function initOrderForm(tiersApi) {
     const v = validate()
     if (!v.ok) { v.bad[0].focus(); return }
     const text = buildText(v)
-    const contactEmail = cfg('contact.email')
-    const to = (typeof contactEmail === 'string' && contactEmail.trim()) ? contactEmail.trim() : null
+    const to = contactEmail()   // null when there is no address an email app could use
     let opened = false
     if (to) {
       const subject = 'Order request for Seed Scent'
@@ -555,7 +554,40 @@ function initReveal() {
   return { total: els.length, revealed: () => revealed, pending: () => pending.size }
 }
 
+/* ==========================================================================
+   7 · Scent cards: the photo follows the format picker
+   Each card holds two photos, the mirror cord version and the vent clip version.
+   The figure's data-format says which one shows (css/sections.css does the fade).
+   A missing file never leaves the slot empty: the card keeps the photo it has,
+   and the tag on the photo always names the version actually shown.
+   ========================================================================== */
+const FORMAT_NAMES = { mirror: 'Mirror cord', vent: 'Vent clip' }
+function initFormatPhotos() {
+  const cards = $$('.card[data-scent]').map(card => {
+    const media = $('.card-media', card), tag = $('.media-tag', card)
+    const radios = $$('.format input[type="radio"]', card)
+    if (!media || !radios.length) return null
+    const imgs = { mirror: $('img.slot[data-for="mirror"]', card), vent: $('img.slot[data-for="vent"]', card) }
+    const ready = k => !!(imgs[k] && !imgs[k].hidden && imgs[k].getAttribute('src'))
+    const picked = () => ((radios.find(r => r.checked) || {}).value === 'vent' ? 'vent' : 'mirror')
+    let shown = null
+    const sync = () => {
+      const want = picked(), other = want === 'vent' ? 'mirror' : 'vent'
+      shown = ready(want) ? want : ready(other) ? other : null
+      if (shown) media.dataset.format = shown
+      media.classList.toggle('has-photo', !!shown)
+      if (tag) { tag.hidden = !shown; if (shown && tag.textContent !== FORMAT_NAMES[shown]) tag.textContent = FORMAT_NAMES[shown] }
+    }
+    radios.forEach(r => r.addEventListener('change', sync))
+    Object.values(imgs).forEach(img => { if (img) img.addEventListener('load', sync) })
+    sync()
+    return { picked, shown: () => shown }
+  }).filter(Boolean)
+  return { count: cards.length, state: () => cards.map(c => ({ picked: c.picked(), shown: c.shown() })) }
+}
+
 /* ---------- go ---------- */
+const formats = initFormatPhotos()
 const xsec = initCrossSection()
 const tiers = initTiers()
 const order = initOrderForm(tiers)
@@ -575,5 +607,6 @@ window.__sections = {
   tilt: () => ({ count: tilt.count, active: tilt.active() }),
   tier: n => { const li = tiers.tierFor(n); return li ? { label: tiers.labelFor(li), min: Number(li.dataset.min), price: tiers.priceFor(li) } : null },
   order: () => (order ? order.last() : ''),
+  formats: () => formats.state(),
   xsec: () => (xsec ? { seeds: xsec.seeds(), displaced: xsec.displaced(), fibres: xsec.fibres(), drops: xsec.drops(), sprouts: xsec.sprouts(), running: xsec.running(), pointerActive: xsec.pointerActive() } : null),
 }

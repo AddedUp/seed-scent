@@ -1,9 +1,15 @@
 /* Bag + checkout check. Run from tools/playwright:  node check-cart.mjs
-   Needs the local server on http://127.0.0.1:3001/ (python3 -m http.server 3001 from the project root). */
+   Needs the local server on http://127.0.0.1:3001/ (python3 -m http.server 3001 from the project root).
+
+   Every page here runs on the blank config template (see fixture.mjs): the config as it shipped,
+   every unknown still null, plus test-only values where a check needs them. The real site config
+   is never read, so these checks keep passing while the team fills in the firm's facts. */
 import { chromium } from 'playwright'
 import { mkdirSync } from 'node:fs'
 import path from 'node:path'
+import vm from 'node:vm'
 import { fileURLToPath } from 'node:url'
+import { blankConfig, BLANK } from './fixture.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const out = path.join(here, 'out'); mkdirSync(out, { recursive: true })
@@ -31,16 +37,35 @@ const active = page => page.evaluate(() => document.activeElement && (document.a
 // nothing a buyer or judge sees may name a file or a config key
 const NO_CFG = /config|checkout\.mode|gatewayUrl|marketplaceUrl|\.js\b/i
 
+/* Every page here must have run on the blank template plus exactly the script appended for it,
+   never on the real site config and never on values left over from another check.
+   templateConfig() works that config out from the fixture's text. ranOnTemplate() answers true
+   when the page has it; otherwise it quotes the page's config where it first differs, so a failed
+   "fixture." check says what the page got instead. */
+function templateConfig(append = '') {
+  const box = { window: {} }
+  vm.runInNewContext(append ? `${BLANK}\n${append}\n` : BLANK, box)
+  return JSON.stringify(box.window.SEED_SCENT)
+}
+async function ranOnTemplate(page, append = '') {
+  const got = (await page.evaluate(() => JSON.stringify(window.SEED_SCENT))) || 'no config at all', want = templateConfig(append)
+  let i = 0
+  while (i < got.length && got[i] === want[i]) i++
+  return got === want || `the page's config differs from the template at: ${got.slice(Math.max(0, i - 30), i + 50)}`
+}
+
 const browser = await chromium.launch()
 
 /* ---------------- desktop: index.html ---------------- */
 const desk = await browser.newContext({ viewport: { width: 1440, height: 900 }, permissions: ['clipboard-read', 'clipboard-write'] })
+await blankConfig(desk)
 let page = await desk.newPage(); watch(page, 'index')
 await page.goto(`${BASE}/index.html?bust=${bust}`, { waitUntil: 'load' })
 await ready(page)
 await page.evaluate(() => localStorage.clear())
 await page.reload({ waitUntil: 'load' }); await ready(page)
 
+expect('fixture.index', await ranOnTemplate(page), true)
 expect('index.count.start', await text(page, '#bag-count'), '0')
 expect('index.bag.inert.closed', await page.locator('#bag').evaluate(el => el.inert === true && el.getAttribute('aria-hidden') === 'true'), true)
 
@@ -155,6 +180,7 @@ expect('index.checkout.enabled', await page.locator('#bag-checkout').getAttribut
 page = await desk.newPage(); watch(page, 'checkout')
 await page.goto(`${BASE}/checkout.html?bust=${bust}`, { waitUntil: 'load' })
 await ready(page)
+expect('fixture.checkout', await ranOnTemplate(page), true)
 expect('co.lines.count', await page.locator('#co-lines li').count(), 2)
 expect('co.lines.text', await page.locator('#co-lines li').evaluateAll(els => els.map(e => e.textContent.replace(/\s+/g, ' ').trim())), v => v[0].includes('Mirror cord') && v[1].includes('Vent clip'))
 expect('co.lines.qty', await page.locator('#co-lines .qty-num').evaluateAll(els => els.map(e => e.value)), v => JSON.stringify(v) === '["60","3"]')
@@ -206,29 +232,31 @@ expect('co.order.body', order, s => s.includes('60 x Scent one (name tbc), mirro
 expect('co.note.unset', await text(page, '#co-result-note'), 'The team has not published an order email yet. Copy the order and send it to the team another way.')
 expect('co.mailto.none', await page.evaluate(() => window.__dbg.mailto()), null)
 expect('co.error.hidden', await page.locator('#co-error').evaluate(el => el.hidden), true)
+// The landing is measured before anything else is clicked. A click while the page is still gliding
+// makes Playwright scroll its target into view by its own rules, and the page then rests where
+// Playwright left it (0px or 348px from the top, depending on timing), not where the site put it.
+await page.waitForTimeout(2000)   // the smooth scroll to the written-out order takes 1.2s: let it finish
+expect('co.result.scrolledTo', await page.locator('#co-result').evaluate(el => Math.round(el.getBoundingClientRect().top)), t => t >= 0 && t <= 40)   // lands 24px under the top edge
 await page.click('#co-copy')
 await page.waitForTimeout(150)
 expect('co.copy.label', await text(page, '#co-copy'), 'Copied')
 expect('co.copy.clipboard', await page.evaluate(() => navigator.clipboard.readText()), s => s === order)
-await page.waitForTimeout(1400)   // let the smooth scroll to the written-out order finish
-expect('co.result.scrolledTo', await page.locator('#co-result').evaluate(el => Math.round(el.getBoundingClientRect().top)), t => t >= 0 && t <= 40)   // lands 24px under the top edge
 await page.screenshot({ path: path.join(out, 'checkout-desktop-after-submit.png') })
 await page.screenshot({ path: path.join(out, 'checkout-desktop-full.png'), fullPage: true })
 
-/* other configs: config.js is patched on the wire so the override is in place before any module runs */
+/* other configs: the blank template with test-only values appended on the wire, so the override is in place before any module runs */
 async function onCheckout(tag, { mode = null, patch = {} } = {}, fn) {
+  const append = `;(function(){ ${mode != null ? `window.SEED_SCENT.checkout.mode = ${JSON.stringify(mode)};` : ''} Object.assign(window.SEED_SCENT, ${JSON.stringify(patch)}); })();`
+  await blankConfig(desk, append)
   const p = await desk.newPage(); watch(p, tag)
   const warns = []
   p.on('console', m => { if (m.type() === 'warning') warns.push(m.text()) })
-  await p.route('**/js/config.js*', async route => {
-    const res = await route.fetch()
-    const body = (await res.text()) + `\n;(function(){ ${mode != null ? `window.SEED_SCENT.checkout.mode = ${JSON.stringify(mode)};` : ''} Object.assign(window.SEED_SCENT, ${JSON.stringify(patch)}); })();`
-    await route.fulfill({ status: 200, headers: { 'content-type': 'application/javascript' }, body })
-  })
   await p.goto(`${BASE}/checkout.html?bust=${bust}&t=${encodeURIComponent(tag)}`, { waitUntil: 'load' }); await ready(p)
+  expect(`fixture.${tag}`, await ranOnTemplate(p, append), true)
   const finalHtml = async () => (await p.locator('#co-final').innerHTML()).replace(/\s+/g, ' ').trim()
   const r = await fn(p, { warns, finalHtml })
   await p.close()
+  await blankConfig(desk)   // the next page in this context starts from the plain template again
   return r
 }
 const fillFirm = async p => { await p.fill('#co-firm', 'Maple Street Goods'); await p.fill('#co-name', 'Test Contact'); await p.fill('#co-email', 'test@example.com') }
@@ -305,10 +333,12 @@ await desk.close()
 
 /* ---------------- mobile: 390 x 844 ---------------- */
 const mob = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 })
+await blankConfig(mob)
 page = await mob.newPage(); watch(page, 'mobile')
 await page.goto(`${BASE}/index.html?bust=${bust}`, { waitUntil: 'load' }); await ready(page)
 await page.evaluate(() => localStorage.setItem('seedscent.bag', JSON.stringify([{ scentIndex: 0, format: 'mirror', qty: 2 }, { scentIndex: 2, format: 'vent', qty: 1 }])))
 await page.reload({ waitUntil: 'load' }); await ready(page)
+expect('fixture.mobile', await ranOnTemplate(page), true)
 expect('mobile.count', await text(page, '#bag-count'), '3')
 await page.click('#bag-toggle'); await page.waitForSelector('#bag.open'); await page.waitForTimeout(800)
 expect('mobile.drawer.width', await page.locator('#bag').evaluate(el => Math.round(el.getBoundingClientRect().width)), 390)
@@ -318,6 +348,7 @@ await page.screenshot({ path: path.join(out, 'cart-mobile-390x844.png') })
 
 page = await mob.newPage(); watch(page, 'mobile-checkout')
 await page.goto(`${BASE}/checkout.html?bust=${bust}`, { waitUntil: 'load' }); await ready(page)
+expect('fixture.mobile-checkout', await ranOnTemplate(page), true)
 expect('mobile.co.lines', await page.locator('#co-lines li').count(), 2)
 expect('mobile.co.columns', await page.locator('.co-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length), 1)
 await page.screenshot({ path: path.join(out, 'checkout-mobile-390x844.png') })

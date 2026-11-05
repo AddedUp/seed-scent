@@ -17,15 +17,15 @@ window.SEED_SCENT = {
   contact: {
     email: null,            // e.g. "orders@seedscent.com"
     phone: null,
-    instagram: null,        // handle without the @
+    instagram: "seedscent.ve",   // the handle; the business card links it to instagram.com/<handle>/
     tiktok: null,
     linkedin: null,
   },
 
   school: {
-    name: null,             // e.g. "Lincoln High School"
-    city: null,
-    state: null,
+    name: "Syosset Senior High School",
+    city: "Syosset",
+    state: "New York",
   },
 
   /* Your store on the Virtual Enterprise marketplace, if you have one. */
@@ -44,10 +44,12 @@ window.SEED_SCENT = {
 
   /* The three scents. Prices are numbers, e.g. 4.5 for $4.50. */
   scents: [
-    /* image: replace with your own photo file when the product shots are final */
-    { id: "scent-1", name: null, notes: null, price: null, packSize: null, image: "images/product-studio-1.jpg", accent: "ink" },
-    { id: "scent-2", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-2.jpg", accent: "moss" },
-    { id: "scent-3", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-1.jpg", accent: "sage" },
+    /* image: the photo of the mirror cord version. imageVent: the photo of the vent clip version.
+       The card shows whichever format the visitor picks. Replace both with your own photo files
+       when the product shots are final. */
+    { id: "scent-1", name: null, notes: null, price: null, packSize: null, image: "images/product-studio-1.jpg", imageVent: "images/product-vent-studio.jpg", accent: "ink" },
+    { id: "scent-2", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss" },
+    { id: "scent-3", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-1.jpg", imageVent: "images/product-vent-2.jpg", accent: "sage" },
   ],
 
   /* Bulk pricing for other firms. price is the per-unit price at that quantity.

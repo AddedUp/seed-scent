@@ -2,7 +2,7 @@
    index.html gets the drawer, checkout.html gets the summary and the firm form.
    State lives in localStorage under "seedscent.bag" as [{ scentIndex, format, qty }].
    Every hook is optional, so the module runs quietly on a page that lacks it. */
-import { cfg, num, money, escapeHtml, initMagnetic } from './ui.js'
+import { cfg, num, money, escapeHtml, contactEmail, initMagnetic } from './ui.js'
 import { motion, lenis } from './scroll.js'
 
 const KEY = 'seedscent.bag'
@@ -361,7 +361,7 @@ function initCheckout() {
     console.warn(`Seed Scent: checkout.mode "${mode}" is not one of ${MODES.join(', ')}. Using "email".`)
     mode = 'email'
   }
-  const email = str(cfg('contact.email')), market = str(cfg('marketplaceUrl')), gateway = str(cfg('checkout.gatewayUrl'))
+  const email = contactEmail(), market = str(cfg('marketplaceUrl')), gateway = str(cfg('checkout.gatewayUrl'))
   const finalEl = $('#co-final'), errEl = $('#co-error'), result = $('#co-result'), orderEl = $('#co-order')
   const noteEl = $('#co-result-note'), copyBtn = $('#co-copy')
   const fields = { firm: $('#co-firm'), name: $('#co-name'), email: $('#co-email'), account: $('#co-account'), notes: $('#co-notes') }

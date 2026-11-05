@@ -3,11 +3,14 @@
    on the sage header, empty photo slots, console, hover tilt and rise-in, then
    saves screenshots at 1440x900 and 390x844 (menu closed and open) under
    tools/playwright/out/.
+   Every browser context here is handed the blank config template (fixture.mjs),
+   so the checks do not move when the real site data fills up with the firm's facts.
    Run: cd tools/playwright && node check-team.mjs */
 import { chromium } from 'playwright'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { blankConfig, BLANK } from './fixture.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const OUT = path.join(here, 'out')
@@ -35,6 +38,7 @@ const near = (a, b, tol = 0.02) => Math.abs(a - b) <= tol
 
 async function open(browser, label, ctxOpts) {
   const ctx = await browser.newContext({ deviceScaleFactor: 1, ...ctxOpts })
+  await blankConfig(ctx)
   const page = await ctx.newPage()
   const log = { errors: [], warnings: [], pageErrors: [], failed: [], requests: [] }
   page.on('console', m => {
@@ -53,10 +57,10 @@ async function open(browser, label, ctxOpts) {
   return { ctx, page, log }
 }
 
-/* which optional photo files are really missing (asked from Node, so the page console stays clean) */
+/* which optional photo files are really missing (asked from Node, so the page console stays clean).
+   The photo paths are the blank template's, the same ones the page under test is given. */
 async function missingPhotos(ctx) {
-  const team = await (await ctx.request.get(`${BASE}/js/config.js`)).text()
-  const photos = [...team.matchAll(/photo:\s*"([^"]+)"/g)].map(m => m[1])
+  const photos = [...BLANK.matchAll(/photo:\s*"([^"]+)"/g)].map(m => m[1])
   const missing = []
   for (const p of photos) { const r = await ctx.request.head(`${BASE}/${p}`); if (!r.ok()) missing.push(p) }
   return { photos, missing }
@@ -299,6 +303,7 @@ try {
   /* bag count: the saved bag from the home page shows its unit total here and follows changes from another tab */
   {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 })
+    await blankConfig(ctx)
     const seed = [{ scentIndex: 0, format: 'mirror', qty: 2 }, { scentIndex: 1, format: 'vent', qty: 3 }]
     await ctx.addInitScript(([k, v]) => { if (!localStorage.getItem(k)) localStorage.setItem(k, v) }, [BAG_KEY, JSON.stringify(seed)])
     const page = await ctx.newPage()
@@ -332,18 +337,14 @@ try {
     check('[bag] no unexpected console or page errors', unexpected.length === 0 && log.pageErrors.length === 0, `${unexpected.length} console, ${log.pageErrors.length} page`)
     await ctx.close()
   }
-  /* filled config: test-only values appended to config.js in transit, so the chips should go away */
+  /* filled config: test-only values appended to the blank template, so the chips should go away */
   {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 })
-    await ctx.route('**/js/config.js*', async route => {
-      const res = await route.fetch()
-      const body = (await res.text()) + `
+    await blankConfig(ctx, `
 window.SEED_SCENT.school = { name: "Sample High School", city: "Sampletown", state: "NY" };
 window.SEED_SCENT.team = window.SEED_SCENT.team.map((m, i) => ({ ...m,
   name: "Member " + (i + 1), role: "Role " + (i + 1), bio: "One line about member " + (i + 1) + ".",
-  photo: i % 2 ? "images/product-studio-1.jpg" : m.photo }));`
-      await route.fulfill({ response: res, body, headers: { ...res.headers(), 'content-type': 'application/javascript' } })
-    })
+  photo: i % 2 ? "images/product-studio-1.jpg" : m.photo }));`)
     const page = await ctx.newPage()
     const log = watch(page)
     await page.goto(`${BASE}/team.html?bust=${Date.now() + 1}`, { waitUntil: 'networkidle' })
@@ -373,11 +374,7 @@ window.SEED_SCENT.team = window.SEED_SCENT.team.map((m, i) => ({ ...m,
   /* no team entries at all: a plain line, nothing technical, note hidden */
   {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 })
-    await ctx.route('**/js/config.js*', async route => {
-      const res = await route.fetch()
-      const body = (await res.text()) + `\nwindow.SEED_SCENT.team = [];`
-      await route.fulfill({ response: res, body, headers: { ...res.headers(), 'content-type': 'application/javascript' } })
-    })
+    await blankConfig(ctx, 'window.SEED_SCENT.team = [];')
     const page = await ctx.newPage()
     const log = watch(page)
     await page.goto(`${BASE}/team.html?bust=${Date.now() + 4}`, { waitUntil: 'networkidle' })

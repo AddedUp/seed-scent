@@ -1,7 +1,7 @@
 /* Team page: cards from config, placeholders, photo slots, hover tilt, rise-in.
    Shares scroll.js (Lenis + GSAP plugins) and ui.js with the home page. */
 import { lenis, motion, prefersReduced, isCoarse } from './scroll.js'
-import { cfg, fillPlaceholders, fillSlots, initSplit, initMagnetic, initMotionToggle } from './ui.js'
+import { cfg, fillPlaceholders, fillSlots, initSplit, fontsSettled, initMagnetic, initMotionToggle } from './ui.js'
 
 const pad = n => String(n).padStart(2, '0')
 
@@ -154,8 +154,7 @@ initReveal(cards)
    milliseconds so the reveal is the first thing you see. */
 const splitEls = [...document.querySelectorAll('[data-split]')]
 if (!prefersReduced) splitEls.forEach(el => { el.style.visibility = 'hidden' })
-const fontsReady = document.fonts ? document.fonts.ready : Promise.resolve()
-fontsReady.then(() => {
+fontsSettled(splitEls).then(() => {
   splitEls.forEach(el => { el.style.visibility = '' })
   initSplit()
   ScrollTrigger.refresh()

@@ -2,12 +2,19 @@
    Run: cd tools/playwright && node check-sections.mjs
    Prints the numbers that prove each part works and saves screenshots to out/.
 
-   Contexts: desktop (the stock config), variants (config typed the way a student might type it:
-   prices as text, one that is not a number, tiers confirmed, an order email), mobile, reduced motion. */
+   Every context is served the blank config template (fixtures/config.blank.js, through fixture.mjs)
+   in place of js/config.js, so these checks keep passing while the real config fills up with the
+   firm's facts. Nothing in this file reads the real js/config.js; check-facts.mjs is the check that does.
+
+   Contexts: desktop (the blank template), variants (the template plus values typed the way a student
+   might type them: prices as text, one that is not a number, tiers confirmed, an order email),
+   mobile, reduced motion. */
 import { chromium } from 'playwright'
 import { mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { runInNewContext } from 'node:vm'
+import { blankConfig, BLANK } from './fixture.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const OUT = join(here, 'out')
@@ -115,13 +122,23 @@ async function setPaused(page, want) {
   return r
 }
 
-/* serve js/config.js as it is, plus a patch written the way a student might type values */
-async function overrideConfig(ctx, patch) {
-  await ctx.route(u => u.pathname.endsWith('/js/config.js'), async route => {
-    const res = await route.fetch()
-    const body = `${await res.text()}\n/* check-sections.mjs: test overrides */\n(${patch.toString()})(window.SEED_SCENT);\n`
-    await route.fulfill({ response: res, body, headers: { ...res.headers(), 'content-type': 'application/javascript' } })
-  })
+/* a patch written the way a student might type values, as the script blankConfig() appends to the blank template */
+const asScript = patch => `/* check-sections.mjs: test overrides */\n(${patch.toString()})(window.SEED_SCENT);`
+
+/* What a page must be holding: the blank template evaluated here, with the variant's patch applied
+   when it has one. Built from the template's text (BLANK), never from the real js/config.js. */
+function templateConfig(patch) {
+  const sandbox = { window: {} }
+  runInNewContext(BLANK, sandbox)
+  if (patch) patch(sandbox.window.SEED_SCENT)
+  return sandbox.window.SEED_SCENT
+}
+/* Proof, per context, that the fixture's route took: a context that missed it would be holding the firm's real facts. */
+async function onTemplate(page, label, patch) {
+  const got = String(await page.evaluate(() => JSON.stringify(window.SEED_SCENT))), want = JSON.stringify(templateConfig(patch))
+  let i = 0
+  while (i < want.length && got[i] === want[i]) i++
+  ok(got === want, `${label}: the page holds the blank config template${patch ? ' plus the test overrides' : ''}, nothing from the real js/config.js${got === want ? '' : ` (differs at ...${got.slice(Math.max(0, i - 30), i + 50)}...)`}`)
 }
 
 async function submitOrder(page, { firm = 'Maple Leaf Trading Co', name = 'Jordan Reyes', email = 'jordan@mapleleaf.example', scent = '1', qty = '60', notes = '' } = {}) {
@@ -147,11 +164,13 @@ const motionState = page => page.evaluate(() => ({
 /* ---------------------------------------------------------------- desktop */
 async function desktop(browser) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'no-preference' })
+  await blankConfig(ctx)
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: 'http://127.0.0.1:3001' })
   const page = await ctx.newPage()
   const log = watch(page, 'desktop')
   await page.goto(url(), { waitUntil: 'load' })
   await settle(page)
+  await onTemplate(page, 'desktop')
 
   /* --- drawing counts --- */
   const x0 = await page.evaluate(() => window.__sections.xsec())
@@ -168,7 +187,7 @@ async function desktop(browser) {
   const expectedReveal = await page.$$eval('.tier, .way, .steps li, .card', els => els.length)
   ok(rv0.total === expectedReveal && rv0.marked === rv0.total, `reveal candidates = ${expectedReveal} (tiers + ways + steps + cards), all marked hidden at start`)
 
-  /* --- tiers (stock config: every price null) --- */
+  /* --- tiers (blank template: every price null) --- */
   await scrollTo(page, '#firms')
   const note0 = await noteText(page)
   await slide(page, 60)
@@ -442,17 +461,19 @@ async function desktop(browser) {
 /* --------------------------------------------------- config variants (desktop) */
 async function variants(browser) {
   /* V1: prices typed the way a student might type them; tiers still a draft; motion paused at the top */
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'no-preference' })
-  await overrideConfig(ctx, c => {
+  const typedPrices = c => {
     c.bulkTiers[0].price = 4.5       // a number
     c.bulkTiers[1].price = 'abc'     // not a number at all
     c.bulkTiers[2].price = '4.50'    // typed as text
     c.bulkTiers[3].price = ''        // emptied
-  })
+  }
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'no-preference' })
+  await blankConfig(ctx, asScript(typedPrices))
   const page = await ctx.newPage()
   const log = watch(page, 'variants')
   await page.goto(url(), { waitUntil: 'load' })
   await settle(page)
+  await onTemplate(page, 'variants', typedPrices)
   const served = await page.evaluate(() => (window.SEED_SCENT.bulkTiers || []).map(t => t.price))
   info(`variant config served: tier prices ${JSON.stringify(served)}`)
   ok(served[2] === '4.50' && served[1] === 'abc', 'config override is in effect')
@@ -499,13 +520,14 @@ async function variants(browser) {
   await ctx.close()
 
   /* V2: tiers confirmed and an order email published */
-  const ctx2 = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'no-preference' })
-  await overrideConfig(ctx2, c => {
+  const confirmed = c => {
     c.tiersConfirmed = true
     c.contact.email = 'orders@example.test'
     const p = ['4.50', '4', '3.50', '3']
     c.bulkTiers.forEach((t, i) => { t.price = p[i] })
-  })
+  }
+  const ctx2 = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'no-preference' })
+  await blankConfig(ctx2, asScript(confirmed))
   const page2 = await ctx2.newPage()
   const log2 = watch(page2, 'variants-confirmed')
   const navs = []
@@ -515,6 +537,7 @@ async function variants(browser) {
   cdp.on('Page.frameScheduledNavigation', e => navs.push(e.url))
   await page2.goto(url(), { waitUntil: 'load' })
   await settle(page2)
+  await onTemplate(page2, 'variants-confirmed', confirmed)
   await scrollTo(page2, '#firms')
   await slide(page2, 60)
   const note2 = await noteText(page2)
@@ -537,10 +560,12 @@ async function variants(browser) {
 /* ----------------------------------------------------------------- mobile */
 async function mobile(browser) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 })
+  await blankConfig(ctx)
   const page = await ctx.newPage()
   const log = watch(page, 'mobile')
   await page.goto(url(), { waitUntil: 'load' })
   await settle(page)
+  await onTemplate(page, 'mobile')
   const coarse = await page.evaluate(() => matchMedia('(pointer: coarse)').matches)
   info(`mobile: pointer coarse=${coarse}`)
 
@@ -584,10 +609,12 @@ async function mobile(browser) {
 /* --------------------------------------------------------- reduced motion */
 async function reduced(browser) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' })
+  await blankConfig(ctx)
   const page = await ctx.newPage()
   const log = watch(page, 'reduced')
   await page.goto(url(), { waitUntil: 'load' })
   await settle(page)
+  await onTemplate(page, 'reduced')
   const st = await page.evaluate(() => ({
     rv: document.querySelectorAll('.rv').length,
     xsec: window.__sections.xsec(),

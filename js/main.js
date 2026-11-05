@@ -1,8 +1,8 @@
 /* Bootstrap: the shell first (light modules only), then the scene and physics
    arrive a beat later through dynamic imports, so a slow connection or a
    browser without WebGL still gets a complete, working page. */
-import { buildChapters, updateChapters, readScroll, scroll, motion, lenis, chapters } from './scroll.js'
-import { fillPlaceholders, fillSlots, initSplit, initMagnetic, initAnchors, initHint, initMotionToggle, initMenu } from './ui.js'
+import { buildChapters, updateChapters, readScroll, scroll, motion, lenis, chapters, prefersReduced } from './scroll.js'
+import { fillPlaceholders, fillSlots, initSplit, fontsSettled, initMagnetic, initAnchors, initHint, initMotionToggle, initMenu } from './ui.js'
 
 /* ---------- shell ---------- */
 fillPlaceholders()
@@ -12,11 +12,29 @@ initMagnetic()
 initHint()
 initMotionToggle()
 initMenu()
-initSplit()
+
+/* the room the hero copy leaves above it, for the logo (see .hero-logo in css/site.css) */
+const heroArea = document.querySelector('.ch-hero .card-area'), heroCopy = document.querySelector('.hero-copy')
+function heroRoom() {
+  if (!heroArea || !heroCopy) return
+  const room = heroCopy.getBoundingClientRect().top - heroArea.getBoundingClientRect().top
+  heroArea.style.setProperty('--hero-room', Math.max(0, Math.round(room)) + 'px')
+  heroArea.classList.toggle('tight', room < 110)
+}
 
 /* chapter ranges from the live layout */
-function layout() { readScroll(0); buildChapters(); updateChapters() }
+function layout() { readScroll(0); buildChapters(); updateChapters(); heroRoom() }
 layout()
+
+/* Headlines are cut into lines once their fonts are in, so the breaks are measured in the real
+   typeface; they hide for those few milliseconds so the reveal is the first thing you see. */
+const splitEls = [...document.querySelectorAll('[data-split]')]
+if (!prefersReduced) splitEls.forEach(el => { el.style.visibility = 'hidden' })
+const fontsIn = fontsSettled(splitEls).then(() => {
+  splitEls.forEach(el => { el.style.visibility = '' })
+  initSplit()
+  layout(); ScrollTrigger.refresh()
+}).catch(err => { splitEls.forEach(el => { el.style.visibility = '' }); console.error('[seed scent] headline reveal failed', err) })
 addEventListener('resize', () => { layout(); ScrollTrigger.refresh() })
 addEventListener('load', () => { layout(); ScrollTrigger.refresh() })
 document.fonts && document.fonts.ready.then(() => { layout(); ScrollTrigger.refresh() })
@@ -26,6 +44,35 @@ const isSmall = Math.min(innerWidth, innerHeight) < 700
 const scale = isSmall ? 0.62 : 1
 const scentScale = isSmall ? 0.55 : 1
 const ropes = isSmall ? { hero: 1.9, scents: 2.6, finale: 2.0 } : { hero: 2.5, scents: 3.3, finale: 2.4 }
+
+/* On a short phone screen the hero copy climbs up toward the pendant, which hangs a fixed share
+   of the screen's height below the card's top edge. Give the cord the room that is really
+   there: a shorter cord first, then a smaller pendant. Measured once the headline has its
+   final lines; only words that lie under the pendant count, so wide screens are untouched. */
+function heroFit(L, R) {
+  const area = heroArea, copy = heroCopy
+  if (!area || !copy) return { L, R }
+  const unit = innerHeight / 10
+  const a = area.getBoundingClientRect()
+  const x = a.left + a.width * 0.66, half = (R + 0.5) * unit      // where it hangs, the disc and a little swing
+  let top = Infinity
+  const see = r => { if (r.width > 0 && r.height > 0 && r.right > x - half && r.left < x + half) top = Math.min(top, r.top) }
+  for (const el of copy.children) {
+    const lines = el.querySelectorAll('.split-line')
+    if (lines.length) lines.forEach(l => {   // a masked headline line: the mask's top, the width of its ink
+      const box = l.getBoundingClientRect(), range = document.createRange(); range.selectNodeContents(l)
+      for (const q of range.getClientRects()) see({ width: q.width, height: q.height, left: q.left, right: q.right, top: box.top })
+    })
+    else if (el.classList.contains('actions')) [...el.children].forEach(b => see(b.getBoundingClientRect()))
+    else { const range = document.createRange(); range.selectNodeContents(el); [...range.getClientRects()].forEach(see) }
+  }
+  if (top === Infinity) return { L, R }
+  const room = (top - a.top) / unit - 0.3                          // world units from the hang point to the words, less a margin
+  const MIN = 0.9
+  if (room - 2 * R >= L) return { L, R }
+  if (room - 2 * R >= MIN) return { L: room - 2 * R, R }
+  return { L: MIN, R: Math.max(R * 0.7, Math.min(R, (room - MIN) / 2)) }
+}
 
 let ready = false, hasScene = false
 let S = null, P = null, chap = null   // scene, physics and chapters modules
@@ -39,6 +86,7 @@ async function boot() {
     S.loadImage('brand/mark-print.png').catch(() => null),
     S.loadImage('images/paper-texture.jpg').catch(() => null),
     P.initPhysics(),
+    fontsIn,                                   // the hero copy has its final lines before the cord is cut to length
   ])
   const wood = S.woodTexture()
   const paper = S.paperTexture({ markImg, photo, seed: 3 })
@@ -46,7 +94,8 @@ async function boot() {
   const paper2 = S.paperTexture({ markImg, photo, seed: 11 })
   const paper3 = S.paperTexture({ markImg, photo, seed: 19 })
 
-  chap.H.hero = new P.Hanger({ name: 'hero', R: 1.35 * scale, L: ropes.hero, segs: 8, textures: { wood, paper, paperFaded } })
+  const hero = heroFit(ropes.hero, 1.35 * scale)
+  chap.H.hero = new P.Hanger({ name: 'hero', R: hero.R, L: hero.L, segs: 8, textures: { wood, paper, paperFaded } })
   chap.H.scents = [
     new P.Hanger({ name: 'scent-0', R: 1.05 * scentScale, L: ropes.scents, segs: 7, textures: { wood, paper } }),
     new P.Hanger({ name: 'scent-1', R: 1.05 * scentScale, L: ropes.scents, segs: 7, textures: { wood, paper: paper2 } }),

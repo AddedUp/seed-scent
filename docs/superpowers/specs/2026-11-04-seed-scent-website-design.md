@@ -364,6 +364,46 @@ replaces the placeholder with no code change.
   and checkout pages (the team page's six missing photos 404 by design until
   they are added), 60 fps on the scroll tour at 1440x900 and 390x844, no
   console errors. `SITE_BASE=<url>` points the Playwright probes at any host.
+- **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
+  School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
+  A filled-in fact that is a place to go becomes a link: the handle opens the
+  profile in a new tab, the email address (when it arrives) opens an email. A
+  handle or address the site cannot use keeps its chip, and the report says why.
+  The "school · city, state" lines break cleanly at the dot. Because the real
+  config now holds real values, the behaviour suites (`check-cart`,
+  `check-sections`, `check-team`, `check-format`) run on a blank template
+  (`tools/playwright/fixture.mjs`), and `check-facts.mjs` is the one check that
+  follows the live data.
+- **Second review round.** Three reviewers (links, layout, small phones) with a
+  second agent verifying each finding. What changed: the business card's words are
+  in the flow at every size, so a short window or a long value makes the card
+  taller instead of cutting the name off; its labels are ink, not moss, on sage;
+  a long email address wraps after the @; headlines are split into lines only
+  after their fonts are in (they used to keep fallback-font breaks); the nav
+  folds into the menu below 1010px and never runs its name into "Menu"; the
+  team page nav has its paper backing; nothing is wider than a 320px screen; the
+  hero logo shrinks to the room the copy leaves, and on short phones the lede
+  goes so the pendant, the logo and the headline never overlap; the sprout
+  caption sits below the leaf on phones; scent chips stay on screen; the closed
+  bag drawer no longer shades the page edge; descenders are no longer sliced by
+  the reveal masks.
+- **The cord never breaks.** A held pendant used to follow the hand without limit
+  while the cord, drawn as fixed-length pieces, came apart behind it. Now the
+  pendant goes only as far as its cord reaches; past that the cord goes taut,
+  gives a little like a rubber band (drawn only, the simulated cord never
+  stretches) and letting go snaps the pendant back. The cord is drawn joint to
+  joint, so it is one line whatever the solver does; after every step a watchdog
+  pulls back any pendant that has got past the end of its cord and the chain is
+  laid back onto its proper length. A weak spring about the vertical turns a
+  pendant back to face the visitor (after touch scrolling half of them used to
+  rest edge on). On short phone screens the hero cord is cut to the room the
+  copy leaves. `check-cord.mjs` pulls, scribbles, throws and jumps all three
+  kinds of pendant on desktop and phone and measures the cord each frame.
+- **Format photos.** Each scent has two photos, `image` (mirror cord) and
+  `imageVent` (vent clip). Picking a format on a card fades that format's photo
+  in over the other; a tag on the photo names the version actually shown, and a
+  missing file never leaves the slot empty. `check-format.mjs` covers mouse,
+  keyboard, tap, missing files and reduced motion.
 
 ## 12. Open assumptions to confirm
 

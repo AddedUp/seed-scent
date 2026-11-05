@@ -28,26 +28,83 @@ export function maxNumberIn(text) {
   return Math.max(...m.map(Number))
 }
 
+/* An Instagram handle out of whatever was typed: "name", "@name" or a pasted profile link.
+   null when Instagram would not accept it, or when the link is a post, a reel or another page
+   that is not a profile. Keep in step with tools/placeholders.mjs. */
+const IG_PAGES = ['p', 'reel', 'reels', 'explore', 'stories', 'accounts', 'tv', 'direct', 'share', 'about', 'legal', 'developer', 'directory', 'web', 'challenge', '_u', '_n']
+export function instagramHandle(v) {
+  if (typeof v !== 'string') return null
+  let h = v.trim()
+  const m = h.match(/^(?:https?:\/\/)?(?:www\.)?instagram\.com\/([^/?#\s]+)(?:\/(?:reels|tagged|feed)?)?\/?(?:[?#]\S*)?$/i)
+  if (m) h = m[1]
+  h = h.replace(/^@/, '')
+  if (!/^[A-Za-z0-9._]{1,30}$/.test(h) || h.startsWith('.') || h.endsWith('.') || h.includes('..')) return null
+  return IG_PAGES.includes(h.toLowerCase()) ? null : h
+}
+
+/* The order address out of whatever was typed: trimmed, one leading "mailto:" dropped.
+   null when an email app could not use it as an address (a space, a second @, a ?query, a name
+   and angle brackets). Every place that sends mail reads the address through here.
+   Keep in step with tools/placeholders.mjs. */
+export function emailAddress(v) {
+  if (typeof v !== 'string') return null
+  const e = v.trim().replace(/^mailto:/i, '').trim()
+  return /^[^\s@?&#:<>,;]+@[^\s@?&#:<>,;]+\.[^\s@?&#:<>,;]+$/.test(e) ? e : null
+}
+export const contactEmail = () => emailAddress(cfg('contact.email'))
+
+/* A chip marked data-link becomes a link when its value is a place to go:
+   the Instagram handle opens the profile, the email address opens an email. */
+function linkFor(path, v) {
+  if (path === 'contact.instagram') {
+    const h = instagramHandle(v)
+    if (!h) return null
+    const who = (CFG.brand && CFG.brand.name) || 'Seed Scent'
+    return { href: `https://www.instagram.com/${h}/`, parts: ['@' + h], label: `${who} on Instagram, @${h} (opens in a new tab)`, external: true }
+  }
+  if (path === 'contact.email') {
+    const e = emailAddress(v)
+    if (!e) return null
+    const at = e.indexOf('@') + 1
+    return { href: 'mailto:' + e, parts: [e.slice(0, at), e.slice(at)] }   // if it has to wrap, it wraps after the @
+  }
+  return null
+}
+
 /* ---------- placeholders: fill what the config knows, chip the rest ---------- */
 export function fillPlaceholders() {
   document.querySelectorAll('[data-ph]').forEach(el => {
     const path = el.dataset.ph
-    let v = cfg(path)
+    const raw = cfg(path)
+    let v = raw
     if (v === null || v === undefined || v === '') return
     if (el.classList.contains('price')) { v = money(v); if (v == null) return }   // a bad number keeps its chip
     if (path === 'product.fixativeName') v = ' · ' + v
-    if (path === 'contact.instagram') v = '@' + String(v).replace(/^@/, '')
-    el.textContent = v
+    if (path === 'contact.instagram') { const h = instagramHandle(v); if (!h) return; v = '@' + h }   // not a handle: keeps its chip
+    if (path === 'contact.email') { const e = emailAddress(v); if (!e) return; v = e }               // not an address: keeps its chip
+    const link = el.hasAttribute('data-link') ? linkFor(path, raw) : null
+    if (link) {
+      const a = document.createElement('a')
+      a.className = 'fact-link'
+      a.href = link.href
+      link.parts.forEach((part, i) => { if (i) a.appendChild(document.createElement('wbr')); a.appendChild(document.createTextNode(part)) })
+      if (link.external) { a.target = '_blank'; a.rel = 'noopener noreferrer' }
+      if (link.label) a.setAttribute('aria-label', link.label)
+      el.textContent = ''
+      el.appendChild(a)
+    } else el.textContent = v
     el.classList.remove('ph', 'optional')
     el.removeAttribute('data-ph')
+    el.setAttribute('data-filled', '')
   })
   document.querySelectorAll('[data-tbc]').forEach(el => { if (cfg(el.dataset.tbc) === true) el.hidden = true })
   document.querySelectorAll('.tbc').forEach(el => { if (!el.title) el.title = 'To be confirmed by the team' })
 
-  // lines that only hold unfilled chips stay out of the way until there is something to say
+  // lines that only hold unfilled chips stay out of the way until there is something to say;
+  // one filled value is enough to show the line, with chips for the rest
   document.querySelectorAll('[data-hide-empty]').forEach(el => {
     const chips = el.querySelectorAll('.ph'), text = el.textContent.replace(/\s+/g, ' ').trim()
-    const filled = [...el.querySelectorAll('[data-ph]')].length < chips.length
+    const filled = !!el.querySelector('[data-filled]')
     if (chips.length && !filled && text.length < 60) el.hidden = true
   })
 
@@ -76,11 +133,26 @@ export function fillSlots() {
       img.src = src; img.hidden = false
       const label = img.parentElement.querySelector('.slot-label'); if (label) label.remove()
     }
-    probe.src = src
+    const start = () => { probe.src = src }
+    // a card's second photo (the vent clip version) is not needed for the first paint: it waits
+    // until the page has loaded, so it never competes with the scene for a slow connection
+    if (img.dataset.for !== 'vent') start()
+    else if (document.readyState === 'complete') setTimeout(start, 400)
+    else addEventListener('load', () => setTimeout(start, 400), { once: true })
   })
 }
 
 /* ---------- masked line reveals ---------- */
+/* Resolves once the fonts the given elements use are in, so lines are measured in the real
+   typeface (a headline split too early keeps its fallback-font breaks for good). A font request
+   that never answers cannot hold the page: after `timeout` it resolves anyway. */
+export function fontsSettled(els, timeout = 1500) {
+  if (!document.fonts || !document.fonts.load) return Promise.resolve()
+  const specs = new Set()
+  els.forEach(el => { const cs = getComputedStyle(el); specs.add(`${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`) })
+  const loads = Promise.all([...specs].map(f => document.fonts.load(f).catch(() => null))).then(() => document.fonts.ready).catch(() => null)
+  return Promise.race([loads, new Promise(done => setTimeout(done, timeout))])
+}
 export function initSplit() {
   const els = document.querySelectorAll('[data-split]')
   if (prefersReduced) return
@@ -93,7 +165,7 @@ export function initSplit() {
       wrap.appendChild(line)
     })
     gsap.from(split.lines, {
-      yPercent: 110, duration: 1.0, ease: 'power4.out', stagger: 0.07,
+      yPercent: 120, duration: 1.0, ease: 'power4.out', stagger: 0.07,   // 120: clear of the mask's extra room below the baseline
       scrollTrigger: { trigger: el, start: 'top 85%' },
     })
   })

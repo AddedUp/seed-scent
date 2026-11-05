@@ -128,7 +128,8 @@ body.co { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: 
   background: var(--paper); display: grid; gap: 14px;
 }
 .co-result[hidden] { display: none; }
-.co-order { white-space: pre-wrap; font: 400 14px/1.55 var(--font-body); color: var(--ink); margin: 0; }
+/* a long address or a pasted link in the notes wraps instead of widening the page */
+.co-order { white-space: pre-wrap; overflow-wrap: anywhere; font: 400 14px/1.55 var(--font-body); color: var(--ink); margin: 0; }
 .co-result-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
 .co-result-note { max-width: 44ch; }
 
@@ -141,7 +142,7 @@ body.co { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: 
    Responsive
    -------------------------------------------------------------------------- */
 @media (max-width: 900px) {
-  .co-grid { grid-template-columns: 1fr; }
+  .co-grid { grid-template-columns: minmax(0, 1fr); }
   .co-panel, .co-summary { padding: 24px 22px; }
   .co-totals { grid-template-columns: 1fr 1fr; gap: 16px 10px; }
   .co-head .display { max-width: none; }

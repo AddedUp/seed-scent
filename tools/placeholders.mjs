@@ -40,7 +40,7 @@ const OPTIONAL = {
 
 /* Lines every entry in these lists must have. A deleted line counts as a placeholder. */
 const REQUIRED_KEYS = {
-  scents: ['name', 'notes', 'price', 'packSize', 'image'],
+  scents: ['name', 'notes', 'price', 'packSize', 'image', 'imageVent'],
   bulkTiers: ['min', 'label', 'price'],
   team: ['name', 'role', 'bio', 'photo'],
 }
@@ -142,10 +142,34 @@ function checkPrice(dotted, value) {
   wrong.push({ path: dotted, text: `is ${show(value)}${quoted}. Prices are numbers without quotes: price: 4.5` })
 }
 
+/* The same reading of an address as emailAddress() in js/ui.js; keep the two in step. */
+function emailAddress(v) {
+  if (typeof v !== 'string') return null
+  const e = v.trim().replace(/^mailto:/i, '').trim()
+  return /^[^\s@?&#:<>,;]+@[^\s@?&#:<>,;]+\.[^\s@?&#:<>,;]+$/.test(e) ? e : null
+}
 function checkEmail(dotted, value) {
   if (isBlank(value)) { nulls.push({ path: dotted, note: emptyNote(value), optional: OPTIONAL[dotted] }); return }
-  if (typeof value !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
-    wrong.push({ path: dotted, text: `is ${show(value)}. It should look like "orders@school.org".` })
+  if (!emailAddress(value)) {
+    wrong.push({ path: dotted, text: `is ${show(value)}. It should be the address on its own in quotes, like "orders@school.org". Until it is, the site keeps the chip and sends no order email.` })
+  }
+}
+
+/* The same reading of a handle as instagramHandle() in js/ui.js; keep the two in step. */
+const IG_PAGES = ['p', 'reel', 'reels', 'explore', 'stories', 'accounts', 'tv', 'direct', 'share', 'about', 'legal', 'developer', 'directory', 'web', 'challenge', '_u', '_n']
+function instagramHandle(v) {
+  if (typeof v !== 'string') return null
+  let h = v.trim()
+  const m = h.match(/^(?:https?:\/\/)?(?:www\.)?instagram\.com\/([^/?#\s]+)(?:\/(?:reels|tagged|feed)?)?\/?(?:[?#]\S*)?$/i)
+  if (m) h = m[1]
+  h = h.replace(/^@/, '')
+  if (!/^[A-Za-z0-9._]{1,30}$/.test(h) || h.startsWith('.') || h.endsWith('.') || h.includes('..')) return null
+  return IG_PAGES.includes(h.toLowerCase()) ? null : h
+}
+function checkInstagram(dotted, value) {
+  if (isBlank(value)) { nulls.push({ path: dotted, note: emptyNote(value), optional: OPTIONAL[dotted] }); return }
+  if (!instagramHandle(value)) {
+    wrong.push({ path: dotted, text: `is ${show(value)}. Use the handle on its own in quotes, like "seedscent.ve" (letters, numbers, dots and underscores, 30 at most), or paste the link to the profile itself. Until it is, the site keeps the chip.` })
   }
 }
 
@@ -188,10 +212,11 @@ function walk(value, trail) {
   const dotted = trail.join('.')
   const parent = trail.slice(0, -1).join('.')
   if (dotted in SPECIAL) { seen.add(dotted); SPECIAL[dotted](value); return }
-  if (/^(photo|image)$/i.test(key)) return checkPhoto(dotted, value)
+  if (/^(photo|image|imageVent)$/i.test(key)) return checkPhoto(dotted, value)
   if (/confirmed$/i.test(key)) return checkFlag(dotted, value)
   if (key === 'price' && /^(scents|bulkTiers)\.\d+$/.test(parent)) return checkPrice(dotted, value)
   if (dotted === 'contact.email') return checkEmail(dotted, value)
+  if (dotted === 'contact.instagram') return checkInstagram(dotted, value)
   if (isBlank(value)) { nulls.push({ path: dotted, note: emptyNote(value), optional: OPTIONAL[dotted] }); return }
   if (Array.isArray(value)) {
     const need = REQUIRED_KEYS[dotted]

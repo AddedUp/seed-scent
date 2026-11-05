@@ -82,6 +82,7 @@ export function initChips() {
     dom.labels.appendChild(el)
     return el
   })
+  addEventListener('resize', () => state.chips.forEach(el => { el._w = 0 }))   // widths are measured once, then again after a resize
 }
 
 const _slot = new THREE.Vector3(), _slotQ = new THREE.Quaternion(), _plantPos = new THREE.Vector3(), _tmpQ = new THREE.Quaternion(), _off = new THREE.Vector3()
@@ -329,7 +330,9 @@ export function afterPhysics(dt, time) {
       const onScreen = smoothstep(-rPx, rPx * 0.2, disc.y) * (1 - smoothstep(view.h - 10, view.h + 40, sc.y))
       // on narrow screens the three chips would touch: the middle one sits a row lower
       const stagger = view.w < 760 && i % 2 === 1 ? 36 : 0
-      el.style.left = sc.x + 'px'; el.style.top = (sc.y + stagger) + 'px'
+      // a chip follows its disc but never runs off the side of a narrow screen
+      const half = (el._w || (el._w = el.offsetWidth)) / 2 + 6
+      el.style.left = Math.min(Math.max(sc.x, half), Math.max(half, view.w - half)) + 'px'; el.style.top = (sc.y + stagger) + 'px'
       el.style.opacity = ((1 - state.soil) * onScreen).toFixed(3)
     })
   }
