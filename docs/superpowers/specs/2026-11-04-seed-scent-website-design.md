@@ -404,6 +404,20 @@ replaces the placeholder with no code change.
   in over the other; a tag on the photo names the version actually shown, and a
   missing file never leaves the slot empty. `check-format.mjs` covers mouse,
   keyboard, tap, missing files and reduced motion.
+- **How to plant it, by hand.** The owner asked for the planting photo to be
+  "more interactive ... a slight simulation of tearing up the paper and planting
+  yourself". The photo frame is now a small Canvas 2D stage (`js/planting.js`,
+  `css/planting.css`, fetched when the block is near): the visitor tears a disc of
+  seed paper where they drag (nothing is cut in advance; the seam is held by fibre
+  bridges that stretch and snap), presses the pieces into the soil, holds to water
+  and watches the sun cross while sprouts draw in, after which the original photo
+  fades back under its caption. The steps list lights up the step in hand and marks
+  finished ones. One button does each stage for keyboard and screen reader users, a
+  vertical swipe still scrolls the page, reduced motion places things without
+  animation, and without the script the photo simply stays. Three prototypes were
+  built in parallel (free tear on canvas, pre-cut SVG pieces, fibre bridges), each
+  attacked by a tester and repaired; the fibre version won on how the tear feels.
+  `check-planting.mjs` drives it by mouse, finger and keyboard.
 
 ## 12. Open assumptions to confirm
 

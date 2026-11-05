@@ -60,7 +60,13 @@ body.reduced .card .card-media img { transition: none; }
 .card[data-scent] .card-media[data-format="vent"] img.slot[data-for="vent"] {
   z-index: 1; opacity: 1; visibility: visible;
   transition: transform .9s var(--ease-out), opacity .6s var(--ease-out), visibility 0s;
-  animation: format-in .9s var(--ease-out);
+}
+/* set by js/sections.js for one switch only: the incoming photo settles in from a little larger,
+   and a photo switched away from before its fade had finished fades out over the one coming back */
+.card[data-scent] .card-media img.slot.entering { animation: format-in .9s var(--ease-out); }
+.card[data-scent] .card-media img.slot.leaving {
+  z-index: 2; opacity: 0; visibility: visible;
+  transition: transform .9s var(--ease-out), opacity .45s var(--ease-out), visibility 0s linear .45s;
 }
 @keyframes format-in { from { transform: scale(1.09); } }
 /* the tag says which version the photo shows */
@@ -72,6 +78,9 @@ body.reduced .card .card-media img { transition: none; }
   pointer-events: none;
 }
 .media-tag[hidden] { display: none; }
+@media (max-width: 1100px) {   /* narrower slots: a smaller tag, so it stays off the product */
+  .card .media-tag { left: 8px; bottom: 8px; padding: 4px 8px; font-size: 10px; }
+}
 .format label { cursor: pointer; }
 body.reduced .card[data-scent] .card-media img.slot,
 body.reduced .card[data-scent] .card-media[data-format] img.slot[data-for] { transition: none; animation: none; }

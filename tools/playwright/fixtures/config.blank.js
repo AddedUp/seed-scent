@@ -45,11 +45,12 @@ window.SEED_SCENT = {
   /* The three scents. Prices are numbers, e.g. 4.5 for $4.50. */
   scents: [
     /* image: the photo of the mirror cord version. imageVent: the photo of the vent clip version.
-       The card shows whichever format the visitor picks. Replace both with your own photo files
-       when the product shots are final. */
-    { id: "scent-1", name: null, notes: null, price: null, packSize: null, image: "images/product-studio-1.jpg", imageVent: "images/product-vent-studio.jpg", accent: "ink" },
+       The card shows whichever format the visitor picks. The three cards share one vent clip
+       mock-up so they all show the same design; give each scent its own photos when the product
+       shots are final. */
+    { id: "scent-1", name: null, notes: null, price: null, packSize: null, image: "images/product-studio-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink" },
     { id: "scent-2", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss" },
-    { id: "scent-3", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-1.jpg", imageVent: "images/product-vent-2.jpg", accent: "sage" },
+    { id: "scent-3", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "sage" },
   ],
 
   /* Bulk pricing for other firms. price is the per-unit price at that quantity.

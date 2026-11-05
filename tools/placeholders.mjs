@@ -145,8 +145,8 @@ function checkPrice(dotted, value) {
 /* The same reading of an address as emailAddress() in js/ui.js; keep the two in step. */
 function emailAddress(v) {
   if (typeof v !== 'string') return null
-  const e = v.trim().replace(/^mailto:/i, '').trim()
-  return /^[^\s@?&#:<>,;]+@[^\s@?&#:<>,;]+\.[^\s@?&#:<>,;]+$/.test(e) ? e : null
+  const e = v.trim().replace(/^mailto:/i, '').trim().replace(/\.$/, '')
+  return /^[^\s@?&#:<>,;\/]+@(?:[A-Za-z0-9\u00a1-\uffff-]+\.)+[A-Za-z\u00a1-\uffff]{2,}$/.test(e) ? e : null
 }
 function checkEmail(dotted, value) {
   if (isBlank(value)) { nulls.push({ path: dotted, note: emptyNote(value), optional: OPTIONAL[dotted] }); return }
@@ -160,8 +160,9 @@ const IG_PAGES = ['p', 'reel', 'reels', 'explore', 'stories', 'accounts', 'tv', 
 function instagramHandle(v) {
   if (typeof v !== 'string') return null
   let h = v.trim()
-  const m = h.match(/^(?:https?:\/\/)?(?:www\.)?instagram\.com\/([^/?#\s]+)(?:\/(?:reels|tagged|feed)?)?\/?(?:[?#]\S*)?$/i)
+  const m = h.match(/^(?:https?:\/\/)?(?:www\.|m\.)?instagram\.com\/([^/?#\s]+)(?:\/(?:reels|tagged|feed)?)?\/?(?:[?#]\S*)?$/i)
   if (m) h = m[1]
+  else if (/instagram\./i.test(h)) return null
   h = h.replace(/^@/, '')
   if (!/^[A-Za-z0-9._]{1,30}$/.test(h) || h.startsWith('.') || h.endsWith('.') || h.includes('..')) return null
   return IG_PAGES.includes(h.toLowerCase()) ? null : h
@@ -266,6 +267,12 @@ MODE = readMode(cfg)
 walk(cfg, [])
 for (const p of Object.keys(SPECIAL)) if (!seen.has(p)) SPECIAL[p](undefined)   // the line was deleted
 checkCounts(cfg)
+
+/* a scent whose two photos are the same file: the card would label the mirror cord photo "Vent clip" */
+;(Array.isArray(cfg.scents) ? cfg.scents : []).forEach((s, i) => {
+  if (!isObj(s) || typeof s.image !== 'string' || typeof s.imageVent !== 'string') return
+  if (s.image.trim() && s.image.trim() === s.imageVent.trim()) wrong.push({ path: `scents.${i}.imageVent`, text: `is the same file as scents.${i}.image. Give the vent clip its own photo; until then the card shows the mirror cord photo under the label "Vent clip".` })
+})
 
 /* ---------- print ---------- */
 const required = nulls.filter(n => !n.optional)

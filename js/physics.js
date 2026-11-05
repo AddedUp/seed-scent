@@ -33,11 +33,12 @@ export const tune = {
 }
 
 let cursorBody = null
+let releaseHeld = () => {}   // set by bindPointer: lets go of the held pendant
 let walls = null
 let boxNow = null
 let shadowTex = null
 export const cursor = { x: 999, y: 999, active: false, over: false }
-export const grab = { held: null, offset: new THREE.Vector3(), want: new THREE.Vector3(), vel: new THREE.Vector3(), prevC: new THREE.Vector3() }
+export const grab = { held: null, pointerId: null, offset: new THREE.Vector3(), want: new THREE.Vector3(), vel: new THREE.Vector3(), prevC: new THREE.Vector3() }
 export const stats = { interactions: 0, lastInteraction: 0 }
 
 const Q_X90 = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0))
@@ -62,6 +63,7 @@ export async function initPhysics() {
     left: world.createCollider(RAPIER.ColliderDesc.cuboid(0.5, big, 3).setTranslation(-big, 0, 0)),
     right: world.createCollider(RAPIER.ColliderDesc.cuboid(0.5, big, 3).setTranslation(big, 0, 0)),
     floor: world.createCollider(RAPIER.ColliderDesc.cuboid(big, 0.5, 3).setTranslation(0, -big, 0)),
+    top: world.createCollider(RAPIER.ColliderDesc.cuboid(big, 0.5, 3).setTranslation(0, big, 0)),
   }
   bindPointer()
   return world
@@ -76,11 +78,14 @@ export function setBox(box) {
     walls.left.setTranslation({ x: -big, y: 0, z: 0 })
     walls.right.setTranslation({ x: big, y: 0, z: 0 })
     walls.floor.setTranslation({ x: 0, y: -big, z: 0 })
+    walls.top.setTranslation({ x: 0, y: big, z: 0 })
     return
   }
   walls.left.setTranslation({ x: box.xMin - 0.5, y: 0, z: 0 })
   walls.right.setTranslation({ x: box.xMax + 0.5, y: 0, z: 0 })
   walls.floor.setTranslation({ x: 0, y: box.yMin - 0.5, z: 0 })
+  // a ceiling, so a pendant pulled or snapped upward never leaves its card over the nav
+  walls.top.setTranslation({ x: 0, y: (box.yMax != null ? box.yMax : big) + 0.5, z: 0 })
 }
 
 export class Hanger {
@@ -93,8 +98,10 @@ export class Hanger {
     // the give of a taut cord: only drawn, the bodies never stretch
     this.stretch = 0; this.stretchVel = 0; this.boostUntil = 0
 
+    // each pendant sways on its own beat, so three side by side never move as one
+    this.phase = hangers.length * 2.17
     this.anchor = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(0, 60, 0))
-    this.ropeBodies = []
+    this.ropeBodies = []; this.links = []; this.ropeColliders = []
     let prev = this.anchor
     for (let i = 0; i < segs; i++) {
       const b = world.createRigidBody(
@@ -105,12 +112,12 @@ export class Hanger {
       // a real capsule so the segment has mass AND angular inertia (a chain of
       // inertia-less bodies cannot bend and the solver blows up to NaN);
       // collision group 2 with an empty filter: the rope touches nothing
-      world.createCollider(
+      this.ropeColliders.push(world.createCollider(
         RAPIER.ColliderDesc.capsule(Math.max(0.01, segLen / 2 - 0.03), 0.03)
           .setDensity(14).setCollisionGroups((0x0002 << 16) | 0x0000),
-        b)
+        b))
       const j = RAPIER.JointData.spherical({ x: 0, y: i === 0 ? 0 : -segLen / 2, z: 0 }, { x: 0, y: segLen / 2, z: 0 })
-      world.createImpulseJoint(j, prev, b, true)
+      this.links.push(world.createImpulseJoint(j, prev, b, true))
       this.ropeBodies.push(b); prev = b
     }
     this.body = world.createRigidBody(
@@ -123,7 +130,7 @@ export class Hanger {
         .setRotation({ x: Q_X90.x, y: Q_X90.y, z: Q_X90.z, w: Q_X90.w })
         .setDensity(0.08).setRestitution(0.25).setFriction(0.7),
       this.body)
-    world.createImpulseJoint(RAPIER.JointData.spherical({ x: 0, y: -segLen / 2, z: 0 }, { x: 0, y: R, z: 0 }), prev, this.body, true)
+    this.links.push(world.createImpulseJoint(RAPIER.JointData.spherical({ x: 0, y: -segLen / 2, z: 0 }, { x: 0, y: R, z: 0 }), prev, this.body, true))
     this.mass = this.body.mass()
 
     // meshes
@@ -154,6 +161,7 @@ export class Hanger {
 
   setEnabled(on) {
     if (this.enabled === on) return
+    if (!on && grab.held === this) releaseHeld()   // the page moved on (keyboard scrolling) while it was held
     this.enabled = on
     this.anchor.setEnabled(on)
     for (const b of this.ropeBodies) b.setEnabled(on)
@@ -173,12 +181,36 @@ export class Hanger {
       b.setTranslation({ x, y: y - this.segLen * (i + 0.5), z: 0 }, true)
       b.setRotation(id, true); b.setLinvel(zero, true); b.setAngvel(zero, true)
     })
+    // a pendant that is not in a hand always hangs free (a lost release must not freeze it)
+    if (grab.held !== this && this.body.bodyType() !== RAPIER.RigidBodyType.Dynamic) this.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
     this.body.setTranslation({ x, y: y - this.L - this.R, z: 0 }, true)
     this.body.setRotation(id, true); this.body.setLinvel(zero, true); this.body.setAngvel(zero, true)
     this.stretch = 0; this.stretchVel = 0
   }
 
+  /* out of the world and the scene for good (the hero is rebuilt when the screen turns) */
+  destroy() {
+    if (grab.held === this) releaseHeld()
+    for (const b of [this.body, ...this.ropeBodies, this.anchor]) world.removeRigidBody(b)
+    for (const o of [this.mesh, this.bead, this.shadow, this.strandA, this.strandB, ...this.cordMeshes]) rig.remove(o)
+    const i = hangers.indexOf(this)
+    if (i >= 0) hangers.splice(i, 1)
+  }
+
   setTarget(x, y) { this.target.x = x; this.target.y = y }
+
+  /* Pay the cord out or take it in, in place: the joints move apart or together and the solver
+     follows, so a small change each frame reads as a cord sliding through the hand. */
+  setLength(L) {
+    if (!(L > 0.2) || Math.abs(L - this.L) < 1e-4) return
+    const n = this.ropeBodies.length, d = L / n
+    this.L = L; this.segLen = d
+    this.links.forEach((j, i) => {
+      if (i > 0) j.setAnchor1({ x: 0, y: -d / 2, z: 0 })
+      if (i < n) j.setAnchor2({ x: 0, y: d / 2, z: 0 })
+    })
+    this.ropeColliders.forEach(c => c.setHalfHeight(Math.max(0.01, d / 2 - 0.03)))
+  }
 
   /* world position of the pendant centre */
   position() { const t = this.body.translation(); return this._v.set(t.x, t.y, t.z) }
@@ -272,9 +304,10 @@ export class Hanger {
     this._a.copy(P[this.beadIndex])
     this.bead.position.copy(this._a)
     // two strands from the bead to the top of the ring
-    const pa = this._b.set(-this.R * 0.26, this.R * 0.985, 0); this.mesh.localToWorld(pa)
+    // (in the rig's own space, like the bead and the cord: the scene's lean toward the pointer is applied on top)
+    const pa = this._b.set(-this.R * 0.26, this.R * 0.985, 0).applyMatrix4(this.mesh.matrix)
     placeBetween(this.strandA, this._a, pa)
-    const pb = this._b.set(this.R * 0.26, this.R * 0.985, 0); this.mesh.localToWorld(pb)
+    const pb = this._b.set(this.R * 0.26, this.R * 0.985, 0).applyMatrix4(this.mesh.matrix)
     placeBetween(this.strandB, this._a, pb)
     // soft contact shadow, offset down-right, behind the object
     this.shadow.position.set(this.mesh.position.x + this.R * 0.32, this.mesh.position.y - this.R * 0.42, t.z - 0.75)
@@ -311,7 +344,10 @@ function noteInteraction() {
 
 function bindPointer() {
   addEventListener('pointermove', e => {
+    if (grab.held && e.pointerId !== grab.pointerId) return        // another finger: not the one holding
     if (e.pointerType === 'touch' && !grab.held) return
+    // a mouse whose main button is no longer down (a context menu took the release) lets go
+    if (grab.held && e.pointerType === 'mouse' && !(e.buttons & 1)) { release(); return }
     pointerOnPage = true
     const p = pointerToWorld(e)
     cursor.x = p.x; cursor.y = p.y; cursor.active = true
@@ -322,6 +358,7 @@ function bindPointer() {
   }, { passive: true })
 
   addEventListener('pointerdown', e => {
+    if (grab.held) return                                             // one pendant at a time, one hand
     if (e.button !== 0 && e.pointerType === 'mouse') return
     if (e.target.closest('a, button, input, select, textarea, label, .bag')) return
     pointerToWorld(e)
@@ -329,7 +366,7 @@ function bindPointer() {
     stats.lastDown = { x: e.clientX, y: e.clientY, hit: !!h, target: e.target.tagName + (e.target.className ? '.' + e.target.className : ''), type: e.pointerType }
     if (!h) return
     e.preventDefault()
-    grab.held = h
+    grab.held = h; grab.pointerId = e.pointerId
     h.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
     const b = h.body.translation()
     grab.offset.set(b.x - pt.x, b.y - pt.y, 0)
@@ -340,10 +377,11 @@ function bindPointer() {
     noteInteraction()
   })
 
-  const release = () => {
+  releaseHeld = release
+  function release() {
     const h = grab.held
     if (!h) return
-    grab.held = null
+    grab.held = null; grab.pointerId = null
     h.body.setBodyType(RAPIER.RigidBodyType.Dynamic, true)
     const v = grab.vel.clone().multiplyScalar(tune.throw)
     const cap = 18
@@ -364,8 +402,14 @@ function bindPointer() {
   }
   // while a finger holds the pendant, the page must not scroll under it
   addEventListener('touchmove', e => { if (grab.held) e.preventDefault() }, { passive: false })
-  addEventListener('pointerup', release)
-  addEventListener('pointercancel', release)
+  const up = e => {
+    // a lifted finger or pen takes its invisible ball with it, so nothing is left leaning on it
+    if (e.pointerType !== 'mouse') cursor.active = false
+    if (grab.held && e.pointerId === grab.pointerId) release()
+  }
+  addEventListener('pointerup', up)
+  addEventListener('pointercancel', up)
+  addEventListener('contextmenu', release)
   addEventListener('blur', release)
   addEventListener('pointerleave', () => { cursor.active = false })
   document.addEventListener('mouseleave', () => { cursor.active = false })
@@ -376,9 +420,12 @@ const _qt = new THREE.Quaternion(), _qc = new THREE.Quaternion(), _up = new THRE
 function hold(h, dt) {
   const ax = h.target.x, ay = h.target.y
   let cx = grab.want.x, cy = grab.want.y
+  // the box's ceiling, a little under its top edge: room for the drawn give and the scene's lean
+  const ceil = boxNow && boxNow.yMax != null ? boxNow.yMax - h.R * 1.1 : Infinity
   if (boxNow) {   // a pendant let go outside the box would be shut out of it
     cx = Math.min(Math.max(cx, boxNow.xMin + h.R * 0.95), boxNow.xMax - h.R * 0.95)
     cy = Math.max(cy, boxNow.yMin + h.R * 0.95)
+    cy = Math.min(cy, ceil)
   }
   const dx = ax - cx, dy = ay - cy, d = Math.hypot(dx, dy) || 1e-6
   const taut = h.L * 0.992, reach = taut + h.R
@@ -389,6 +436,9 @@ function hold(h, dt) {
     const over = d - reach, max = tune.stretchMax * reach
     give = max * (1 - 1 / (1 + over * tune.stretchEase / max))
     cx = ax - dx / d * reach; cy = ay - dy / d * reach
+    // the end of the cord is above the ceiling (a diagonal pull upward): slide along the cord's
+    // reach to where it meets the ceiling instead
+    if (cy > ceil) { const side = cx < ax ? -1 : 1; cy = ceil; cx = ax + side * Math.sqrt(Math.max(0, reach * reach - (ceil - ay) * (ceil - ay))) }
     phi = toward
   } else {
     // within reach: lean the ring toward the hang point only as far as the cord needs
@@ -405,6 +455,7 @@ function hold(h, dt) {
   _up.set(0, h.R, 0).applyQuaternion(_qc)
   const ex = cx + _up.x - ax, ey = cy + _up.y - ay, el = Math.hypot(ex, ey, _up.z)
   if (el > taut) { const k = (el - taut) / el; cx -= ex * k; cy -= ey * k }
+  cy = Math.min(cy, ceil)
   h.body.setNextKinematicTranslation({ x: cx, y: cy, z: 0 })
   h.body.setNextKinematicRotation({ x: _qc.x, y: _qc.y, z: _qc.z, w: _qc.w })
   // what gets thrown is the pendant's own motion, not the hand's
@@ -471,7 +522,7 @@ export function step(dt, { vel = 0, active = true } = {}) {
     }
     if (active && (isCoarse || idle)) {
       const f = tune.breeze * m * dt
-      h.body.applyImpulse({ x: Math.sin(breezeT * 0.9 + h.R) * f, y: 0, z: Math.cos(breezeT * 0.55) * f * 0.5 }, true)
+      h.body.applyImpulse({ x: Math.sin(breezeT * 0.9 + h.phase) * f, y: 0, z: Math.cos(breezeT * 0.55 + h.phase * 0.7) * f * 0.5 }, true)
     }
   }
   world.timestep = sdt

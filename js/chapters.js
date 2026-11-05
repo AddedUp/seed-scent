@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { scene, rig, view, rectAnchor, project, toWorldX, toWorldY, WORLD_H, blobTexture } from './scene.js'
 import { hangers, setBox, cursor, grab, stats } from './physics.js'
 import { chapters, ch, activeChapter, scroll, motion, isCoarse, clamp01, lerp, smoothstep, span } from './scroll.js'
-import { setNavActive, cfg, money, maxNumberIn, navHeight } from './ui.js'
+import { setNavActive, cfg, money, maxNumberIn, navHeight, escapeHtml } from './ui.js'
 
 const $ = s => document.querySelector(s)
 const $$ = s => [...document.querySelectorAll(s)]
@@ -75,7 +75,7 @@ export function initChips() {
   state.chips = scents.map((s, i) => {
     const el = document.createElement('span')
     el.className = 'chip'
-    const name = s.name ? s.name : `<span class="ph">scent name</span>`
+    const name = s.name ? escapeHtml(s.name) : `<span class="ph">scent name</span>`
     const m = money(s.price)
     const price = m != null ? m : `<span class="ph">price</span>`
     el.innerHTML = compact ? `${String(i + 1).padStart(2, '0')} · ${name}` : `${String(i + 1).padStart(2, '0')} · ${name} · ${price}`
@@ -92,6 +92,7 @@ const CREAM = new THREE.Color('#fbf6e5'), JUTE = new THREE.Color('#b59a6b'), _co
 let lastTheme = ''
 function setTheme(t) { if (t !== lastTheme) { lastTheme = t; dom.body.dataset.theme = t } }
 let lastChapter = ''
+let lastReading = ''
 let lastCardCss = ''
 let cueOff = false
 
@@ -100,7 +101,14 @@ export function update(dt, time) {
   const hero = ch('hero'), drive = ch('drive'), sprout = ch('sprout'), scents = ch('scents')
   if (!drive || !sprout || !scents) return
   const act = activeChapter()
-  if (act.name !== lastChapter) { lastChapter = act.name; dom.body.dataset.chapter = act.name; setNavActive(act.name) }
+  if (act.name !== lastChapter) { lastChapter = act.name; dom.body.dataset.chapter = act.name }
+  // The nav underline follows what is being read: the chapter under the middle of the screen.
+  // (The choreography's own chapter, above, changes as soon as the next section's top edge
+  // appears at the bottom, which is right for transitions and too early for a signpost.)
+  const mid = scroll.y + view.h * 0.5
+  let reading = chapters[0]
+  for (const c of chapters) if (mid >= c.top) reading = c
+  if (reading && reading.name !== lastReading) { lastReading = reading.name; setNavActive(reading.name) }
 
   /* --- the card opens into the world while the hero slides away (drive.enter) --- */
   const open = smoothstep(0, 1, drive.enter) * (drive.local > 0 ? 1 : 0)
@@ -221,8 +229,11 @@ export function update(dt, time) {
     if (H.hero.fade) H.hero.fade.material[1].opacity = H.hero.fade.material[2].opacity = state.fade
     // the physics box only exists for the hero: the card while it is a card, then the viewport
     if (!H.hero.enabled) setBox(null)
-    else if (open < 1 && cardOpacity > 0) setBox({ xMin: toWorldX(cardRect.left), xMax: toWorldX(cardRect.right), yMin: toWorldY(cardRect.bottom) })
-    else setBox({ xMin: -view.halfW, xMax: view.halfW, yMin: -WORLD_H / 2 })
+    else if (open < 1 && cardOpacity > 0) setBox({ xMin: toWorldX(cardRect.left), xMax: toWorldX(cardRect.right), yMin: toWorldY(cardRect.bottom), yMax: toWorldY(cardRect.top) })
+    else setBox({ xMin: -view.halfW, xMax: view.halfW, yMin: -WORLD_H / 2, yMax: WORLD_H / 2 })
+    // on a short phone the hero cord is cut to clear the hero copy (js/main.js, heroFit); as the
+    // card opens it pays out to its full length, so in the drive the pendant hangs clear of the nav
+    if (H.heroL) H.hero.setLength(lerp(H.heroL[0], H.heroL[1], smoothstep(0.25, 1, open)))
   }
 
   /* --- three scents: slide down their strings while arriving, then hang from the stage --- */
@@ -319,6 +330,11 @@ export function afterPhysics(dt, time) {
 
   // chips under the three scents: they belong to their disc, so they follow it in and out of the frame
   if (state.chips.length) {
+    // on narrow screens the three chips would touch: the middle one sits a row lower, and when
+    // the names are long enough that the outer two would meet, the third goes a row lower again
+    const narrow = view.w < 760
+    const width = el => el ? (el._w || (el._w = el.offsetWidth)) : 0
+    const third = narrow && width(state.chips[0]) + width(state.chips[2]) + 24 > view.w
     H.scents.forEach((hg, i) => {
       const el = state.chips[i]
       if (!el) return
@@ -328,10 +344,9 @@ export function afterPhysics(dt, time) {
       const sc = project(_slot.set(p.x, p.y - hg.R - 0.55, p.z))
       const rPx = hg.R / view.wpp
       const onScreen = smoothstep(-rPx, rPx * 0.2, disc.y) * (1 - smoothstep(view.h - 10, view.h + 40, sc.y))
-      // on narrow screens the three chips would touch: the middle one sits a row lower
-      const stagger = view.w < 760 && i % 2 === 1 ? 36 : 0
+      const stagger = !narrow ? 0 : i === 1 ? 36 : i === 2 && third ? 72 : 0
       // a chip follows its disc but never runs off the side of a narrow screen
-      const half = (el._w || (el._w = el.offsetWidth)) / 2 + 6
+      const half = width(el) / 2 + 6
       el.style.left = Math.min(Math.max(sc.x, half), Math.max(half, view.w - half)) + 'px'; el.style.top = (sc.y + stagger) + 'px'
       el.style.opacity = ((1 - state.soil) * onScreen).toFixed(3)
     })

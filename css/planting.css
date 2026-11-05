@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Seed Scent · the planting stage (paired with planting.js)
+   The photo frame in "How to plant it" becomes a small hands-on stage: tear
+   the disc, press the pieces into soil, water them, give them sun.
+   Colors only from tokens.css. The one extra tone is the jute of the pendant
+   cord, which the site already uses (js/physics.js, js/chapters.js).
+
+   Link this file in the head, after sections.css. The square frame on narrow
+   phones is plain CSS on the photo, so the frame has its final size before any
+   script runs and nothing shifts when the stage arrives.
+   ========================================================================== */
+
+@media (max-width: 560px) {
+  .steps-photo img { aspect-ratio: 1 / 1; }
+}
+
+.plant-fig {
+  --plant-jute: #b59a6b;
+  -webkit-tap-highlight-color: transparent;
+  /* a sloppy drag that starts just outside the frame selects nothing in it */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.plant-fig img { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
+
+/* the stage covers the photo; the photo stays in the flow and keeps the frame's size */
+.plant-stage {
+  position: absolute;
+  inset: 0;
+  background: var(--paper-2);
+  touch-action: pan-y;                 /* a vertical swipe always scrolls the page */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: default;
+  transition: opacity .5s var(--ease-out-4);
+}
+.plant-stage[data-stage="tear"] { cursor: grab; }
+.plant-stage[data-stage="tear"].is-held { cursor: grabbing; }
+.plant-stage[data-stage="press"],
+.plant-stage[data-stage="water"],
+.plant-stage.is-waiting { cursor: pointer; }
+.plant-canvas { display: block; width: 100%; height: 100%; }
+
+/* done: the stage steps back and the photo underneath is the last frame */
+.plant-fig.is-photo .plant-stage { opacity: 0; pointer-events: none; transition-duration: 1.4s; }
+
+/* the one line of instruction: the site's kicker, set on the sky where the hand is not */
+.plant-fig .plant-hint {
+  position: absolute;
+  left: 18px; top: 16px; right: 18px;
+  color: var(--ink);
+  pointer-events: none;
+  transition: opacity .4s;
+}
+.plant-fig.is-done .plant-hint { opacity: 0; }
+
+/* the caption is the last line: it comes back with the sprouts and stays for the photo */
+.plant-fig figcaption { pointer-events: none; opacity: 0; transition: opacity .6s; }
+.plant-fig.is-done figcaption { opacity: 1; }
+
+/* the one control: its label is the action for the stage in play. It sits on the soil, opposite
+   the caption, drawn as an outline so the paper is the first thing a hand goes to. */
+.plant-fig .plant-btn {
+  position: absolute;
+  right: 16px; bottom: 14px;
+  min-height: 33px;
+  padding: 0 16px;
+  justify-content: center;
+  background: transparent;
+  color: var(--paper);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--paper) 70%, transparent);
+  transition: background .3s, color .3s, box-shadow .3s, opacity .4s;
+}
+.plant-fig .plant-btn:hover { background: color-mix(in srgb, var(--paper) 14%, transparent); }
+.plant-fig .plant-btn:focus-visible { outline-color: var(--sage); }
+/* over the photo it takes the caption's own dress */
+.plant-fig.is-photo .plant-btn {
+  background: color-mix(in oklab, var(--paper) 86%, transparent);
+  color: var(--ink);
+  box-shadow: none;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.plant-fig.is-photo .plant-btn:hover { background: var(--paper); }
+.plant-fig.is-photo .plant-btn:focus-visible { outline-color: var(--ink); }
+/* a fingertip gets a taller target, and the caption beside it sits on the same centre line */
+@media (pointer: coarse) {
+  .plant-fig .plant-btn { min-height: 44px; }
+  .plant-fig figcaption { bottom: 20px; }
+}
+
+/* a small frame (two columns at laptop widths, and phones): smaller type on the row, and the
+   caption gives way to the button, wrapping if it has to */
+.plant-fig.is-tight .plant-hint { left: 14px; top: 13px; right: 14px; }
+.plant-fig.is-tight .plant-btn { right: 12px; bottom: 12px; padding: 0 13px; font-size: 11px; letter-spacing: .07em; }
+.plant-fig.is-tight figcaption {
+  left: 12px; bottom: 12px;
+  max-width: calc(100% - var(--plant-btn-w, 132px) - 32px);
+  font-size: 10.5px;
+  border-radius: 17px;
+  text-wrap: balance;
+}
+@media (pointer: coarse) {
+  .plant-fig.is-tight figcaption { bottom: 18px; }
+}
+
+/* stage changes for screen readers */
+.plant-live {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   The steps follow along. A finished step gets a heavy ink rule in place of
+   its fine moss one; the step in play gets the start of that rule and an ink
+   number. The cue is the weight of the line as much as its colour.
+   -------------------------------------------------------------------------- */
+.steps li.plant-step { position: relative; }
+.steps li.plant-step::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: -3px;
+  height: 3px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform .8s var(--ease-out);
+}
+.steps li.plant-step[aria-current="step"]::before { transform: scaleX(.28); }
+.steps li.plant-step.is-done::before { transform: scaleX(1); }
+.steps li.plant-step .step-num { transition: color .4s; }
+.steps li.plant-step[aria-current="step"] .step-num,
+.steps li.plant-step.is-done .step-num { color: var(--ink); }
+
+/* --------------------------------------------------------------------------
+   Reduced motion: states change, nothing travels
+   -------------------------------------------------------------------------- */
+.plant-fig.is-reduced .plant-stage,
+.plant-fig.is-reduced.is-photo .plant-stage,
+.plant-fig.is-reduced .plant-hint,
+.plant-fig.is-reduced figcaption,
+.plant-fig.is-reduced .plant-btn { transition: none; }
+body.reduced .steps li.plant-step::before,
+body.reduced .steps li.plant-step .step-num { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .plant-stage, .plant-fig.is-photo .plant-stage, .plant-fig .plant-hint, .plant-fig figcaption, .plant-fig .plant-btn { transition: none; }
+  .steps li.plant-step::before, .steps li.plant-step .step-num { transition: none; }
+}

@@ -74,7 +74,7 @@ const browser = await chromium.launch()
   check('[desktop] three cards, each with a mirror cord photo and a vent clip photo', c.length === 3 && c.every(x => x.mirror && x.mirror.loaded && x.vent && x.vent.loaded), c.map(x => `${x.mirror && x.mirror.src} / ${x.vent && x.vent.src}`).join(' · '))
   check('[desktop] every card starts on Mirror cord and shows the mirror cord photo', c.every(x => x.picked === 'mirror' && showing(x) === 'mirror' && x.tag === 'Mirror cord'), c.map(say).join(' · '))
   check('[desktop] the photos say what they are', c.every(x => /mirror cord/i.test(x.mirror.alt) && /vent clip/i.test(x.vent.alt)), `"${c[0].mirror.alt}" / "${c[0].vent.alt}"`)
-  check('[desktop] no card shows two formats, and no two slots share a photo', new Set(c.flatMap(x => [x.mirror.src, x.vent.src])).size === 6, [...new Set(c.flatMap(x => [x.mirror.src, x.vent.src]))].join(', '))
+  check('[desktop] every card has two different photos, one per format, and its own mirror cord photo', c.every(x => x.mirror.src !== x.vent.src) && new Set(c.map(x => x.mirror.src)).size === 3, c.map(x => `${x.mirror.src} / ${x.vent.src}`).join(', '))
   const before = await shot(page, 0, 'desktop-0-mirror')
 
   // pick Vent clip on the first card with the mouse
@@ -106,6 +106,27 @@ const browser = await chromium.launch()
   await sleep(1400)
   c = await cards(page)
   check('[desktop] five quick flips end on the picked format', c[2].picked === 'vent' && showing(c[2]) === 'vent' && c[2].tag === 'Vent clip', say(c[2]))
+
+  // switching back before the fade has finished crossfades: nothing cuts, nothing jumps in size
+  // (the radios are clicked from inside the page so the timing is exact: a pointer click waits for the tilting card to hold still)
+  const rev = await page.evaluate(async () => {
+    const pick = v => document.querySelector(`.card[data-scent="2"] .format input[value="${v}"]`).click()
+    pick('mirror')
+    await new Promise(r => setTimeout(r, 250))
+    pick('vent')
+    await new Promise(r => setTimeout(r, 60))
+    return [...document.querySelectorAll('.card[data-scent="2"] img.slot')].map(i => { const cs = getComputedStyle(i); return { for: i.dataset.for, op: +cs.opacity, z: cs.zIndex, scale: cs.transform === 'none' ? 1 : +cs.transform.slice(7).split(',')[0], leaving: i.classList.contains('leaving') } })
+  })
+  const outgoing = rev.find(r => r.for === 'mirror'), incoming = rev.find(r => r.for === 'vent')
+  check('[desktop] switching back mid-fade crossfades: the outgoing photo fades over the one coming back, no jump in size', outgoing.leaving && outgoing.op > 0.05 && outgoing.op < 0.98 && incoming.op > 0.98 && incoming.scale < 1.06, JSON.stringify(rev))
+  await sleep(1400)
+  c = await cards(page)
+  check('[desktop] and it ends on the picked format', c[2].picked === 'vent' && showing(c[2]) === 'vent' && c[2].tag === 'Vent clip', say(c[2]))
+
+  // Pause motion then Play motion: the photos stay still
+  await page.click('#motion-toggle'); await sleep(200); await page.click('#motion-toggle'); await sleep(40)
+  const zoom = await page.evaluate(() => [...document.querySelectorAll('.card[data-scent] img.slot')].map(i => getComputedStyle(i).animationName))
+  check('[desktop] Play motion does not make the photos zoom', zoom.every(a => a === 'none'), zoom.join(', '))
 
   // the bag still gets the picked format
   await page.locator('.card[data-scent="0"] .add-to-bag').click()

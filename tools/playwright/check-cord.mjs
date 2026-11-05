@@ -12,6 +12,14 @@
      stretch the give of a taut cord (drawn only; it should show while over-pulled)
    and asserts the cord stays whole, the pendant stays within reach, the give
    shows under a hard pull, and letting go brings the pendant back on screen.
+   Every frame is recorded inside the page, and the drawn cord is checked too: the
+   pieces meet end to end, the bead sits on the cord, the strands reach the ring.
+
+   The hand: a second finger, a right click mid-drag, a finger lifted (its invisible
+   ball must go with it), and afterwards every pendant hangs free (not frozen),
+   faces the visitor and sways on its own beat. On a short phone the hero's cord,
+   cut to clear the hero copy, pays out again so the pendant hangs clear of the nav
+   in the next chapter; the hero never leaves its card through the top.
 
    cd tools/playwright && node check-cord.mjs
    SITE_BASE=https://addedup.github.io/seed-scent/ node check-cord.mjs
@@ -69,28 +77,59 @@ for (const [label, opts] of Object.entries(sizes)) {
   const move = async (x, y) => (touch ? cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y, id: 1 }] }) : page.mouse.move(x, y))
   const up = async () => (touch ? cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }) : page.mouse.up())
 
-  /* worst numbers seen for one cord while fn runs */
+  /* the page's own physics module (the same instance the page runs) */
+  await page.evaluate(async () => { window.__P = await import(new URL('js/physics.js', document.baseURI).href) })
+
+  /* Worst numbers seen for one cord while fn runs, recorded on every frame inside the page, after
+     the frame is drawn. "drawn" is the largest gap in what is on screen: between neighbouring cord
+     pieces, between the last piece and the bead, and between the strands and the bead and ring. */
   async function watch(name, fn) {
-    const worst = { length: 0, end: 0, gap: 0, dist: 0, stretch: 0, bad: 0, samples: 0 }
-    let on = true
-    const loop = (async () => {
-      while (on) {
-        const c = await one(name).catch(() => null)
-        if (c) {
-          worst.samples++
-          if (![c.length, c.end, c.gap, c.dist].every(Number.isFinite)) worst.bad++
-          worst.length = Math.max(worst.length, c.length); worst.end = Math.max(worst.end, c.end); worst.gap = Math.max(worst.gap, c.gap)
-          worst.dist = Math.max(worst.dist, c.dist / c.reach); worst.stretch = Math.max(worst.stretch, c.stretch)
-        }
-        await new Promise(r => setTimeout(r, 30))
+    await page.evaluate(name => {
+      const P = window.__P
+      const r = { length: 0, end: 0, gap: 0, dist: 0, stretch: 0, bad: 0, samples: 0, drawn: 0 }
+      const ends = m => { const e = m.matrixWorld.elements; return [[e[12] - e[4] / 2, e[13] - e[5] / 2, e[14] - e[6] / 2], [e[12] + e[4] / 2, e[13] + e[5] / 2, e[14] + e[6] / 2]] }
+      const dd = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])
+      const near = (A, B) => Math.min(dd(A[0], B[0]), dd(A[0], B[1]), dd(A[1], B[0]), dd(A[1], B[1]))
+      const tick = () => {
+        const h = P.hangers.find(x => x.name === name && x.enabled)
+        if (!h) return
+        const c = window.__dbg.cord().find(x => x.name === name)
+        if (!c) return
+        r.samples++
+        if (![c.length, c.end, c.gap, c.dist].every(Number.isFinite)) { r.bad++; return }
+        r.length = Math.max(r.length, c.length); r.end = Math.max(r.end, c.end); r.gap = Math.max(r.gap, c.gap)
+        r.dist = Math.max(r.dist, c.dist / c.reach); r.stretch = Math.max(r.stretch, c.stretch)
+        const shown = h.cordMeshes.filter(m => m.visible).map(ends)
+        let worst = 0
+        for (let i = 1; i < shown.length; i++) worst = Math.max(worst, near(shown[i - 1], shown[i]))
+        const be = h.bead.matrixWorld.elements, bead = [be[12], be[13], be[14]]
+        if (shown.length) worst = Math.max(worst, Math.min(dd(shown[shown.length - 1][0], bead), dd(shown[shown.length - 1][1], bead)))
+        for (const st of [h.strandA, h.strandB]) { const E = ends(st); worst = Math.max(worst, Math.min(dd(E[0], bead), dd(E[1], bead))) }
+        // the top of the drawn cord sits at the hang point (drawn a little behind the ring) ...
+        const pe = h.cordMeshes[0].parent.matrixWorld.elements, at = h.anchor.translation(), az = at.z - h.R * 0.2
+        const hang = [pe[0] * at.x + pe[4] * at.y + pe[8] * az + pe[12], pe[1] * at.x + pe[5] * at.y + pe[9] * az + pe[13], pe[2] * at.x + pe[6] * at.y + pe[10] * az + pe[14]]
+        if (shown.length) worst = Math.max(worst, Math.min(dd(shown[0][0], hang), dd(shown[0][1], hang)))
+        // ... and the two strands end on the top of the ring
+        const me = h.mesh.matrixWorld.elements
+        const ring = sx => { const x = sx * h.R * 0.26, y = h.R * 0.985; return [me[0] * x + me[4] * y + me[12], me[1] * x + me[5] * y + me[13], me[2] * x + me[6] * y + me[14]] }
+        const ra = ring(-1), rb = ring(1), EA = ends(h.strandA), EB = ends(h.strandB)
+        worst = Math.max(worst, Math.min(dd(EA[0], ra), dd(EA[1], ra)), Math.min(dd(EB[0], rb), dd(EB[1], rb)))
+        r.drawn = Math.max(r.drawn, worst)
       }
-    })()
+      gsap.ticker.add(tick)
+      window.__rec = { r, stop: () => gsap.ticker.remove(tick) }
+    }, name)
     await fn()
-    on = false; await loop
-    return worst
+    return page.evaluate(() => { window.__rec.stop(); return window.__rec.r })
   }
-  const whole = w => w.bad === 0 && w.samples > 3 && w.length <= LIM.length && w.end <= LIM.end && w.gap <= LIM.gap && w.dist <= LIM.dist
-  const say = w => `length ${w.length.toFixed(3)}, end ${w.end.toFixed(3)}, gap ${w.gap.toFixed(3)}, reach used ${w.dist.toFixed(3)}, give ${w.stretch.toFixed(3)}, ${w.samples} samples${w.bad ? ', ' + w.bad + ' not finite' : ''}`
+  const whole = w => w.bad === 0 && w.samples > 3 && w.length <= LIM.length && w.end <= LIM.end && w.gap <= LIM.gap && w.dist <= LIM.dist && w.drawn <= 0.02
+  const say = w => `length ${w.length.toFixed(3)}, end ${w.end.toFixed(3)}, gap ${w.gap.toFixed(3)}, reach used ${w.dist.toFixed(3)}, give ${w.stretch.toFixed(3)}, drawn gap ${w.drawn.toFixed(4)}, ${w.samples} frames${w.bad ? ', ' + w.bad + ' not finite' : ''}`
+  /* the hang point to pendant distance on every frame for 300 ms from now, inside the page */
+  const trail = name => page.evaluate(name => new Promise(done => {
+    const h = window.__P.hangers.find(x => x.name === name), t0 = performance.now(), out = []
+    const tick = () => { const t = h.body.translation(), a = h.anchor.translation(); out.push(Math.hypot(t.x - a.x, t.y - a.y)); if (performance.now() - t0 < 300) requestAnimationFrame(tick); else done(out) }
+    tick()
+  }), name)
 
   /* grab a pendant and drag its centre along offsets (px), holding at the end */
   async function pull(name, offsets, { hold = 350, steps = 24 } = {}) {
@@ -132,7 +171,17 @@ for (const [label, opts] of Object.entries(sizes)) {
     check(`[${label}] hero pulled ${dir}: the cord stays whole and the pendant stays on it`, grabbed.held === true && whole(w), `held ${grabbed.held}; ${say(w)}`)
     if (dir !== 'up past the hang point') check(`[${label}] hero pulled ${dir}: a taut cord gives a little`, w.stretch > 0.05 && w.stretch < 1.2, `give ${w.stretch.toFixed(3)} world units`)
     if (dir === 'down and left') await page.screenshot({ path: path.join(OUT, `cord-${label}-pulled.png`) })
+    const after = trail('hero')
     await up()
+    if (dir !== 'up past the hang point' && w.stretch >= 0.2) {
+      // the snap: a clearly stretched cord pulls the pendant back toward the hang point at once
+      // (the snap grows with the stretch; a cord barely stretched just lets the pendant swing back)
+      const tr = await after, reach = (await one('hero')).reach, drop = (tr[0] - Math.min(...tr)) / reach
+      check(`[${label}] hero let go after ${dir}: the taut cord snaps it back`, drop >= 0.1, `${(drop * 100).toFixed(0)}% of its reach closer within 300 ms (${tr.length} frames, give ${w.stretch.toFixed(2)})`)
+    } else {
+      await after
+      if (dir !== 'up past the hang point') console.log(`NOTE  [${label}] hero pulled ${dir}: the cord only gave ${w.stretch.toFixed(2)} (the card's edge stopped the pull), so a gentle swing back is expected, not a snap`)
+    }
     const s = await settle('hero')
     check(`[${label}] hero let go after ${dir}: it comes back, whole and on screen`, s.held === false && s.onScreen && whole(s.w) && s.c.dist <= s.c.reach * LIM.dist && Math.abs(s.c.stretch) < 0.02, `on screen ${s.onScreen}; ${say(s.w)}; rest give ${s.c.stretch}`)
   }
@@ -197,7 +246,135 @@ for (const [label, opts] of Object.entries(sizes)) {
     check(`[${label}] ${name} let go: it comes back, whole and on screen`, s.held === false && s.onScreen && whole(s.w), `on screen ${s.onScreen}; ${say(s.w)}`)
   }
 
+  /* ---------- the hand ---------- */
+  const pend = () => page.evaluate(() => window.__P.hangers.filter(h => h.enabled).map(h => {
+    const t = h.body.translation(), r = h.body.rotation(), a = h.anchor.translation()
+    const yaw = Math.atan2(2 * (r.x * r.z + r.w * r.y), 1 - 2 * (r.x * r.x + r.y * r.y)) * 180 / Math.PI
+    return { name: h.name, type: h.body.bodyType(), yaw: Math.abs(yaw), dx: t.x - a.x, x: t.x, y: t.y, R: h.R }
+  }))
+  const scents = async () => {
+    await page.evaluate(() => { const ch = window.__dbg.chapters().find(x => x.name === 'scents'); window.__dbg.scrollTo(ch.start + 0.75 * (ch.end - ch.start)) })
+    await page.waitForTimeout(3200)
+  }
+
+  /* the hero stays inside its card: pulled up hard, straight or diagonally, it stops under the card's top edge */
+  await page.evaluate(() => window.__dbg.scrollTo(0))
+  await page.waitForTimeout(2500)
+  for (const [way, sx] of [['straight up', 0.004], ['up and to the left', -0.035], ['up and to the right', 0.03]]) {
+    const c = await one('hero')
+    const [px, py] = toPx(c)
+    const top = await page.evaluate(() => document.getElementById('card-panel').getBoundingClientRect().top)
+    let worst = Infinity
+    await down(px, py)
+    for (let s = 1; s <= 24; s++) {
+      await move(px + s * W * sx, py - s * (H * 0.04)); await page.waitForTimeout(14)
+      if (s > 12) { const h = (await pend()).find(p => p.name === 'hero'); worst = Math.min(worst, H / 2 - (h.y + h.R) * k) }
+    }
+    await page.waitForTimeout(300)
+    const h = (await pend()).find(p => p.name === 'hero')
+    worst = Math.min(worst, H / 2 - (h.y + h.R) * k)
+    await up()
+    check(`[${label}] hero pulled ${way}: it stays inside its card`, worst >= top - 3, `highest ring top ${worst.toFixed(0)} px, card top ${top.toFixed(0)} px`)
+    await page.waitForTimeout(1800)
+  }
+
+  await scents()
+  let list = await pend()
+  if (list.filter(p => p.name.startsWith('scent')).length !== 3) check(`[${label}] the three scents hang in their chapter`, false, JSON.stringify(list.map(p => p.name)))
+  else {
+    const at = name => { const p = list.find(q => q.name === name); return toPx(p) }
+    if (touch) {
+      /* a second finger on another pendant: ignored, and nothing is left frozen */
+      const [ax, ay] = at('scent-1'), [bx, by] = at('scent-0')
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: ax, y: ay, id: 1 }] })
+      for (let s = 1; s <= 8; s++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: ax + s * 6, y: ay + s * 3, id: 1 }] }); await page.waitForTimeout(16) }
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: ax + 48, y: ay + 24, id: 1 }, { x: bx, y: by, id: 2 }] })
+      for (let s = 1; s <= 6; s++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: ax + 48 + s * 4, y: ay + 24, id: 1 }, { x: bx - s * 8, y: by + s * 4, id: 2 }] }); await page.waitForTimeout(16) }
+      const during = await page.evaluate(() => ({ held: window.__P.grab.held && window.__P.grab.held.name, types: window.__P.hangers.filter(h => h.enabled).map(h => h.name + ':' + h.body.bodyType()) }))
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [{ x: ax + 72, y: ay + 24, id: 1 }] })
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+      await page.waitForTimeout(1500)
+      list = await pend()
+      check(`[${label}] a second finger on another pendant is ignored: the first stays in hand, the second is not grabbed`, during.held === 'scent-1' && !during.types.includes('scent-0:2'), JSON.stringify(during))
+      check(`[${label}] after both fingers lift, every pendant hangs free again (none left frozen)`, list.every(p => p.type === 0), list.map(p => p.name + ':' + p.type).join(' '))
+      /* a lifted finger takes its invisible ball with it */
+      const [cx, cy] = at('scent-2')
+      await down(cx, cy)
+      for (let s = 1; s <= 10; s++) { await move(cx - s * 6, cy + s * 2); await page.waitForTimeout(16) }
+      await up()
+      await page.waitForTimeout(400)
+      const ball = await page.evaluate(() => ({ active: window.__P.cursor.active }))
+      check(`[${label}] a lifted finger leaves no invisible ball behind`, ball.active === false, JSON.stringify(ball))
+    } else {
+      /* a right click mid-drag: the grab ends when the left button does */
+      const [ax, ay] = at('scent-1')
+      await page.mouse.move(ax, ay); await page.mouse.down()
+      for (let s = 1; s <= 8; s++) { await page.mouse.move(ax + s * 8, ay + s * 4); await page.waitForTimeout(16) }
+      await page.mouse.down({ button: 'right' })
+      await page.mouse.up({ button: 'left' })
+      const before = (await pend()).find(p => p.name === 'scent-1')
+      for (let s = 1; s <= 12; s++) { await page.mouse.move(ax + 64 + s * 20, ay + 32); await page.waitForTimeout(16) }
+      await page.mouse.up({ button: 'right' })
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(300)
+      const held = await page.evaluate(() => window.__dbg.state().held)
+      const after = (await pend()).find(p => p.name === 'scent-1')
+      check(`[${label}] a right click mid-drag: letting go of the left button lets go of the pendant`, held === false && after.type === 0 && Math.abs((after.x - before.x) * k) < 120, `held ${held}, type ${after.type}, moved ${((after.x - before.x) * k).toFixed(0)} px while only the right button was down`)
+      await page.mouse.move(5, 5)
+    }
+    /* afterwards: every pendant faces the visitor */
+    await page.waitForTimeout(8000)
+    list = await pend()
+    const sc = list.filter(p => p.name.startsWith('scent'))
+    check(`[${label}] at rest every scent pendant hangs free and faces the visitor`, sc.every(p => p.type === 0 && p.yaw < 6), sc.map(p => `${p.name} ${p.type === 0 ? 'free' : 'FROZEN'} ${p.yaw.toFixed(1)} deg`).join(', '))
+    /* and they sway on their own beats: record their sideways offsets for 3 s */
+    await page.mouse.move(5, 5)
+    await page.waitForTimeout(touch ? 200 : 5600)   // with a mouse the breeze starts after 5 s without a touch
+    const series = await page.evaluate(async () => {
+      const out = { 'scent-0': [], 'scent-1': [], 'scent-2': [] }
+      for (let i = 0; i < 90; i++) {
+        for (const h of window.__P.hangers) if (out[h.name] && h.enabled) out[h.name].push(h.body.translation().x - h.anchor.translation().x)
+        await new Promise(r => setTimeout(r, 33))
+      }
+      return out
+    })
+    const corr = (a, b) => { const n = Math.min(a.length, b.length), ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n; let c = 0, va = 0, vb = 0; for (let i = 0; i < n; i++) { c += (a[i] - ma) * (b[i] - mb); va += (a[i] - ma) ** 2; vb += (b[i] - mb) ** 2 } return c / Math.sqrt(va * vb || 1) }
+    const r01 = corr(series['scent-0'], series['scent-1']), r12 = corr(series['scent-1'], series['scent-2'])
+    check(`[${label}] the three scents sway on their own beats, not as one`, r01 < 0.97 && r12 < 0.97, `correlation ${r01.toFixed(3)} and ${r12.toFixed(3)}`)
+  }
+
   check(`[${label}] no console errors`, errors.length === 0, errors.slice(0, 3).join(' | '))
+  await browser.close()
+}
+
+/* ---------- a short phone: the hero cord cut for the card pays out for the drive ---------- */
+for (const [w, h] of [[375, 667], [390, 664], [320, 568], [390, 844]]) {
+  const browser = await chromium.launch()
+  const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: true, hasTouch: true })
+  if (DRAFT) await ctx.route('**/js/physics.js*', r => r.fulfill({ status: 200, contentType: 'application/javascript', body: DRAFT }))
+  const page = await ctx.newPage()
+  await page.goto(BASE + 'index.html?bust=' + Date.now(), { waitUntil: 'load' })
+  await page.waitForFunction(() => window.__dbg && window.__dbg.state && window.__dbg.state().ready, null, { timeout: 60000 })
+  await page.waitForTimeout(1500)
+  const read = () => page.evaluate(async () => {
+    const P = await import(new URL('js/physics.js', document.baseURI).href)
+    const hh = P.hangers.find(x => x.name === 'hero')
+    if (!hh || !hh.enabled) return null
+    const t = hh.body.translation()
+    const nav = document.getElementById('nav').getBoundingClientRect().bottom
+    return { L: hh.L, ringTop: innerHeight / 2 - (t.y + hh.R) * innerHeight / 10, nav }
+  })
+  const card = await read()
+  let worst = Infinity, L = 0
+  for (const pin of [0.12, 0.38, 0.62]) {
+    await page.evaluate(p => { const ch = window.__dbg.chapters().find(x => x.name === 'drive'); window.__dbg.scrollTo(ch.start + (ch.end - ch.start) * (0.3 + 0.6 * p)) }, pin)
+    await page.waitForTimeout(1800)
+    const where = await page.evaluate(() => window.__dbg.state().chapter)
+    if (where !== 'drive') { check(`[${w}x${h}] the probe reached the drive chapter`, false, where); continue }
+    const r = await read()
+    if (r) { worst = Math.min(worst, r.ringTop - r.nav); L = r.L }
+  }
+  check(`[${w}x${h}] in the drive the hero pendant hangs clear of the nav`, Number.isFinite(worst) && worst >= 20, `ring top ${worst.toFixed(0)} px below the nav; cord ${card ? card.L.toFixed(2) : '?'} on the card, ${L.toFixed(2)} in the drive`)
   await browser.close()
 }
 

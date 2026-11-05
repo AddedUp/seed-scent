@@ -32,6 +32,27 @@ function check(name, ok, detail = '') {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  :: ' + detail : ''}`)
 }
 const blank = v => v === null || v === undefined || v === ''
+
+/* What the business card should make of a value, decided here and not by the page's own code. */
+const NOT_PROFILES = ['p', 'reel', 'reels', 'explore', 'stories', 'accounts', 'tv', 'direct', 'share', 'about', 'legal', 'developer', 'directory', 'web', 'challenge', '_u', '_n']
+function expectHandle(raw) {
+  if (typeof raw !== 'string') return null
+  let v = raw.trim()
+  const m = v.match(/^(?:https?:\/\/)?(?:www\.|m\.)?instagram\.com\/([^/?#]+)(?:\/(?:reels|tagged|feed))?\/?(?:[?#].*)?$/i)
+  if (m) v = m[1]
+  else if (/instagram\./i.test(v)) return null
+  v = v.replace(/^@/, '')
+  if (!/^[A-Za-z0-9._]{1,30}$/.test(v) || v.startsWith('.') || v.endsWith('.') || v.includes('..')) return null
+  return NOT_PROFILES.includes(v.toLowerCase()) ? null : v
+}
+function expectEmail(raw) {
+  if (typeof raw !== 'string') return null
+  const e = raw.trim().replace(/^mailto:/i, '').trim().replace(/\.$/, '')
+  const [local, domain, extra] = e.split('@')
+  if (extra !== undefined || !local || !domain || /[\s?&#:<>,;\/]/.test(local)) return null
+  const parts = domain.split('.')
+  return parts.length >= 2 && parts.every(p => /^[A-Za-z0-9-]+$/.test(p)) && /^[A-Za-z]{2,}$/.test(parts[parts.length - 1]) ? e : null
+}
 const bust = () => '?bust=' + Date.now()
 
 const sizes = {
@@ -79,15 +100,14 @@ for (const [label, opts] of Object.entries(sizes)) {
   await page.waitForTimeout(600)
 
   const C = await page.evaluate(() => JSON.parse(JSON.stringify(window.SEED_SCENT)))
+  const handle = expectHandle(C.contact && C.contact.instagram)
   const d = await page.evaluate(async () => {
-    const { instagramHandle } = await import('./js/ui.js')
     const txt = el => (el ? el.textContent.replace(/\s+/g, ' ').trim() : null)
     const row = name => { const div = [...document.querySelectorAll('.biz-rows > div')].find(x => txt(x.querySelector('dt')) === name); return div ? div.querySelector('dd') : null }
     const about = document.querySelector('.about-meta .kicker'), foot = document.querySelectorAll('.footer p')[1]
     const shown = el => !el.hidden && getComputedStyle(el).display !== 'none'
     const ig = row('Instagram'), a = ig && ig.querySelector('a'), em = row('Email'), ea = em && em.querySelector('a')
     return {
-      handle: instagramHandle(window.SEED_SCENT.contact && window.SEED_SCENT.contact.instagram),
       about: { text: txt(about), shown: shown(about), chips: about.querySelectorAll('.ph').length },
       footer: { text: txt(foot), shown: shown(foot), chips: foot.querySelectorAll('.ph').length },
       school: txt(row('School')), where: txt(row('Where')),
@@ -120,20 +140,22 @@ for (const [label, opts] of Object.entries(sizes)) {
 
   /* ---- email on the business card ---- */
   const emailRaw = C.contact && C.contact.email
+  const email = expectEmail(emailRaw)
   if (blank(emailRaw)) check(`[${label}] Email row keeps its chip while the address is blank`, !!d.email && d.email.chip && !d.email.link, JSON.stringify(d.email))
-  else check(`[${label}] Email row opens an email to the address`, !!d.email && !!d.email.link && d.email.link.href === 'mailto:' + String(emailRaw).trim() && d.email.link.text === String(emailRaw).trim() && !d.email.chip, JSON.stringify(d.email))
+  else if (!email) check(`[${label}] an email value no mail app could use keeps its chip (fix it in js/config.js)`, !!d.email && d.email.chip && !d.email.link, `${JSON.stringify(emailRaw)}: ${JSON.stringify(d.email)}`)
+  else check(`[${label}] Email row opens an email to the address`, !!d.email && !!d.email.link && d.email.link.href === 'mailto:' + email && d.email.link.text === email && !d.email.chip, JSON.stringify(d.email))
 
   /* ---- Instagram ---- */
   const igRaw = C.contact && C.contact.instagram
   check(`[${label}] the row is labelled Instagram`, d.labels.includes('Instagram'), d.labels.join(', '))
   if (blank(igRaw)) check(`[${label}] Instagram row keeps its chip while the handle is blank`, !!d.ig && d.ig.chip && !d.ig.link, JSON.stringify(d.ig))
-  else if (!d.handle) check(`[${label}] a value that is not a handle keeps its chip`, !!d.ig && d.ig.chip && !d.ig.link, JSON.stringify(igRaw))
+  else if (!handle) check(`[${label}] a value that is not a handle keeps its chip`, !!d.ig && d.ig.chip && !d.ig.link, JSON.stringify(igRaw))
   else {
-    const url = `https://www.instagram.com/${d.handle}/`
+    const url = `https://www.instagram.com/${handle}/`
     const sel = '.biz-rows a.fact-link[target="_blank"]'
-    check(`[${label}] Instagram row is a link to the profile`, !!d.ig && !!d.ig.link && d.ig.link.href === url && d.ig.link.text === '@' + d.handle && !d.ig.chip, JSON.stringify(d.ig))
+    check(`[${label}] Instagram row is a link to the profile`, !!d.ig && !!d.ig.link && d.ig.link.href === url && d.ig.link.text === '@' + handle && !d.ig.chip, JSON.stringify(d.ig))
     check(`[${label}] it opens a new tab and does not hand over the opener`, !!d.ig.link && d.ig.link.target === '_blank' && /\bnoopener\b/.test(d.ig.link.rel), d.ig.link ? `${d.ig.link.target} ${d.ig.link.rel}` : 'no link')
-    check(`[${label}] its spoken name says Instagram and contains the visible handle`, !!d.ig.link && (d.ig.link.label || '').includes('@' + d.handle) && /instagram/i.test(d.ig.link.label || ''), d.ig.link ? d.ig.link.label : '')
+    check(`[${label}] its spoken name says Instagram and contains the visible handle`, !!d.ig.link && (d.ig.link.label || '').includes('@' + handle) && /instagram/i.test(d.ig.link.label || ''), d.ig.link ? d.ig.link.label : '')
 
     await page.evaluate(() => window.__dbg.scrollTo(1))
     await page.waitForTimeout(2600)   // the finale pendant drops in and settles

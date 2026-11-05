@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/site.css">
 <link rel="stylesheet" href="css/sections.css">
+<link rel="stylesheet" href="css/planting.css">
 <link rel="stylesheet" href="css/cart.css">
 <!-- Everything is served locally so the site works offline on a booth laptop. -->
 <script src="vendor/gsap.min.js"></script>
@@ -267,7 +268,9 @@
             <li><span class="step-num">03</span><p>Water well and keep the soil damp.</p></li>
             <li><span class="step-num">04</span><p>Give it sun and wait for the first sprouts.</p></li>
           </ol>
-          <figure class="photo steps-photo" data-tilt>
+          <!-- js/planting.js turns this frame into a small stage: tear the paper, press it into the soil,
+               water it, give it sun. The photo is what shows without the script, and it comes back at the end. -->
+          <figure class="photo steps-photo" id="planting">
             <img src="images/planted-pot.jpg" alt="Torn seed paper in a pot of soil with the first seedlings coming through" loading="lazy" width="1280" height="720">
             <figcaption class="kicker">Where every disc ends up</figcaption>
           </figure>

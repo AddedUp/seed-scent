@@ -571,9 +571,21 @@ function initFormatPhotos() {
     const ready = k => !!(imgs[k] && !imgs[k].hidden && imgs[k].getAttribute('src'))
     const picked = () => ((radios.find(r => r.checked) || {}).value === 'vent' ? 'vent' : 'mirror')
     let shown = null
+    const later = (img, key, cls, ms) => { clearTimeout(img[key]); img[key] = setTimeout(() => img.classList.remove(cls), ms) }
+    const swap = (inc, out) => {
+      if (+getComputedStyle(inc).opacity > 0.98) {
+        // switched back before the last fade had finished: the incoming photo is still fully
+        // there underneath, so fade the outgoing one away over it instead of cutting
+        out.classList.add('leaving'); later(out, '_leave', 'leaving', 500)
+      } else {
+        inc.classList.remove('entering'); void inc.offsetWidth; inc.classList.add('entering'); later(inc, '_enter', 'entering', 950)
+      }
+    }
     const sync = () => {
       const want = picked(), other = want === 'vent' ? 'mirror' : 'vent'
-      shown = ready(want) ? want : ready(other) ? other : null
+      const next = ready(want) ? want : ready(other) ? other : null
+      if (next && shown && next !== shown && !motion.paused) swap(imgs[next], imgs[shown])
+      shown = next
       if (shown) media.dataset.format = shown
       media.classList.toggle('has-photo', !!shown)
       if (tag) { tag.hidden = !shown; if (shown && tag.textContent !== FORMAT_NAMES[shown]) tag.textContent = FORMAT_NAMES[shown] }

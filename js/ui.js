@@ -35,21 +35,23 @@ const IG_PAGES = ['p', 'reel', 'reels', 'explore', 'stories', 'accounts', 'tv', 
 export function instagramHandle(v) {
   if (typeof v !== 'string') return null
   let h = v.trim()
-  const m = h.match(/^(?:https?:\/\/)?(?:www\.)?instagram\.com\/([^/?#\s]+)(?:\/(?:reels|tagged|feed)?)?\/?(?:[?#]\S*)?$/i)
+  const m = h.match(/^(?:https?:\/\/)?(?:www\.|m\.)?instagram\.com\/([^/?#\s]+)(?:\/(?:reels|tagged|feed)?)?\/?(?:[?#]\S*)?$/i)
   if (m) h = m[1]
+  else if (/instagram\./i.test(h)) return null      // a link to Instagram that is not a profile
   h = h.replace(/^@/, '')
   if (!/^[A-Za-z0-9._]{1,30}$/.test(h) || h.startsWith('.') || h.endsWith('.') || h.includes('..')) return null
   return IG_PAGES.includes(h.toLowerCase()) ? null : h
 }
 
-/* The order address out of whatever was typed: trimmed, one leading "mailto:" dropped.
-   null when an email app could not use it as an address (a space, a second @, a ?query, a name
-   and angle brackets). Every place that sends mail reads the address through here.
-   Keep in step with tools/placeholders.mjs. */
+/* The order address out of whatever was typed: trimmed, one leading "mailto:" and one trailing
+   full stop (picked up from the end of a sentence) dropped. null when an email app could not use
+   it as an address: a space, a second @, a ?query, a name and angle brackets, a slash, a domain
+   with an empty part ("school..org") or no ending of two letters or more. Every place that sends
+   mail reads the address through here. Keep in step with tools/placeholders.mjs. */
 export function emailAddress(v) {
   if (typeof v !== 'string') return null
-  const e = v.trim().replace(/^mailto:/i, '').trim()
-  return /^[^\s@?&#:<>,;]+@[^\s@?&#:<>,;]+\.[^\s@?&#:<>,;]+$/.test(e) ? e : null
+  const e = v.trim().replace(/^mailto:/i, '').trim().replace(/\.$/, '')
+  return /^[^\s@?&#:<>,;\/]+@(?:[A-Za-z0-9\u00a1-\uffff-]+\.)+[A-Za-z\u00a1-\uffff]{2,}$/.test(e) ? e : null
 }
 export const contactEmail = () => emailAddress(cfg('contact.email'))
 
@@ -124,7 +126,8 @@ export function fillPlaceholders() {
 export function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
 
 /* photo slots: show the image only if the file exists */
-export function fillSlots() {
+export function fillSlots(later = null) {
+  const deferred = []
   document.querySelectorAll('img.slot[data-slot]').forEach(img => {
     const src = cfg(img.dataset.slot)
     if (!src) return
@@ -134,40 +137,65 @@ export function fillSlots() {
       const label = img.parentElement.querySelector('.slot-label'); if (label) label.remove()
     }
     const start = () => { probe.src = src }
-    // a card's second photo (the vent clip version) is not needed for the first paint: it waits
-    // until the page has loaded, so it never competes with the scene for a slow connection
-    if (img.dataset.for !== 'vent') start()
-    else if (document.readyState === 'complete') setTimeout(start, 400)
-    else addEventListener('load', () => setTimeout(start, 400), { once: true })
+    if (img.dataset.for === 'vent') deferred.push(start)
+    else start()
   })
+  if (!deferred.length) return
+  /* A card's second photo (the vent clip version) is not needed for the first paint. It waits for
+     `later` (on the home page: the 3D scene has its files, so on a slow connection the photos never
+     compete with them), starts at once when the visitor picks Vent clip, and starts after 20 s
+     whatever else happens, so a stalled request elsewhere can never keep it away. */
+  let started = false
+  const go = () => { if (started) return; started = true; deferred.forEach(f => f()) }
+  const after = later || new Promise(done => { if (document.readyState === 'complete') done(); else addEventListener('load', done, { once: true }) })
+  after.then(() => setTimeout(go, 300), go)
+  setTimeout(go, 20000)
+  document.addEventListener('change', e => { const t = e.target; if (t && t.value === 'vent' && t.closest && t.closest('.format')) go() })
 }
 
 /* ---------- masked line reveals ---------- */
 /* Resolves once the fonts the given elements use are in, so lines are measured in the real
-   typeface (a headline split too early keeps its fallback-font breaks for good). A font request
-   that never answers cannot hold the page: after `timeout` it resolves anyway. */
-export function fontsSettled(els, timeout = 1500) {
-  if (!document.fonts || !document.fonts.load) return Promise.resolve()
+   typeface. A slow or dead font request cannot hold the page: after `timeout` it resolves anyway.
+   It resolves to 'fonts' or 'timeout'; after a timeout, resplitWhenFontsArrive() puts it right. */
+export function fontsSettled(els, timeout = 800) {
+  if (!document.fonts || !document.fonts.load) return Promise.resolve('fonts')
   const specs = new Set()
   els.forEach(el => { const cs = getComputedStyle(el); specs.add(`${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`) })
   const loads = Promise.all([...specs].map(f => document.fonts.load(f).catch(() => null))).then(() => document.fonts.ready).catch(() => null)
-  return Promise.race([loads, new Promise(done => setTimeout(done, timeout))])
+  return Promise.race([loads.then(() => 'fonts'), new Promise(done => setTimeout(() => done('timeout'), timeout))])
+}
+const splits = []   // every headline cut into lines: { el, split, tween }
+function splitOne(el, animate) {
+  const split = new SplitText(el, { type: 'lines', linesClass: 'split-line-inner' })
+  split.lines.forEach(line => {
+    const wrap = document.createElement('div')
+    wrap.className = 'split-line'
+    line.parentNode.insertBefore(wrap, line)
+    wrap.appendChild(line)
+  })
+  const tween = animate ? gsap.from(split.lines, {
+    yPercent: 120, duration: 1.0, ease: 'power4.out', stagger: 0.07,   // 120: clear of the mask's extra room below the baseline
+    scrollTrigger: { trigger: el, start: 'top 85%' },
+  }) : null
+  return { el, split, tween }
 }
 export function initSplit() {
-  const els = document.querySelectorAll('[data-split]')
   if (prefersReduced) return
-  els.forEach(el => {
-    const split = new SplitText(el, { type: 'lines', linesClass: 'split-line-inner' })
-    split.lines.forEach(line => {
-      const wrap = document.createElement('div')
-      wrap.className = 'split-line'
-      line.parentNode.insertBefore(wrap, line)
-      wrap.appendChild(line)
+  document.querySelectorAll('[data-split]').forEach(el => splits.push(splitOne(el, true)))
+}
+/* The headlines were cut into lines before their font arrived (a slow connection): once it is in,
+   cut them again so the breaks are the real ones. A headline still waiting for its reveal keeps
+   its reveal; one already shown is simply re-cut in place. */
+export function resplitWhenFontsArrive(done) {
+  if (!document.fonts || !splits.length) return
+  document.fonts.ready.then(() => {
+    splits.forEach((rec, i) => {
+      const waiting = rec.tween && rec.tween.progress() === 0
+      if (rec.tween) { if (rec.tween.scrollTrigger) rec.tween.scrollTrigger.kill(); rec.tween.kill() }
+      rec.split.revert()
+      splits[i] = splitOne(rec.el, waiting)
     })
-    gsap.from(split.lines, {
-      yPercent: 120, duration: 1.0, ease: 'power4.out', stagger: 0.07,   // 120: clear of the mask's extra room below the baseline
-      scrollTrigger: { trigger: el, start: 'top 85%' },
-    })
+    if (done) done()
   })
 }
 

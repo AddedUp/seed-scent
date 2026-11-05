@@ -140,7 +140,7 @@ What each field does:
 - `daysToSprout`: how long until the first sprouts, for example "7 to 14 days".
 - `paperSource`: what the paper is made from, for example "recycled cotton fibre".
 - `fixativeName`: the fixative ingredient, if the team decides to name it. Leave `null` to keep "a natural, plant-based fixative".
-- `plantingSteps`: the four planting instructions, one per line in quotes. Edit the words, keep the quotes and commas.
+- `plantingSteps`: the four planting instructions, one per line in quotes. Edit the words, keep the quotes and commas. The small stage beside them (tear the paper, press it into the soil, water it, give it sun) lights each step up as the visitor does it, so keep four steps in that order: tear, press, water, sun. With any other number of steps the stage still works but leaves the list alone.
 - `plantingConfirmed`: set to `true` once the steps are checked. Removes the "draft" note above them.
 
 **team** (one entry per person, add or remove entries freely)
@@ -164,14 +164,19 @@ around 800 to 1200 pixels wide is plenty.
 Scent photos: each scent card has two photos, one per format, and reads
 their file names from `js/config.js`: `image` is the mirror cord version and
 `imageVent` is the vent clip version. The card shows the one that matches
-the format the visitor picks. Right now they point at six generated mock-up
-images:
+the format the visitor picks. Right now they point at generated mock-up
+images. The three cards share one vent clip photo, so they all show the same
+vent clip design:
 
 | Card | Mirror cord (`image`) | Vent clip (`imageVent`) |
 | --- | --- | --- |
-| Scent one | `images/product-studio-1.jpg` | `images/product-vent-studio.jpg` |
+| Scent one | `images/product-studio-1.jpg` | `images/product-vent-clip.jpg` |
 | Scent two | `images/product-mirror-2.jpg` | `images/product-vent-clip.jpg` |
-| Scent three | `images/product-mirror-1.jpg` | `images/product-vent-2.jpg` |
+| Scent three | `images/product-mirror-1.jpg` | `images/product-vent-clip.jpg` |
+
+`image` and `imageVent` must be different files; the report flags a scent
+whose two photos are the same file, because the card would label a mirror
+cord photo "Vent clip".
 
 File names must match exactly, capitals included. A Mac will find
 `Product-Studio-1.jpg` when the config says `product-studio-1.jpg`; a web
@@ -182,8 +187,9 @@ host will not, and the slot stays empty online. The placeholder report
 
 - `product-mirror-1.jpg` and `product-vent-clip.jpg`: besides their scent cards, these are the two photos in the Inside section (mirror cord version, vent clip version). That use is fixed in `index.html`, not in the config. The mirror photo is also the preview image when the link is shared.
 - `product-studio-2.jpg`: a spare studio shot of the mirror cord version, not shown at the moment.
-- `planted-pot.jpg`: the photo beside the planting steps. Also fixed in `index.html`.
-- `paper-texture.jpg`: the paper grain behind the 3D scene. Loaded by the site code.
+- `product-vent-studio.jpg`: a studio shot of a vent clip, kept in the folder but not shown: its holes are laid out differently from `product-vent-clip.jpg`, and the cards should agree on one design.
+- `planted-pot.jpg`: the photo in the "How to plant it" block. The block opens as a small stage where the visitor tears a paper disc, presses the pieces into soil, waters them and gives them sun; this photo fades in when they finish, and it is what shows in place of the stage if scripts are off. Fixed in `index.html`.
+- `paper-texture.jpg`: the paper grain on the 3D pendants and on the disc in the planting stage. Loaded by the site code.
 - `refills-flatlay.jpg`: kept in the folder but not shown: the flat lay shows a different holder design from the one in the other photos.
 - `three-scents-unused.jpg`: kept in the folder but not shown: a row of three discs implies three scent names, and the team has not chosen them.
 - `team-1.jpg` and up: team photos, not in the folder yet (see above).
@@ -243,9 +249,12 @@ log is under the repository's Actions tab, "pages build and deployment".
 To check the live site the way the local checks do, from `tools/playwright`:
 `SITE_BASE=https://addedup.github.io/seed-scent/ node review-net.mjs`
 (zero external requests, no 404s), `... node tour.mjs all` (the scroll
-tour at desktop and phone sizes) and `... node check-facts.mjs` (every fact
+tour at desktop and phone sizes), `... node check-facts.mjs` (every fact
 filled in so far shows where it should, and the Instagram link opens the
-profile by click, tap and keyboard).
+profile by click, tap and keyboard), `... node check-cord.mjs` (the pendants'
+cords hold under every kind of pull), `... node check-format.mjs` (the card
+photos follow the format picker) and `... node check-planting.mjs` (the
+tear-and-plant stage by mouse, finger and keyboard).
 
 ### Backup: Netlify Drop
 
