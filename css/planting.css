@@ -37,7 +37,7 @@
   position: absolute;
   inset: 0;
   background: var(--paper-2);
-  touch-action: pan-y;                 /* a vertical swipe always scrolls the page */
+  touch-action: pan-y pinch-zoom;      /* a vertical swipe always scrolls the page; two fingers still zoom it */
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -67,6 +67,12 @@
   transition: opacity .4s;
 }
 .plant-fig.is-done .plant-hint { opacity: 0; }
+/* a phone on its side: the nav and its paper backing cover the top of the frame at most scroll
+   positions, so the line goes to the bottom row, on the soil left of the button, in paper */
+@media (orientation: landscape) and (max-height: 560px) {
+  .plant-fig .plant-hint,
+  .plant-fig.is-tight .plant-hint { top: auto; right: auto; left: 14px; bottom: 26px; color: var(--paper); }
+}
 
 /* the caption is the last line: it comes back with the sprouts and stays for the photo. Until then it
    is hidden from everyone, screen readers included. On the stage it is a solid paper chip. */

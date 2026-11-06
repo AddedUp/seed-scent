@@ -49,6 +49,10 @@ const COIN = 0.15                       // the share a tap takes off: a bit abou
 const MIN_PART = 0.055                  // no tear leaves a piece smaller than this share
 const MIN_PIECES = 4
 const MAX_PIECES = 10
+const STRIP = 2.6                       // a piece this many times longer than it is wide is a strip: it stays in the hand
+const STRIP_MIN = 0.13                  // ... while it is big enough to tear across (each half above MIN_PART)
+const RUN_ON = 25                       // a rip let go part way runs on by itself only once the hand has pulled it this far (units)
+const PEEK_HOLD = 250                   // ms a press on the returned photo stays still before the sprouts come back
 const ROUGH = 2.8                       // spacing of the points along a torn edge, in units
 const JAG = 1.5                         // how far each of those points strays from the path
 const LAST = 0x3fff                     // the name of the last stretch of a rip, the one that reaches the far edge
@@ -199,7 +203,7 @@ export function initPlanting(figure, opts = {}) {
   let dead = false, inView = false, seen = false, raf = 0, inFrame = false, last = 0, clock = 0, acc = 0, cost = 0, frames = 0
   let W = 0, H = 0, k = 1, dpr = 1, S = 1, VH = 300     // S: canvas pixels per unit
   let pal = null
-  let stageName = 'tear', stageAt = 0, lockFor = 0, peeking = -1
+  let stageName = 'tear', stageAt = 0, lockFor = 0, peeking = -1, peekAt = null, peekTimer = 0
   let snappedTotal = 0
   let pieces = [], discArea = 1, discR = 60, discSeed = 1, cutCount = 0, laid = 0, lastCut = null
   let cam = 0, camTo = 0, camMax = 0                    // the view comes down to the bed once paper is on it
@@ -252,7 +256,6 @@ export function initPlanting(figure, opts = {}) {
   const soilSlope = x => (soilY(x + 0.75) - soilY(x - 0.75)) / 1.5
   /* the lowest line paper may reach on the bed: clear of the row with the button and the caption */
   const bandLow = () => rowTop + Math.min(camMax, camCap()) - 4
-  const headroom = () => (hintBox ? hintBox.y1 : 0) + 10 / k
   /* how far a piece reaches above and below its centre, and to either side, as it hangs */
   function hang(p) {
     if (p.topAt === p.ha0) return
@@ -264,12 +267,11 @@ export function initPlanting(figure, opts = {}) {
     }
     p.top = up + 3; p.bot = down + 3; p.half = side; p.topAt = p.ha0
   }
-  /* where paper still in the hand hangs. As the view comes down to the bed the hand lifts it by as
-     much, as far as the room under the words allows */
+  /* where paper still in the hand hangs: at the same place on screen however far the view has come
+     down, so a hand that swipes where the paper was still finds it there */
   function heldY(p) {
     hang(p)
-    const room = Math.max(0, p.hy0 - p.top - headroom())
-    return p.hy0 + cam - Math.min(cam, room)
+    return p.hy0 + cam
   }
   /* and the view comes down only as far as keeps the bed clear of that paper; once the hand is empty it goes all the way */
   function camCap() {
@@ -278,10 +280,9 @@ export function initPlanting(figure, opts = {}) {
     for (const p of pieces) {
       if (!p.held) continue
       hang(p)
-      const room = Math.max(0, p.hy0 - p.top - headroom())
       let ridge = Infinity
       for (let i = -2; i <= 2; i++) ridge = Math.min(ridge, soilY(p.hx0 + (i / 2) * p.half))
-      cap = Math.min(cap, room + Math.max(0, ridge - 6 - p.hy0 - p.bot))
+      cap = Math.min(cap, Math.max(0, ridge - 6 - p.hy0 - p.bot))
     }
     return Math.max(0, cap)
   }
@@ -453,6 +454,9 @@ export function initPlanting(figure, opts = {}) {
     }
     sxx = (sxx / 12) * sgn; syy = (syy / 12) * sgn; sxy = (sxy / 24) * sgn
     const area = Math.abs(a2) / 2
+    /* how much longer than wide: from the spread of its area along its long side and across it */
+    const mid = (sxx + syy) / 2, dev = Math.sqrt(((sxx - syy) / 2) ** 2 + sxy * sxy)
+    const asp = Math.sqrt(Math.max(1e-9, mid + dev) / Math.max(1e-9, mid - dev))
     /* its outline for measuring: the convex hull, relative to the centre */
     const pts = xs.map((x, i) => [x - cx, ys[i] - cy]).sort((p, q) => p[0] - q[0] || p[1] - q[1])
     const cross = (o, p, q) => (p[0] - o[0]) * (q[1] - o[1]) - (p[1] - o[1]) * (q[0] - o[0])
@@ -465,7 +469,7 @@ export function initPlanting(figure, opts = {}) {
     let rad = 0
     for (const h of hull) rad = Math.max(rad, Math.hypot(h[0], h[1]))
     return {
-      xs, ys, ty, fs, sgn, area, share: area / discArea, cx, cy, x0, y0, x1, y1,
+      xs, ys, ty, fs, sgn, area, share: area / discArea, cx, cy, x0, y0, x1, y1, asp, duds: 0,
       axis: 0.5 * Math.atan2(2 * sxy, sxx - syy),                  // the way its long side runs
       hx: hull.map(h => h[0]), hy: hull.map(h => h[1]), rad,
       x: 0, y: 0, a: 0, b: 0, sq: 1, vx: 0, vy: 0, w: 0,
@@ -1046,9 +1050,11 @@ export function initPlanting(figure, opts = {}) {
     p.tugx = p.tugy = 0
     if (stageName !== 'tear' || !pieces.includes(p)) return
     const parts = r.dead ? null : closeRip(r)
-    if (parts) { lastCut = { len: r.tip, span: Math.hypot(r.X.x - r.E.x, r.X.y - r.E.y), bent: !!r.bow, tries: r.tries }; commit(p, parts, r.E, r.X, { open: r.open, byHand: !r.auto }); return }
+    if (parts) { lastCut = { len: r.tip, span: Math.hypot(r.X.x - r.E.x, r.X.y - r.E.y), bent: !!r.bow, tries: r.tries }; commit(p, parts, r.E, r.X, { open: r.open, byHand: !r.auto, tap: !!r.tap }); return }
     if (!r.dead && r.tries < 2 && again(r)) { rips.set(p, r); return }
     nick(p)
+    /* the hand's rip came to nothing: the second time in a row on this piece, it tears across where the rip went */
+    if (!r.cross && p.held && ++p.duds >= 2) { p.duds = 0; const m = r.raw[r.raw.length >> 1]; if (m) crossCut(p, m[0], m[1]) }
   }
   /* a straight rip from E to X with the slight wander of a hand, run by itself (a tap) */
   function wander(r, E, X) {
@@ -1081,6 +1087,40 @@ export function initPlanting(figure, opts = {}) {
   }
 
   const tearable = p => stageName === 'tear' && p.held && !rips.has(p) && pieces.length + rips.size < MAX_PIECES && p.share >= MIN_PART * 2
+  /* a long thin piece: kept in the hand even under the size of a coin, and torn across, never along */
+  const strip = p => p.asp > STRIP && p.share >= STRIP_MIN
+  /* does a stroke (dx, dy, in the piece's own frame) run along a strip? */
+  function along(p, dx, dy) {
+    const L = Math.hypot(dx, dy)
+    return strip(p) && L > 1e-6 && Math.abs(dx * Math.cos(p.axis) + dy * Math.sin(p.axis)) / L > 0.82
+  }
+  /* the way the hand is going, in the piece's own frame: its speed if it has one, else the last step */
+  function handDir(p, ax, ay, bx, by) {
+    const sp = Math.hypot(ptr.vx, ptr.vy)
+    let ux = bx - ax, uy = by - ay
+    if (sp > 30) { ux = ptr.vx / sp; uy = ptr.vy / sp }
+    const L = Math.hypot(ux, uy) || 1
+    const [x0, y0] = toLocal(p, bx - (ux / L) * 10, by - (uy / L) * 10), [x1, y1] = toLocal(p, bx, by)
+    return [x1 - x0, y1 - y0]
+  }
+  /* tear a piece across its long side, near the point (lx, ly), the rip running by itself */
+  function crossCut(p, lx, ly) {
+    if (!tearable(p)) return false
+    const ca = Math.cos(p.axis), sa = Math.sin(p.axis)
+    let lo = Infinity, hi = -Infinity
+    for (let i = 0; i < p.hx.length; i++) { const v = p.hx[i] * ca + p.hy[i] * sa; lo = Math.min(lo, v); hi = Math.max(hi, v) }
+    const span = hi - lo, at = clamp((lx - p.cx) * ca + (ly - p.cy) * sa, lo + span * 0.4, lo + span * 0.6)
+    for (let i = 0; i < 7; i++) {
+      const o = at + ((i % 2 ? 1 : -1) * Math.ceil(i / 2) * span) / 16
+      const pair = chord(p, p.cx + ca * o, p.cy + sa * o, p.axis + Math.PI / 2 + (rand() - 0.5) * 0.3)
+      const res = pair && lineParts(p, pair[0], pair[1])
+      if (!res || res.parts.some(c => c.share < MIN_PART * 1.05)) continue
+      ripLine(p, pair[0], pair[1], 520)
+      rips.get(p).cross = true
+      return true
+    }
+    return false
+  }
 
   /* the two pieces take the place of the one. A piece still bigger than a coin stays in
      the hand; the rest come loose and go down to the bed. */
@@ -1094,8 +1134,11 @@ export function initPlanting(figure, opts = {}) {
     const mx = (ex + xx) / 2, my = (ey + xy) / 2
     const ca = Math.cos(p.ha0), sa = Math.sin(p.ha0)
     pieces.splice(at, 1, parts[0], parts[1])
-    const full = pieces.length >= MAX_PIECES
+    const full = !opt.over && pieces.length >= MAX_PIECES
     const pvx = clamp(ptr.down ? ptr.vx : 0, -240, 240), pvy = clamp(ptr.down ? ptr.vy : 0, -240, 240)
+    /* a small piece the hand tears off while it is still down goes with the hand, even a strip: the hand places it */
+    const grab = opt.byHand && !full && p.held && ptr.down && !ptr.lost && ptr.mode === 'tear' && !ptr.carry ? parts.filter(c => c.share <= HOLD_ABOVE) : []
+    const pick = grab.length ? grab.reduce((a, b) => (b.area < a.area ? b : a)) : null
     for (const c of parts) {
       const ox = c.cx - p.cx, oy = c.cy - p.cy
       const q = place(p, ox, oy)
@@ -1108,7 +1151,7 @@ export function initPlanting(figure, opts = {}) {
         const th = -side * opt.open * 0.5, ct = Math.cos(th), st = Math.sin(th), rx = c.x - xx, ry = c.y - xy
         c.x = xx + ct * rx - st * ry; c.y = xy + st * rx + ct * ry; c.a += th
       }
-      if (p.held && !full && (opt.keep || c.share > HOLD_ABOVE)) {
+      if (p.held && c !== pick && (full ? c.share > HOLD_ABOVE : opt.keep || c.share > HOLD_ABOVE || (strip(c) && !opt.tap))) {
         /* still in the hand: the two halves part by a few units so the torn edges show */
         c.held = true
         c.hx0 = p.hx0 + ca * ox - sa * oy + nx * 3.4
@@ -1131,7 +1174,12 @@ export function initPlanting(figure, opts = {}) {
       if (free.length) carry = free.reduce((a, b) => (b.area < a.area ? b : a))
     }
     if (full) {
-      /* that is as many pieces as there will be: everything comes loose together */
+      /* that is as many pieces as there will be: anything still bigger than a coin is torn in two first,
+         then everything comes loose together */
+      for (let guard = 0; guard < 4; guard++) {
+        const big = pieces.filter(o => o.held && o.share > HOLD_ABOVE && !rips.has(o)).sort((a, b) => b.area - a.area)[0]
+        if (!big || pieces.length >= MAX_PIECES + 2 || !halve(big, { keep: true, over: true })) break
+      }
       const going = pieces.filter(o => o.held)
       for (const o of going) o.held = false
       for (const c of parts) if (!going.includes(c) && c !== carry) release(c)
@@ -1235,7 +1283,7 @@ export function initPlanting(figure, opts = {}) {
     if (rand() < 0.5) { const t = E; E = X; X = t; q = q.slice().reverse() }
     const r = openRip(p, E)
     for (const pt of q) feed(r, pt[0], pt[1])
-    r.auto = true; r.planned = true
+    r.auto = true; r.planned = true; r.tap = true          // a tap takes off a bit about the size of a coin, whatever its shape
     rips.set(p, r)
     seal(r, X, 520)
     return true
@@ -1249,6 +1297,7 @@ export function initPlanting(figure, opts = {}) {
       const bow = bowFor(p, pair[0], pair[1])
       if (!bow || bow.b > 0) continue                  // only a line that needs no bending
       ripLine(p, pair[0], pair[1], 560)
+      rips.get(p).tap = true
       return true
     }
     nick(p)
@@ -1284,9 +1333,12 @@ export function initPlanting(figure, opts = {}) {
       const a = rawAt(r, Math.max(0, r.head - 9)), b = r.raw[r.raw.length - 1]
       const ux = b[0] - a[0], uy = b[1] - a[1], L = Math.hypot(ux, uy)
       const out = L > 1e-6 ? crossings(p, b[0], b[1], b[0] + (ux / L) * 4000, b[1] + (uy / L) * 4000)[0] : null
-      if (out) { r.auto = true; seal(r, out, 460); return true }
+      /* only a rip the hand has pulled a real way across goes on by itself: a timid nudge closes up again */
+      const left = out ? Math.hypot(out.x - b[0], out.y - b[1]) : 0
+      if (out && r.head >= RUN_ON && r.head >= 0.3 * (r.head + left)) { r.auto = true; seal(r, out, 460); return true }
     }
     rips.delete(p); p.tugx = p.tugy = 0
+    if (r.head >= 2) nick(p)
     return false
   }
   function checkTorn() {
@@ -1578,6 +1630,7 @@ export function initPlanting(figure, opts = {}) {
     if (pour && pour.auto) return                       // already pouring
     wateredBy = 'button'
     pour = { x: VW * 0.14, y: 0, n: 0, auto: true, t: 0 }
+    syncBtn()
   }
 
   /* ==========================================================================
@@ -1729,7 +1782,7 @@ export function initPlanting(figure, opts = {}) {
   function sunNow() {
     if (stageName !== 'sun' && stageName !== 'done') return null
     if (sunWait) return sunAt(sunPeek())
-    if (reduced) return sunAt(0.5)                      // reduced motion: the sun does not travel
+    if (reduced) return stageName === 'done' ? null : sunAt(0.5)     // reduced motion: the sun does not travel; by the end it is down
     const u = clamp(sunT / SUN_ARC, 0, 1)
     return u >= 1 ? null : sunAt(u)
   }
@@ -1757,7 +1810,7 @@ export function initPlanting(figure, opts = {}) {
   }
   /* is the button ready for a press? Not for a moment after the stage changes (a second press is a
      slip), and not while the sun is crossing by itself */
-  const btnReady = () => !(stageName === 'sun' && !sunWait) && (!stageAt || performance.now() - stageAt >= lockFor)
+  const btnReady = () => !(stageName === 'sun' && !sunWait) && !(stageName === 'water' && (pendingWater || (pour && pour.auto))) && (!stageAt || performance.now() - stageAt >= lockFor)
   function syncBtn() {
     if (dead) return
     if (btnReady()) btn.removeAttribute('aria-disabled'); else btn.setAttribute('aria-disabled', 'true')
@@ -1834,7 +1887,7 @@ export function initPlanting(figure, opts = {}) {
     endPeek()
     if (stageName === 'tear') autoTear()
     else if (stageName === 'press') pressAll()
-    else if (stageName === 'water') { if (reduced || bedded()) autoWater(); else pendingWater = true }
+    else if (stageName === 'water') { if (reduced || bedded()) autoWater(); else { pendingWater = true; syncBtn() } }
     else if (stageName === 'sun') { if (sunWait) startSun(); else sunFast = true }       // already up: it hurries, it does not jump
     else reset()
     wake()
@@ -1872,7 +1925,7 @@ export function initPlanting(figure, opts = {}) {
   /* ==========================================================================
      Pointer: drag to tear, press to plant, hold to water
      ========================================================================== */
-  const ptr = { down: false, id: -1, mode: '', touch: false, late: false, armed: false, lost: false, x: 0, y: 0, sx: 0, sy: 0, cx: 0, cy: 0, cx0: 0, cy0: 0, travel: 0, t0: 0, lt: 0, vx: 0, vy: 0, held: [], lastPress: null, anchors: new Map(), carry: null }
+  const ptr = { down: false, id: -1, mode: '', touch: false, late: false, armed: false, lost: false, x: 0, y: 0, sx: 0, sy: 0, cx: 0, cy: 0, cx0: 0, cy0: 0, travel: 0, t0: 0, lt: 0, vx: 0, vy: 0, held: [], lastPress: null, anchors: new Map(), over: new Map(), carry: null }
   function toStage(cx, cy) {
     const r = stage.getBoundingClientRect()
     return [((cx - r.left) / (r.width || 1)) * VW, ((cy - r.top) / (r.height || 1)) * VH + cam]
@@ -1903,13 +1956,21 @@ export function initPlanting(figure, opts = {}) {
   function onPeek(e) {
     if (!photo || dead || peeking >= 0 || e.target === btn || btn.contains(e.target)) return
     if (e.pointerType === 'mouse' && e.button !== 0) return
-    peeking = e.pointerId
+    peeking = e.pointerId; peekAt = [e.clientX, e.clientY]
     try { figure.setPointerCapture(e.pointerId) } catch { /* fine */ }
-    figure.classList.add('is-peek', 'was-peek')
+    /* only a press that stays still a moment: a tap, or a finger on its way to scroll, shows nothing */
+    clearTimeout(peekTimer)
+    const id = e.pointerId
+    peekTimer = later(() => { if (peeking === id && photo) figure.classList.add('is-peek', 'was-peek') }, PEEK_HOLD)
+  }
+  function movePeek(e) {
+    if (peeking < 0 || e.pointerId !== peeking || !peekAt || figure.classList.contains('is-peek')) return
+    if (Math.hypot(e.clientX - peekAt[0], e.clientY - peekAt[1]) > 8) endPeek(e)
   }
   function endPeek(e) {
     if (peeking < 0 || (e && e.pointerId !== peeking)) return
-    peeking = -1
+    peeking = -1; peekAt = null
+    clearTimeout(peekTimer)
     figure.classList.remove('is-peek')
   }
   function onDown(e) {
@@ -1929,7 +1990,7 @@ export function initPlanting(figure, opts = {}) {
     ptr.down = true; ptr.id = e.pointerId; ptr.mode = stageName; ptr.touch = e.pointerType === 'touch'
     /* a mouse or a pen is ours from the first move. A finger has to show which way it is going first:
        sideways tears, presses and waters; up or down is the page scrolling and does nothing here. */
-    ptr.armed = !ptr.touch; ptr.lost = false; ptr.held.length = 0; ptr.lastPress = null; ptr.anchors.clear()
+    ptr.armed = !ptr.touch; ptr.lost = false; ptr.held.length = 0; ptr.lastPress = null; ptr.anchors.clear(); ptr.over.clear()
     ptr.x = ptr.sx = x; ptr.y = ptr.sy = y; ptr.cx = ptr.cx0 = e.clientX; ptr.cy = ptr.cy0 = e.clientY
     ptr.late = late; ptr.travel = late ? 99 : 0; ptr.t0 = ptr.lt = performance.now(); ptr.vx = ptr.vy = 0
     try { stage.setPointerCapture(e.pointerId) } catch { /* fine */ }
@@ -2014,7 +2075,7 @@ export function initPlanting(figure, opts = {}) {
   }
   function letUp() {
     if (ptr.late) clearSelection(false)
-    ptr.late = false; ptr.down = false; ptr.id = -1; ptr.mode = ''; ptr.held.length = 0; ptr.anchors.clear()
+    ptr.late = false; ptr.down = false; ptr.id = -1; ptr.mode = ''; ptr.held.length = 0; ptr.anchors.clear(); ptr.over.clear()
     if (pour && !pour.auto) pour = null
     stage.classList.remove('is-held')
     wake()
@@ -2031,6 +2092,11 @@ export function initPlanting(figure, opts = {}) {
       if (stageName !== 'tear') return
       if (!p.held || !pieces.includes(p)) continue
       const [lbx, lby] = toLocal(p, bx, by)
+      if (insidePoly(lbx, lby, p.xs, p.ys)) {
+        /* where this stroke went over the paper: its first and last point there, and their sum */
+        const t = ptr.over.get(p)
+        if (t) { t[0] += lbx; t[1] += lby; t[2]++; t[5] = lbx; t[6] = lby } else ptr.over.set(p, [lbx, lby, 1, lbx, lby, lbx, lby])
+      }
       const r = rips.get(p)
       if (r) {
         if (r.X) continue
@@ -2051,6 +2117,7 @@ export function initPlanting(figure, opts = {}) {
         if (!out && L < 5) continue
         ptr.anchors.delete(p)
         if (L < 1e-3 || !tearable(p)) continue
+        if (along(p, dx, dy)) { crossCut(p, anchor[0], anchor[1]); continue }      // along a strip: it tears across
         const back = crossings(p, anchor[0], anchor[1], anchor[0] - (dx / L) * 4000, anchor[1] - (dy / L) * 4000)[0]
         if (!back) continue
         const fresh = openRip(p, back)
@@ -2063,6 +2130,11 @@ export function initPlanting(figure, opts = {}) {
       const [lax, lay] = toLocal(p, ax, ay)
       const hits = crossings(p, lax, lay, lbx, lby)
       if (!hits.length) continue
+      if (strip(p)) {
+        /* a stroke along a strip would only peel a thinner strip off it: the strip tears across instead */
+        const [dx, dy] = handDir(p, ax, ay, bx, by)
+        if (along(p, dx, dy)) { crossCut(p, lbx, lby); continue }
+      }
       if (insidePoly(lbx, lby, p.xs, p.ys)) {
         /* the drag has come onto this piece: a rip opens at the edge */
         const fresh = openRip(p, hits[hits.length - 1])
@@ -2083,6 +2155,13 @@ export function initPlanting(figure, opts = {}) {
       /* let go part way across: the rip runs on to the edge the way it was heading */
       if (!tap) { if (runOn(r)) torn = true; continue }
       rips.delete(p); p.tugx = p.tugy = 0
+    }
+    if (!tap && !torn && stageName === 'tear') {
+      for (const [p, t] of ptr.over) {
+        if (!pieces.includes(p) || !tearable(p) || Math.hypot(t[5] - t[3], t[6] - t[4]) < p.rad * 0.6) continue
+        /* the second stroke in a row that crossed this piece and tore nothing tears it across, near where it went */
+        if (++p.duds >= 2) { p.duds = 0; if (crossCut(p, t[0] / t[2], t[1] / t[2])) torn = true }
+      }
     }
     if (torn || stageName !== 'tear' || !(tap || ptr.travel < 14)) return
     /* a tap: one rip through that spot, at whatever angle the paper gives */
@@ -2189,7 +2268,7 @@ export function initPlanting(figure, opts = {}) {
       if (pour.t > 0) pour.n += rate * dt
       if (pour.auto) pour.x = VW * (0.14 + 0.72 * clamp(pour.t / 1.0, 0, 1))
       while (pour.n >= 1) { pour.n--; spawnDrop(pour.x + (rand() - 0.5) * (pour.auto ? 60 : 34), pour.auto ? null : pour.y - 8, pour.auto ? null : pour.y) }
-      if (stageName !== 'water' || (pour.auto && pour.t > 1.0)) pour = null
+      if (stageName !== 'water' || (pour.auto && pour.t > 1.0)) { const was = pour.auto; pour = null; if (was) syncBtn() }
     }
     for (let i = drops.length - 1; i >= 0; i--) {
       const d = drops[i]
@@ -2679,9 +2758,14 @@ export function initPlanting(figure, opts = {}) {
       if (reshaped) for (const p of pieces) if (p.held) { const f = soilY(VW / 2) / ridgeWas; p.hy0 *= f; p.y = heldY(p) }
     }
     const k1 = 1 / k
-    hintBox = hint.offsetWidth ? { x0: hint.offsetLeft * k1, x1: (hint.offsetLeft + hint.offsetWidth) * k1, y1: (hint.offsetTop + hint.offsetHeight) * k1 } : null
-    /* the bottom row: the button, and the caption beside it unless it has taken the top corner */
-    const row = Math.min(btn.offsetHeight ? btn.offsetTop : h, !stacked && cap && cap.offsetHeight ? cap.offsetTop : h) * k1
+    /* on a phone on its side the nav covers the top of the frame, so the line of instruction sits in the
+       bottom row instead, on the soil left of the button (css/planting.css): it may run as far as the button */
+    const low = hint.offsetHeight > 0 && hint.offsetTop + hint.offsetHeight / 2 > h / 2
+    const fit = low && btn.offsetWidth ? Math.max(80, btn.offsetLeft - hint.offsetLeft - 12) + 'px' : ''
+    if (hint.style.maxWidth !== fit) hint.style.maxWidth = fit
+    hintBox = hint.offsetWidth && !low ? { x0: hint.offsetLeft * k1, x1: (hint.offsetLeft + hint.offsetWidth) * k1, y1: (hint.offsetTop + hint.offsetHeight) * k1 } : null
+    /* the bottom row: the button, and the caption beside it unless it has taken the top corner (and the line, when it is there) */
+    const row = Math.min(btn.offsetHeight ? btn.offsetTop : h, !stacked && cap && cap.offsetHeight ? cap.offsetTop : h, low && hint.offsetHeight ? hint.offsetTop : h) * k1
     capLow = stacked && cap && cap.offsetHeight ? (cap.offsetTop + cap.offsetHeight) * k1 : 0
     if (Math.abs(row - rowTop) > 0.5 || sized) {
       rowTop = row
@@ -2724,6 +2808,7 @@ export function initPlanting(figure, opts = {}) {
   on(btn, 'click', onButton)
   /* the photo is back: press and hold on it to look at your own sprouts again */
   on(figure, 'pointerdown', onPeek)
+  on(figure, 'pointermove', movePeek)
   on(figure, 'pointerup', endPeek)
   on(figure, 'pointercancel', endPeek)
   on(figure, 'lostpointercapture', endPeek)
@@ -2796,7 +2881,7 @@ export function initPlanting(figure, opts = {}) {
         const e = p.held ? { hw: p.rad, hh: p.rad } : extents(p, p.a, p.b, p.sq)
         return {
           x: r.left + p.x * ux, y: r.top + (p.y - cam) * uy, r: p.rad * ux, hw: e.hw * ux, hh: e.hh * uy,
-          ridge: r.top + (soilY(p.x) - cam) * uy, turn: p.a, flat: p.sq, share: p.share,
+          ridge: r.top + (soilY(p.x) - cam) * uy, turn: p.a, flat: p.sq, share: p.share, asp: p.asp,
           held: p.held, carried: p.carried, asleep: p.asleep, pressed: p.press >= 1, pressing: p.pressing || p.want, torn: p.ty.some(t => t === 1), points: p.xs.length,
           land: p.hw ? { x: r.left + p.lx * ux, y: r.top + (p.ly - cam) * uy } : null, fringe: p.fringe,
         }

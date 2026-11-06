@@ -15,6 +15,7 @@
      5  fixes       each must-fix from the judges, one check each
      6  site        the Pause motion button, a config with three steps, JavaScript off, the
                     paper and mark images failing
+     6b repairs     each defect from the third round of testing (PH, PR, PC ids), one check or more each
      7  sizes       every stage at 1440x900, 1024x768, 901x700, 390x844, 360x740 and 844x390
    Every page: no console errors, no requests to another host.
 
@@ -217,6 +218,9 @@ async function actTo(page, target, ms = 20000) {
   }
   return false
 }
+/* a disc (x, y, r) and a box do not touch, with a gap */
+const clearOf = (d, b, gap) => d.y + d.r <= b.y - gap || d.y - d.r >= b.b + gap || d.x + d.r <= b.x - gap || d.x - d.r >= b.r + gap
+const median = a => { const b = [...a].sort((x, y) => x - y); return b.length ? b[b.length >> 1] : NaN }
 const biggestHeld = k => k.pieces.filter(q => q.held).sort((a, c) => c.share - a.share)[0]
 const coinSized = k => k.pieces.every(q => q.share <= HOLD + 0.005) && k.pieces.every(q => q.share >= 0.05)
 const shares = k => k.pieces.map(q => q.share.toFixed(2)).sort().reverse().join(' ')
@@ -272,7 +276,7 @@ if (want('mouse')) {
   notBlank(tag, 'tear', px)
   check(`[${tag}] the photo is hidden from assistive tech while the stage plays, the stage is not`, f.photoHidden && !f.stageHidden)
   check(`[${tag}] the caption is out of the accessibility tree while the stage plays`, !(await captionInTree(page)))
-  check(`[${tag}] touch-action is pan-y`, f.touchAction === 'pan-y', f.touchAction)
+  check(`[${tag}] touch-action is pan-y (with pinch-zoom): a vertical swipe scrolls, two fingers zoom`, f.touchAction === 'pan-y pinch-zoom', f.touchAction)
   await shot(page, '1440-tear')
 
   /* the cursor: a hand only over paper; the window still hears the pointer */
@@ -409,7 +413,7 @@ if (want('mouse')) {
   await shot(page, '1440-done-photo')
   /* press and hold on the photo: the visitor's own sprouts come back while held */
   await page.mouse.move(f.fig.x + f.fig.w * 0.4, f.fig.y + f.fig.h * 0.4); await page.mouse.down()
-  await sleep(450)
+  await sleep(700)
   const peekF = await face(page)
   await shot(page, '1440-done-peek')
   await page.mouse.up()
@@ -594,7 +598,7 @@ if (want('touch')) {
   f = await face(page)
   /* press and hold on the photo with a finger */
   await finger('touchStart', f.fig.x + f.fig.w * 0.4, f.fig.y + f.fig.h * 0.35)
-  await sleep(450)
+  await sleep(700)
   const peekF = await face(page)
   await finger('touchEnd')
   await sleep(450)
@@ -757,7 +761,7 @@ if (want('fixes')) {
     await sleep(500)
     const k = await pk(page)
     const d = k.pieces[0]
-    check(`[${tag}] the disc keeps clear of the line and the button`, d.y - d.r >= f.hintBox.b + 4 && (d.x + d.r <= f.btnBox.x + 0.5 || d.y + d.r <= f.btnBox.y), `disc ${(d.y - d.r).toFixed(0)}..${(d.y + d.r).toFixed(0)}`)
+    check(`[${tag}] the disc keeps clear of the line and the button`, clearOf(d, f.hintBox, 4) && (d.x + d.r <= f.btnBox.x + 0.5 || d.y + d.r <= f.btnBox.y), `disc ${(d.y - d.r).toFixed(0)}..${(d.y + d.r).toFixed(0)}, line ${f.hintBox.y.toFixed(0)}..${f.hintBox.b.toFixed(0)}`)
     clean(tag, log)
     await ctx.close()
   }
@@ -893,6 +897,216 @@ if (want('site')) {
 }
 
 /* ==========================================================================
+   6b · the third round of testing: each repair, so it cannot come back
+   ========================================================================== */
+if (want('repairs')) {
+  section('repairs: the third round of testing')
+  const PHONE = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
+  const fingersOf = async page => {
+    const cdp = await page.context().newCDPSession(page)
+    const finger = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, id: 1 }] })
+    const swipe = async pts => { await finger('touchStart', ...pts[0]); for (const q of pts.slice(1)) { await finger('touchMove', ...q); await sleep(16) } await finger('touchEnd') }
+    return { cdp, finger, swipe }
+  }
+  const across = (x0, y0, x1, y1, n) => Array.from({ length: n + 1 }, (_, i) => [x0 + ((x1 - x0) * i) / n, y0 + ((y1 - y0) * i) / n])
+  /* the stage's opacity on every frame for a while, to catch a flash */
+  const watchOpacity = (page, n) => page.evaluate(n => { window.__op = []; const s = document.querySelector('#planting .plant-stage'); const loop = () => { window.__op.push(+getComputedStyle(s).opacity); if (window.__op.length < n) requestAnimationFrame(loop) }; loop() }, n)
+  const maxOpacity = page => page.evaluate(() => Math.max(...window.__op))
+
+  /* PH-2 · a timid nudge into the disc, then let go: nothing tears by itself */
+  {
+    const tag = 'PH-2 nudge'
+    const { ctx, page, log } = await open(browser)
+    await toStage(page)
+    let d = (await pk(page)).pieces[0]
+    await page.mouse.move(d.x - d.r - 20, d.y); await page.mouse.down()
+    for (const [x, y] of across(d.x - d.r - 20, d.y, d.x - d.r + 12, d.y, 10).slice(1)) { await page.mouse.move(x, y); await sleep(15) }
+    await page.mouse.up()
+    await sleep(1500)
+    let k = await pk(page)
+    check(`[${tag}] a mouse nudged 12 px into the disc and let go leaves it whole`, k.pieces.length === 1 && k.rips.length === 0, `${k.pieces.length} pieces, last cut ${k.lastCut ? k.lastCut.len.toFixed(0) : 'none'}`)
+    d = k.pieces[0]
+    await page.mouse.move(d.x - d.r - 20, d.y); await page.mouse.down()
+    for (const [x, y] of across(d.x - d.r - 20, d.y, d.x + 4, d.y, 14).slice(1)) { await page.mouse.move(x, y); await sleep(15) }
+    await page.mouse.up()
+    await sleep(1500)
+    k = await pk(page)
+    check(`[${tag}] a pull half way across, then let go, still runs on and tears it in two`, k.pieces.length === 2, `${k.pieces.length} pieces`)
+    clean(tag, log); await ctx.close()
+    const ph = await open(browser, PHONE)
+    await toStage(ph.page)
+    const t = await fingersOf(ph.page)
+    d = (await pk(ph.page)).pieces[0]
+    await t.swipe(across(d.x - d.r - 20, d.y, d.x - d.r + 15, d.y, 8))
+    await sleep(1500)
+    k = await pk(ph.page)
+    check(`[${tag}] a finger 15 px into the disc, then lifted, leaves it whole`, k.pieces.length === 1, `${k.pieces.length} pieces`)
+    clean(tag + ' phone', ph.log); await ph.ctx.close()
+  }
+
+  /* PH-3 and PH-5 · a phone allows only sideways swipes: they end with pieces about the size of a coin,
+     not strips the width of the disc, and paper still in the hand stays where the thumb found it */
+  {
+    const tag = 'PH-3 strips'
+    const { ctx, page, log } = await open(browser, PHONE)
+    await toStage(page)
+    const t = await fingersOf(page)
+    const r0 = (await pk(page)).pieces[0].r
+    let swipes = 0, dead = 0, maxDead = 0, drift = 0, camMoved = 0
+    for (let i = 0; i < 16 && (await st(page)).stage === 'tear'; i++) {
+      const k = await pk(page), b = biggestHeld(k)
+      if (!b) { await sleep(400); continue }
+      await t.swipe(across(b.x - b.r - 25, b.y, b.x + b.r + 25, b.y, 14)); swipes++
+      /* every 100 ms while the pieces fall and the view may come down: paper still held keeps its place */
+      let a = await pk(page)
+      for (let j = 0; j < 14; j++) {
+        await sleep(100)
+        const c = await pk(page)
+        if (c.pieces.length === a.pieces.length) {
+          camMoved = Math.max(camMoved, Math.abs(c.cam - a.cam))
+          a.pieces.forEach((q, n) => { if (q.held && c.pieces[n].held && !q.carried) drift = Math.max(drift, Math.abs(c.pieces[n].y - q.y)) })
+        }
+        a = c
+      }
+      if (a.pieces.length === k.pieces.length) maxDead = Math.max(maxDead, ++dead); else dead = 0
+    }
+    await stageIs(page, 'press', 4000); await settled(page)
+    const k = await pk(page), loose = k.pieces.filter(q => !q.held)
+    const long = median(loose.map(q => Math.max(q.hw, q.hh) / r0)), asp = median(loose.map(q => Math.max(q.hw, q.hh) / Math.max(1, Math.min(q.hw, q.hh))))
+    check(`[${tag}] sideways thumb swipes through the paper end the tear, never more than two dead in a row`, (await st(page)).stage === 'press' && swipes <= 12 && maxDead <= 2, `${swipes} swipes, ${maxDead} dead in a row`)
+    check(`[${tag}] and leave pieces about the size of a coin, not strips the width of the disc`, long <= 0.62 && asp <= 4.5 && coinSized(k), `median long side ${long.toFixed(2)} of the diameter, median lying aspect ${asp.toFixed(1)}: ${shares(k)}`)
+    check(`[PH-5 hold] paper still in the hand stays where it is on screen while pieces fall`, drift <= 4, `held paper moved up to ${drift.toFixed(1)} px in 100 ms (the view moved up to ${camMoved.toFixed(1)} units in 100 ms)`)
+    await shot(page, 'repair-390-strips')
+    clean(tag, log); await ctx.close()
+  }
+
+  /* PH-4 · curved strokes through paper still in the hand do not go dead again and again */
+  {
+    const tag = 'PH-4 arcs'
+    const { ctx, page, log } = await open(browser)
+    await toStage(page)
+    let arcs = 0, dead = 0, maxDead = 0
+    for (let i = 0; i < 16 && (await st(page)).stage === 'tear'; i++) {
+      const k = await pk(page), b = biggestHeld(k)
+      if (!b) { await sleep(400); continue }
+      const sgn = i % 2 ? 1 : -1, pts = []
+      for (let j = 0; j <= 16; j++) { const u = j / 16; pts.push([b.x - b.r - 25 + u * (2 * b.r + 50), b.y + sgn * Math.sin(Math.PI * u) * b.r * 0.45]) }
+      await page.mouse.move(...pts[0]); await page.mouse.down()
+      for (const q of pts.slice(1)) { await page.mouse.move(...q); await sleep(16) }
+      await page.mouse.up()
+      arcs++
+      await sleep(900)
+      if ((await pk(page)).pieces.length === k.pieces.length) maxDead = Math.max(maxDead, ++dead); else dead = 0
+    }
+    await stageIs(page, 'press', 4000)
+    const k = await pk(page)
+    check(`[${tag}] curved strokes end the tear and never go dead more than twice in a row`, (await st(page)).stage === 'press' && maxDead <= 2 && arcs <= 12 && coinSized(k), `${arcs} arcs, ${maxDead} dead in a row: ${shares(k)}`)
+    clean(tag, log); await ctx.close()
+  }
+
+  /* PR-1 · on a phone, a scroll or a tap that starts on the returned photo does not flash the drawn ending */
+  {
+    const tag = 'PR-1 peek'
+    const { ctx, page, log } = await open(browser, PHONE)
+    await toStage(page)
+    await actTo(page, 'done', 40000)
+    await page.waitForFunction(() => window.__planting.peek().photo, null, { timeout: 20000 })
+    await sleep(1600)
+    const t = await fingersOf(page)
+    let f = await face(page)
+    let x = f.fig.x + f.fig.w / 2, y = f.fig.y + f.fig.h / 2
+    await watchOpacity(page, 60)
+    await t.finger('touchStart', x, y); await sleep(120)
+    for (let i = 1; i <= 10; i++) { await t.finger('touchMove', x, y - i * 14); await sleep(16) }
+    await t.finger('touchEnd'); await sleep(900)
+    const scrollMax = await maxOpacity(page)
+    await page.evaluate(() => document.getElementById('planting').scrollIntoView({ block: 'center' })); await sleep(600)
+    f = await face(page); x = f.fig.x + f.fig.w / 2; y = f.fig.y + f.fig.h / 2
+    await watchOpacity(page, 50)
+    await t.finger('touchStart', x, y); await sleep(80); await t.finger('touchEnd'); await sleep(800)
+    const tapMax = await maxOpacity(page)
+    check(`[${tag}] a finger that rests, then scrolls, and a short tap, both leave the photo as it is`, scrollMax < 0.05 && tapMax < 0.05, `stage opacity up to ${scrollMax.toFixed(2)} on the scroll, ${tapMax.toFixed(2)} on the tap`)
+    await t.finger('touchStart', x, y); await sleep(700)
+    const held = await face(page)
+    await t.finger('touchEnd'); await sleep(600)
+    check(`[${tag}] a still hold still brings the sprouts back`, /is-peek/.test(held.cls) && held.opacity > 0.9 && (await face(page)).opacity < 0.1, `held ${held.opacity}`)
+    clean(tag, log); await ctx.close()
+  }
+
+  /* PR-2 · while the button's own pour plays, "Water it" rests */
+  {
+    const tag = 'PR-2 water'
+    const { ctx, page, log } = await open(browser)
+    await toStage(page)
+    await actTo(page, 'water')
+    await sleep(1000)
+    await page.focus('#planting .plant-btn'); await page.keyboard.press('Enter')
+    const offs = []
+    for (let i = 0; i < 4; i++) { await sleep(250); const f = await face(page); if ((await st(page)).stage === 'water') offs.push(f.buttonOff) }
+    await page.keyboard.press('Enter')
+    const reached = await stageIs(page, 'sun', 15000)
+    await sleep(1200)
+    const f = await face(page)
+    check(`[${tag}] after "Water it" the button rests while its water falls, then is ready at sun`, offs.length >= 2 && offs.every(Boolean) && reached && !f.buttonOff && f.button === ACTION.sun, `resting ${offs.join(',')}; at sun ready ${!f.buttonOff}`)
+    clean(tag, log); await ctx.close()
+  }
+
+  /* PR-5 · two fingers on the stage zoom the page and tear nothing */
+  {
+    const tag = 'PR-5 pinch'
+    const { ctx, page, log } = await open(browser, PHONE)
+    await toStage(page)
+    const f = await face(page), cdp = await ctx.newCDPSession(page)
+    await cdp.send('Input.synthesizePinchGesture', { x: f.fig.x + f.fig.w / 2, y: f.fig.y + f.fig.h * 0.4, scaleFactor: 2, relativeSpeed: 600, gestureSourceType: 'touch' })
+    await sleep(600)
+    const scale = await page.evaluate(() => (window.visualViewport ? visualViewport.scale : 1))
+    check(`[${tag}] a pinch on the stage zooms the page, and the paper stays whole`, scale > 1.3 && (await st(page)).pieces === 1 && /pinch-zoom/.test(f.touchAction), `scale ${scale.toFixed(2)}, touch-action ${f.touchAction}`)
+    clean(tag, log); await ctx.close()
+  }
+
+  /* PC-1 and PR-3 · a phone on its side: the line of instruction is never under the nav */
+  {
+    const tag = 'PC-1 landscape line'
+    const { ctx, page, log } = await open(browser, { viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
+    await toStage(page)
+    const navH = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')))
+    const rows = []
+    for (const top of [21, 51, navH]) {
+      await page.evaluate(top => { const r = document.getElementById('planting').getBoundingClientRect(); window.scrollBy(0, r.top - top) }, top)
+      await sleep(500)
+      const f = await face(page)
+      rows.push({ top: Math.round(f.fig.y), y: Math.round(f.hintBox.y), b: Math.round(f.hintBox.b), clear: f.hintBox.y >= navH + 16 && f.hintBox.b <= 390 })
+    }
+    check(`[${tag}] with the frame top at 21 px, centred, or just under the nav, the line is clear of the nav and its backing`, rows.every(r => r.clear), rows.map(r => `top ${r.top}: line ${r.y}..${r.b}`).join('; '))
+    await page.evaluate(() => document.getElementById('planting').scrollIntoView({ block: 'center' })); await sleep(500)
+    const seenRows = []
+    for (const s of ['tear', 'press', 'water', 'sun']) {
+      if (s !== 'tear') await actTo(page, s)
+      await sleep(700)
+      const f = await face(page), k = await pk(page)
+      const color = await page.evaluate(() => getComputedStyle(document.querySelector('#planting .plant-hint')).color)
+      const under = k.pieces.filter(q => !q.held && q.y + q.hh > f.hintBox.y + 1 && q.x + q.hw > f.hintBox.x && q.x - q.hw < f.hintBox.r)
+      seenRows.push({ s, ok: f.hintShown && f.hintBox.r <= f.btnBox.x - 4 && f.hintBox.b <= f.btnBox.b + 1 && f.hintBox.y >= f.btnBox.y - 14 && under.length === 0 && color === 'rgb(251, 246, 229)', w: Math.round(f.hintBox.w) })
+    }
+    check(`[${tag}] at every stage the line sits in the bottom row in paper, left of the button, with no paper over it`, seenRows.every(r => r.ok), seenRows.map(r => `${r.s} ${r.ok ? 'ok' : 'NO'} (${r.w} px)`).join(', '))
+    await shotView(page, 'repair-844x390-line')
+    clean(tag, log); await ctx.close()
+  }
+
+  /* PC-4 · reduced motion: by the end the sun is down, as it is with motion */
+  {
+    const tag = 'PC-4 reduced sun'
+    const { ctx, page, log } = await open(browser, { viewport: { width: 1024, height: 768 }, reducedMotion: 'reduce' })
+    await toStage(page)
+    await actTo(page, 'done', 30000)
+    await sleep(300)
+    const k = await pk(page)
+    check(`[${tag}] at done with reduced motion there is no sun under the caption`, (await st(page)).stage === 'done' && !k.sun, `sun ${k.sun}`)
+    clean(tag, log); await ctx.close()
+  }
+}
+
+/* ==========================================================================
    7 · every stage at six sizes, for looking at
    ========================================================================== */
 if (want('sizes')) {
@@ -909,7 +1123,7 @@ if (want('sizes')) {
     const { ctx, page, log } = await open(browser, { deviceScaleFactor: 2, ...opts })
     await toStage(page)
     const f0 = await face(page), k0 = await pk(page), d = k0.pieces[0]
-    const clear = Math.min(d.x - d.r - f0.fig.x, f0.fig.r - d.x - d.r) >= 0 && d.y - d.r >= f0.hintBox.b + 6 && d.y + d.r <= f0.btnBox.y - 6
+    const clear = Math.min(d.x - d.r - f0.fig.x, f0.fig.r - d.x - d.r) >= 0 && clearOf(d, f0.hintBox, 6) && d.y + d.r <= f0.btnBox.y - 6
     await shot(page, `${name}-tear`)
     await actTo(page, 'press'); await settled(page); await still(page)
     let k = await pk(page)
