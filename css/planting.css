@@ -5,13 +5,20 @@
    Colors only from tokens.css. The one extra tone is the jute of the pendant
    cord, which the site already uses (js/physics.js, js/chapters.js).
 
-   Link this file in the head, after sections.css. The square frame on narrow
-   phones is plain CSS on the photo, so the frame has its final size before any
-   script runs and nothing shifts when the stage arrives.
+   Link this file in the head, after sections.css. The two rules on the photo
+   (a square frame on narrow phones, a frame no taller than the screen on a
+   phone held sideways) are plain CSS on the photo, so the frame has its final
+   size before any script runs and nothing shifts when the stage arrives.
+   Everything else is scoped to classes the script adds.
    ========================================================================== */
 
 @media (max-width: 560px) {
   .steps-photo img { aspect-ratio: 1 / 1; }
+}
+/* a phone on its side: the frame is never taller than the screen under the nav, so the paper,
+   the soil, the line of instruction and the button are all in view at once */
+@media (orientation: landscape) and (max-height: 560px) {
+  .steps-photo img { max-height: calc(100vh - var(--nav-h) - 24px); max-height: calc(100svh - var(--nav-h) - 24px); }
 }
 
 .plant-fig {
@@ -21,7 +28,9 @@
   user-select: none;
   -webkit-user-select: none;
 }
-.plant-fig img { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
+/* the pointer maths assumes a flat frame: nothing may tilt it while the stage plays */
+.plant-fig:not(.is-photo) { transform: none !important; }
+.plant-fig img { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 
 /* the stage covers the photo; the photo stays in the flow and keeps the frame's size */
 .plant-stage {
@@ -35,15 +44,19 @@
   cursor: default;
   transition: opacity .5s var(--ease-out-4);
 }
-.plant-stage[data-stage="tear"] { cursor: grab; }
+/* the hand shows only over paper it can take hold of; a drag that starts in the sky still tears */
+.plant-stage[data-stage="tear"].is-over { cursor: grab; }
 .plant-stage[data-stage="tear"].is-held { cursor: grabbing; }
-.plant-stage[data-stage="press"],
+.plant-stage[data-stage="press"].is-over,
 .plant-stage[data-stage="water"],
 .plant-stage.is-waiting { cursor: pointer; }
 .plant-canvas { display: block; width: 100%; height: 100%; }
 
-/* done: the stage steps back and the photo underneath is the last frame */
+/* done: after a beat the stage steps back and the photo underneath is the last frame.
+   Pressed and held, the photo steps back again and the visitor's own sprouts are there. */
 .plant-fig.is-photo .plant-stage { opacity: 0; pointer-events: none; transition-duration: 1.4s; }
+.plant-fig.is-photo.was-peek .plant-stage { transition-duration: .45s; }
+.plant-fig.is-photo.is-peek .plant-stage { opacity: 1; transition-duration: .25s; }
 
 /* the one line of instruction: the site's kicker, set on the sky where the hand is not */
 .plant-fig .plant-hint {
@@ -55,54 +68,74 @@
 }
 .plant-fig.is-done .plant-hint { opacity: 0; }
 
-/* the caption is the last line: it comes back with the sprouts and stays for the photo */
-.plant-fig figcaption { pointer-events: none; opacity: 0; transition: opacity .6s; }
-.plant-fig.is-done figcaption { opacity: 1; }
+/* the caption is the last line: it comes back with the sprouts and stays for the photo. Until then it
+   is hidden from everyone, screen readers included. On the stage it is a solid paper chip. */
+.plant-fig figcaption {
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  white-space: nowrap;
+  bottom: 16px;
+  background: var(--paper);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transition: opacity .6s, visibility 0s .6s;
+}
+.plant-fig.is-done figcaption { opacity: 1; visibility: visible; transition: opacity .6s; }
+/* where the caption and the button do not fit side by side, the caption takes the top corner, where the line
+   of instruction was (it is gone by then), so it never wraps into a fat pill and the bed stays free */
+.plant-fig.is-stack figcaption { top: 14px; left: 14px; bottom: auto; max-width: calc(100% - 28px); white-space: normal; text-wrap: balance; }
 
-/* the one control: its label is the action for the stage in play. It sits on the soil, opposite
-   the caption, drawn as an outline so the paper is the first thing a hand goes to. */
+/* the one control: its label is the action for the stage in play. A solid cream pill on the soil,
+   opposite the caption, in the site's small pill type. */
 .plant-fig .plant-btn {
   position: absolute;
   right: 16px; bottom: 14px;
-  min-height: 33px;
-  padding: 0 16px;
+  min-height: 36px;
+  padding: 0 18px;
   justify-content: center;
-  background: transparent;
-  color: var(--paper);
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--paper) 70%, transparent);
-  transition: background .3s, color .3s, box-shadow .3s, opacity .4s;
-}
-.plant-fig .plant-btn:hover { background: color-mix(in srgb, var(--paper) 14%, transparent); }
-.plant-fig .plant-btn:focus-visible { outline-color: var(--sage); }
-/* over the photo it takes the caption's own dress */
-.plant-fig.is-photo .plant-btn {
-  background: color-mix(in oklab, var(--paper) 86%, transparent);
+  font-size: 12px;
+  background: var(--paper);
   color: var(--ink);
-  box-shadow: none;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink-2) 40%, transparent);
+  transition: background .25s, color .25s, box-shadow .25s;
 }
-.plant-fig.is-photo .plant-btn:hover { background: var(--paper); }
-.plant-fig.is-photo .plant-btn:focus-visible { outline-color: var(--ink); }
+@media (hover: hover) {
+  .plant-fig .plant-btn:not([aria-disabled="true"]):hover { background: var(--paper-2); }
+}
+/* resting: just after a stage changes, or while the sun crosses by itself. It says so, in looks and to a
+   screen reader, and a press does nothing. It stays a target so a press there never reaches the soil. */
+.plant-fig .plant-btn[aria-disabled="true"] {
+  opacity: 1;
+  pointer-events: auto;
+  cursor: default;
+  background: transparent;
+  color: color-mix(in srgb, var(--paper) 80%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--paper) 50%, transparent);
+}
+/* a ring that reads on cream sky, dark soil and the photo alike: cream inside, ink outside */
+.plant-fig .plant-btn:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--ink);
+}
+.plant-fig .plant-btn[aria-disabled="true"]:focus-visible {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--paper) 50%, transparent), 0 0 0 6px var(--ink);
+}
 /* a fingertip gets a taller target, and the caption beside it sits on the same centre line */
 @media (pointer: coarse) {
   .plant-fig .plant-btn { min-height: 44px; }
   .plant-fig figcaption { bottom: 20px; }
 }
 
-/* a small frame (two columns at laptop widths, and phones): smaller type on the row, and the
-   caption gives way to the button, wrapping if it has to */
+/* a small frame (two columns at laptop widths, and phones): the row comes in closer to the edges */
 .plant-fig.is-tight .plant-hint { left: 14px; top: 13px; right: 14px; }
-.plant-fig.is-tight .plant-btn { right: 12px; bottom: 12px; padding: 0 13px; font-size: 11px; letter-spacing: .07em; }
-.plant-fig.is-tight figcaption {
-  left: 12px; bottom: 12px;
-  max-width: calc(100% - var(--plant-btn-w, 132px) - 32px);
-  font-size: 10.5px;
-  border-radius: 17px;
-  text-wrap: balance;
-}
+.plant-fig.is-tight .plant-btn { right: 12px; bottom: 12px; padding: 0 14px; }
+.plant-fig.is-tight figcaption { left: 12px; bottom: 14px; }
+.plant-fig.is-tight.is-stack figcaption { top: 11px; left: 11px; bottom: auto; max-width: calc(100% - 22px); }
 @media (pointer: coarse) {
   .plant-fig.is-tight figcaption { bottom: 18px; }
+  .plant-fig.is-tight.is-stack figcaption { bottom: auto; }
 }
 
 /* stage changes for screen readers */

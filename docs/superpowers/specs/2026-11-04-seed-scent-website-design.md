@@ -408,16 +408,22 @@ replaces the placeholder with no code change.
   "more interactive ... a slight simulation of tearing up the paper and planting
   yourself". The photo frame is now a small Canvas 2D stage (`js/planting.js`,
   `css/planting.css`, fetched when the block is near): the visitor tears a disc of
-  seed paper where they drag (nothing is cut in advance; the seam is held by fibre
-  bridges that stretch and snap), presses the pieces into the soil, holds to water
-  and watches the sun cross while sprouts draw in, after which the original photo
-  fades back under its caption. The steps list lights up the step in hand and marks
-  finished ones. One button does each stage for keyboard and screen reader users, a
-  vertical swipe still scrolls the page, reduced motion places things without
-  animation, and without the script the photo simply stays. Three prototypes were
-  built in parallel (free tear on canvas, pre-cut SVG pieces, fibre bridges), each
-  attacked by a tester and repaired; the fibre version won on how the tear feels.
-  `check-planting.mjs` drives it by mouse, finger and keyboard.
+  seed paper where they drag (nothing is cut in advance: the rip follows the hand,
+  lags it a little and opens with fibres you can see stretch and snap), carries a
+  small torn piece to the soil and lets go where it should land, presses the pieces
+  in, holds to water and watches the sun cross while sprouts draw in; the drawn
+  ending is held, then the original photo fades back under its caption, and a press
+  and hold on the photo brings the visitor's own sprouts back. The steps list lights
+  up the step in hand and marks finished ones. One button does each stage for
+  keyboard and screen reader users, a vertical swipe still scrolls the page, reduced
+  motion places things without animation, and without the script the photo simply
+  stays. Three prototypes were built in parallel (a free tear on canvas, a rip laid
+  in SVG, shards held by fibre bridges), each attacked by a tester and repaired once;
+  then three judges (feel in the hand, craft and brand, robustness and integration)
+  scored all three independently and all picked the canvas one: it never ignored an
+  honest gesture and it reads most like paper. A finishing pass applied the judges'
+  must-fix list and grafted the best ideas of the other two onto it.
+  `check-planting.mjs` drives it by mouse, finger and keyboard (239 checks).
 
 ## 12. Open assumptions to confirm
 
