@@ -285,14 +285,14 @@ if (cfg.shop !== undefined && !isBlank(cfg.shop)) {
       if (!isObj(p)) { wrong.push({ path: `shop.${i}`, text: `is ${show(p)}. Each entry is a set of lines inside { } like the others; the Shop page leaves it out.` }); return }
       const id = typeof p.id === 'string' || typeof p.id === 'number' ? String(p.id).trim() : ''
       if (p.scent != null) {
-        const n = Number(p.scent)
+        const n = typeof p.scent === 'number' ? p.scent : typeof p.scent === 'string' && /^\d+$/.test(p.scent.trim()) ? Number(p.scent) : NaN
         if (!Number.isInteger(n) || n < 0 || n >= nScents) wrong.push({ path: `shop.${i}.scent`, text: `is ${show(p.scent)}. ${which} (0 is the first); the Shop page leaves this line out.` })
         if (p.format !== 'mirror' && p.format !== 'vent') wrong.push({ path: `shop.${i}.format`, text: `is ${show(p.format)}. Use "mirror" or "vent"; the Shop page leaves this line out.` })
       } else {
         for (const k of ['name', 'price', 'image']) if (!(k in p)) nulls.push({ path: `shop.${i}.${k}`, missing: k })
       }
       if (!id) wrong.push({ path: `shop.${i}.id`, text: `is ${show(p.id)}. Give every shop line its own id in quotes, like "refill-pack"; the Shop page leaves this one out.` })
-      else if (ids.has(id)) wrong.push({ path: `shop.${i}.id`, text: `"${id}" is used twice. Every id must be different; the Shop page shows only the first.` })
+      else if (ids.has(id)) wrong.push({ path: `shop.${i}.id`, text: `"${id}" is used twice. Every id must be different; the Shop page shows only the first line with it that works.` })
       else ids.add(id)
     })
   }

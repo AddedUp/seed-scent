@@ -209,7 +209,7 @@ try {
     await co.fill('#co-firm', 'Test Firm'); await co.fill('#co-name', 'Test Person'); await co.fill('#co-email', 'test@example.com')
     await co.locator('#co-final button[type="submit"]').first().click(); await sleep(600)
     const order = await co.evaluate(() => document.getElementById('co-order').textContent)
-    check('[extra] the written order lists the product, its price, and labels the tier price', order.includes('2 x Test refill pack, Test pack, $5.00 each') && order.includes('9 x Scent two (name tbc), vent clip') && order.includes('Each air freshener: $4.00') && order.includes('Total: $46.00'), order.replace(/\n/g, ' / ').slice(0, 400))
+    check('[extra] the written order lists the product, its price, and labels the tier price', order.includes('2 x Test refill pack, Test pack, $5.00 each') && order.includes('9 x Scent two (name tbc), vent clip') && order.includes('Air fresheners: 9') && order.includes('Each air freshener: $4.00') && order.includes('Total: $46.00'), order.replace(/\n/g, ' / ').slice(0, 400))
     await co.close()
     quiet('extra', log)
     await ctx.close()
@@ -225,6 +225,21 @@ try {
     check('[bad lines] repeated ids, scents that do not exist, unknown formats and lines without an id are left out', r.ids.length === 6 && !r.ids.includes('bad-scent') && !r.ids.includes('bad-format'), r.ids.join())
     check('[bad lines] a saved product that left the list drops out; a saved shop id becomes its scent line', JSON.stringify(r.lines) === JSON.stringify([{ scentIndex: 2, format: 'vent', qty: 2 }, { scentIndex: 0, format: 'mirror', qty: 1 }]), JSON.stringify(r.lines))
     quiet('bad lines', log)
+    await ctx.close()
+  }
+
+  /* ---------- a bag of other products only, and a scent written as "" ---------- */
+  {
+    const { ctx, page, log } = await open(browser, 'items only', 'shop.html', {}, PRICES + EXTRA + 'window.SEED_SCENT.shop.push({ id: "blank-scent", scent: "", format: "vent", name: "Odd" });')
+    const ids = await page.evaluate(() => window.__shop.ids())
+    check('[items only] a line with scent: "" is not taken for the first scent', !ids.includes('blank-scent'), ids.join())
+    await card(page, 'test-refills').locator('.add-to-bag').click()
+    const b = await bag(page)
+    check('[items only] no air fresheners: no tier, no tier price, total is the product price', b.tier === '' && b.unitPrice === null && b.total === 5, JSON.stringify(b))
+    await page.locator('#bag-toggle').click(); await sleep(600)
+    const tier = await page.evaluate(() => document.getElementById('bag-tier').textContent)
+    check('[items only] the drawer says the tier is none', tier === 'none', tier)
+    quiet('items only', log)
     await ctx.close()
   }
 

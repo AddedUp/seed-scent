@@ -49,6 +49,12 @@ function scentHtml(i) { const n = scentName(i); return n ? escapeHtml(n) : chip(
    Any other line is a product of its own with its own name and price: it goes in the bag as
    { item: id, qty } and is priced at its own price. Lines without an id, repeated ids and scent
    lines that point nowhere are left out. */
+/* a scent's place in the list: 0, 1, 2 (or "0", "1", "2"); "", true and the like are not places */
+function scentPlace(v) {
+  if (typeof v === 'number') return Number.isInteger(v) && v >= 0 ? v : null
+  if (typeof v === 'string' && /^\d+$/.test(v.trim())) return Number(v.trim())
+  return null
+}
 export function shopList() {
   const s = cfg('shop'); if (!Array.isArray(s)) return []
   const seen = new Set()
@@ -56,8 +62,8 @@ export function shopList() {
     if (!p || typeof p !== 'object') return false
     const id = str(p.id); if (!id || seen.has(id)) return false
     if (p.scent != null) {
-      const i = Number(p.scent)
-      if (!Number.isInteger(i) || !scents()[i] || !isFormat(p.format)) return false
+      const i = scentPlace(p.scent)
+      if (i == null || !scents()[i] || !isFormat(p.format)) return false
     }
     seen.add(id)
     return true
@@ -88,7 +94,7 @@ function clean(raw) {
       // a shop line: a scent in a format becomes a scent line, a product of its own stays an item;
       // a product the team has since taken off the shop list drops out
       const p = shopItem(l.item); if (!p) continue
-      if (p.scent != null) merge({ scentIndex: Number(p.scent), format: p.format }, q)
+      if (p.scent != null) merge({ scentIndex: scentPlace(p.scent), format: p.format }, q)
       else merge({ item: String(p.id) }, q)
       continue
     }
@@ -111,8 +117,10 @@ function totals() {
   const T = tiers()
   let tier = T[0] || null
   for (const t of T) if (scentUnits >= t.min) tier = t
-  const unit = tier ? num(tier.price) : null
   const items = lines.filter(l => l.item != null)
+  // a bag of other products only has no air freshener tier at all
+  if (items.length && !scentUnits) tier = null
+  const unit = tier ? num(tier.price) : null
   let total
   if (!items.length) total = unit == null ? null : unit * scentUnits
   else {
@@ -170,9 +178,10 @@ function render() {
     const keep = rememberFocus(v)
     v.lines.innerHTML = lines.map((l, i) => lineHtml(l, i, t.unit)).join('')
     if (v.empty) v.empty.hidden = lines.length > 0
+    const noTier = !t.tier && t.units > 0 && !t.scentUnits
     if (v.units) v.units.textContent = String(t.units)
-    if (v.tier) v.tier.innerHTML = tierHtml(t.label)
-    if (v.each) v.each.innerHTML = t.unit == null ? chip('price') : escapeHtml(money(t.unit))
+    if (v.tier) v.tier.innerHTML = noTier ? 'none' : tierHtml(t.label)
+    if (v.each) v.each.innerHTML = noTier ? 'none' : t.unit == null ? chip('price') : escapeHtml(money(t.unit))
     if (v.total) v.total.innerHTML = t.total == null ? chip('total') : escapeHtml(money(t.total))
     if (v.checkout) {
       // an empty bag has nothing to check out: the link is dimmed and leaves the tab order
@@ -388,8 +397,9 @@ function orderText(d) {
   })
   const mixed = lines.some(l => l.item != null)
   L.push('',
-    `Units: ${t.units}`, `Tier: ${tierText(t.label)}`,
-    `${mixed ? 'Each air freshener' : 'Each'}: ${t.unit == null ? 'price tbc' : money(t.unit)}`,
+    `Units: ${t.units}`, ...(mixed ? [`Air fresheners: ${t.scentUnits}`] : []),
+    `Tier: ${t.tier ? tierText(t.label) : 'none'}`,
+    `${mixed ? 'Each air freshener' : 'Each'}: ${t.tier ? (t.unit == null ? 'price tbc' : money(t.unit)) : 'none'}`,
     `Total: ${t.total == null ? 'total tbc' : money(t.total)}`, '',
     'Delivery notes', d.notes || 'none', '',
     'Sent from the Seed Scent site.')
