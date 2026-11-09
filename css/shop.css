@@ -34,6 +34,10 @@
 .shop-card .qty-btn:hover { background: var(--sage-2); }
 .shop-card .qty-btn:disabled { background: var(--paper); }
 .shop-card .add-to-bag { flex: 0 0 auto; }
+/* the quantity box gets the same clear focus ring as the buttons beside it */
+.shop-card .qty-num:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; border-radius: 4px; }
+/* the numeral sits low behind the card's foot, as on the team page, so it reads as a number */
+.shop-card .ghost-num { top: auto; right: -12px; bottom: -44px; font-size: 170px; }
 
 @media (hover: hover) and (pointer: fine) {
   .shop-card:hover { box-shadow: 0 28px 60px -34px color-mix(in srgb, var(--ink) 38%, transparent); }
@@ -59,6 +63,17 @@ body.reduced .shop-card:hover .card-media img { transform: none; }
 @media (max-width: 640px) {
   .shop-grid { grid-template-columns: 1fr; }
   .shop-card .ghost-num { font-size: 150px; }
+}
+/* a phone on its side: a slim header card, so the first products show without scrolling */
+@media (max-height: 500px) and (orientation: landscape) {
+  .shop-hero { min-height: 0; gap: 18px; padding: 22px 28px; }
+  .shop-hero { margin-top: calc(var(--nav-h) - 6px); }
+  .shop-hero .team-hero-logo, .shop-hero .annotation { display: none; }
+  .shop-hero .team-hero-top .kicker { padding-top: 0; }
+  .shop-hero .team-hero-copy { gap: 12px; }
+  .shop-hero .display { font-size: clamp(28px, 4.4vw, 40px); }
+  .shop-sec .wrap { padding-top: 22px; }
+  .shop-head { display: none; }   /* the cards speak for themselves on a screen this short */
 }
 /* a finger needs bigger targets than a mouse */
 @media (pointer: coarse) {

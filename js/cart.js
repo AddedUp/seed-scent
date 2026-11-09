@@ -41,7 +41,8 @@ function tiers() {
 }
 function scentName(i) { const s = scents()[i]; return s && s.name ? String(s.name) : null }
 function scentText(i) { return scentName(i) || `Scent ${WORDS[i] || i + 1} (name tbc)` }
-function scentHtml(i) { const n = scentName(i); return n ? escapeHtml(n) : chip('scent name') }
+/* until the names arrive, the chip says which scent, so two lines in the same format can be told apart */
+function scentHtml(i) { const n = scentName(i); return n ? escapeHtml(n) : chip(`scent ${WORDS[i] || i + 1}`) }
 
 /* ---------- the shop's product list (config "shop", drawn by shop.js) ----------
    A line with scent and format is that scent in that format: it goes in the bag as a scent line,
@@ -354,8 +355,9 @@ function initAddButtons() {
     let q = field ? Math.floor(Number(field.value)) : 1
     if (!Number.isFinite(q) || q < 1) q = 1
     q = Math.min(MAX_QTY, q)
-    if (field) field.value = String(q)
     addItem(p.id, q)
+    // back to one, so a second press does not quietly add the same large number again
+    if (field) { field.value = '1'; field.dispatchEvent(new Event('input', { bubbles: true })) }
     acknowledge(btn, q)
   })
 }

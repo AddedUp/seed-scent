@@ -72,6 +72,11 @@
 .bag-empty[hidden] { display: none; }
 .bag-foot .pill { justify-content: center; }
 .bag-note { text-align: center; }
+/* a short screen (a phone on its side): the whole drawer scrolls, so every line shows instead of one at a time */
+@media (max-height: 500px) {
+  .bag { overflow-y: auto; overscroll-behavior: contain; }
+  .bag .bag-lines { flex: none; overflow: visible; }
+}
 .add-to-bag.is-added { background: var(--moss); }
 
 /* --------------------------------------------------------------------------

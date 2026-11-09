@@ -123,24 +123,24 @@ try {
     await vent1.locator('.add-to-bag').click()
     let b = await bag(page)
     check('[desktop] Add to bag puts in the card quantity, as a scent line', JSON.stringify(b.lines) === JSON.stringify([{ scentIndex: 0, format: 'vent', qty: 3 }]), JSON.stringify(b.lines))
-    check('[desktop] the button says Added for a moment', (await vent1.locator('.add-to-bag').textContent()).trim() === 'Added ·')
+    check('[desktop] the button says Added for a moment, and the quantity goes back to 1', (await vent1.locator('.add-to-bag').textContent()).trim() === 'Added ·' && (await qty.inputValue()) === '1' && (await dec.isDisabled()))
     check('[desktop] the bag count follows', (await page.locator('#bag-count').textContent()) === '3')
     await card(page, 'scent-1-mirror').locator('.add-to-bag').click()
     await vent1.locator('.add-to-bag').click()
     b = await bag(page)
-    check('[desktop] adding the same item again merges the line', JSON.stringify(b.lines) === JSON.stringify([{ scentIndex: 0, format: 'vent', qty: 6 }, { scentIndex: 0, format: 'mirror', qty: 1 }]), JSON.stringify(b.lines))
+    check('[desktop] adding the same item again merges the line', JSON.stringify(b.lines) === JSON.stringify([{ scentIndex: 0, format: 'vent', qty: 4 }, { scentIndex: 0, format: 'mirror', qty: 1 }]), JSON.stringify(b.lines))
     const s3 = card(page, 'scent-3-mirror')
     await s3.locator('.qty-num').fill('2'); await s3.locator('.qty-num').press('Enter')
     b = await bag(page)
-    check('[desktop] Enter in a quantity field adds that many', b.units === 9 && b.lines.some(l => l.scentIndex === 2 && l.format === 'mirror' && l.qty === 2), JSON.stringify(b.lines))
+    check('[desktop] Enter in a quantity field adds that many', b.units === 7 && b.lines.some(l => l.scentIndex === 2 && l.format === 'mirror' && l.qty === 2), JSON.stringify(b.lines))
     await sleep(200)
     const live = await page.evaluate(() => [...document.querySelectorAll('[role="status"]')].map(e => e.textContent).join('|'))
-    check('[desktop] screen readers hear what went in', /Added 2 to the bag\. 9 units in all\./.test(live), live)
+    check('[desktop] screen readers hear what went in', /Added 2 to the bag\. 7 units in all\./.test(live), live)
 
     /* ---------- the drawer on this page ---------- */
     await page.locator('#bag-toggle').click(); await sleep(800)
     let dr = await page.evaluate(() => ({ open: document.getElementById('bag').classList.contains('open'), lines: document.querySelectorAll('#bag-lines .bag-line').length, units: document.getElementById('bag-units').textContent, focus: document.activeElement.id }))
-    check('[desktop] the Bag button opens the drawer with the lines', dr.open && dr.lines === 3 && dr.units === '9' && dr.focus === 'bag-close', JSON.stringify(dr))
+    check('[desktop] the Bag button opens the drawer with the lines', dr.open && dr.lines === 3 && dr.units === '7' && dr.focus === 'bag-close', JSON.stringify(dr))
     await page.keyboard.press('Escape'); await sleep(500)
     dr = await page.evaluate(() => ({ open: document.getElementById('bag').classList.contains('open'), focus: document.activeElement.id }))
     check('[desktop] Escape closes it and returns focus', !dr.open && dr.focus === 'bag-toggle', JSON.stringify(dr))
@@ -159,7 +159,7 @@ try {
     await home.goto(url('index.html'), { waitUntil: 'load' })
     await home.waitForFunction(() => window.__dbg && window.__dbg.bag, null, { timeout: 15000 })
     const hb = await home.evaluate(() => ({ units: window.__dbg.bag().units, shopTab: !!document.querySelector('.nav-links a[href="shop.html"]'), visit: document.querySelector('.shop-link a') && document.querySelector('.shop-link a').getAttribute('href') }))
-    check('[home] the bag from the shop is there', hb.units === 9, JSON.stringify(hb))
+    check('[home] the bag from the shop is there', hb.units === 7, JSON.stringify(hb))
     check('[home] Shop tab in the nav and a Visit the shop link under the cards', hb.shopTab && hb.visit === 'shop.html', JSON.stringify(hb))
     check('[home] no page errors', !homeLog.errors.length, homeLog.errors.join(' | '))
     await home.close()
@@ -280,6 +280,24 @@ try {
     await page.evaluate(() => window.scrollTo(0, 0)); await sleep(400)
     await page.screenshot({ path: path.join(OUT, 'shop-390.png'), fullPage: true })
     quiet('phone', log)
+    await ctx.close()
+  }
+
+  /* ---------- a phone on its side ---------- */
+  {
+    const { ctx, page, log } = await open(browser, 'landscape', 'shop.html', { viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true }, '', null)
+    const firstCard = await page.evaluate(() => document.querySelector('.shop-card').getBoundingClientRect().top)
+    check('[landscape] the first card starts on the first screen', firstCard < 390, `${Math.round(firstCard)}px`)
+    await page.evaluate(() => window.__dbg.bagSet([{ scentIndex: 0, format: 'mirror', qty: 2 }, { scentIndex: 1, format: 'vent', qty: 5 }, { scentIndex: 2, format: 'vent', qty: 1 }, { scentIndex: 0, format: 'vent', qty: 3 }]))
+    await page.locator('#bag-toggle').tap(); await sleep(800)
+    const d = await page.evaluate(() => {
+      const bag = document.getElementById('bag')
+      return { scrolls: bag.scrollHeight > bag.clientHeight && getComputedStyle(bag).overflowY === 'auto', names: [...document.querySelectorAll('#bag-lines .line-name')].map(n => n.textContent.trim()) }
+    })
+    check('[landscape] the drawer scrolls as a whole, so every line is reachable', d.scrolls, JSON.stringify(d))
+    check('[landscape] bag lines say which scent until the names arrive', d.names.join('|') === 'scent one|scent two|scent three|scent one', d.names.join('|'))
+    await page.screenshot({ path: path.join(OUT, 'shop-844x390-bag.png') })
+    quiet('landscape', log)
     await ctx.close()
   }
 
