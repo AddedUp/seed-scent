@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seed Scent · Shop</title>
+<meta name="description" content="Shop Seed Scent: a plantable car air freshener in a wooden holder, on a mirror cord or a vent clip. Add what you need to the bag and check out.">
+<meta name="theme-color" content="#fbf6e5">
+<link rel="canonical" href="https://seedscent.com/shop.html">
+<link rel="icon" type="image/png" href="brand/favicon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/sections.css">
+<link rel="stylesheet" href="css/cart.css">
+<link rel="stylesheet" href="css/team.css">
+<link rel="stylesheet" href="css/shop.css">
+<!-- Everything is served locally so the site works offline on a booth laptop. -->
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/SplitText.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="js/config.js"></script>
+</head>
+<body data-theme="cream" data-page="shop">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <a class="brand" href="index.html" aria-label="Seed Scent, back to the home page">
+    <img class="brand-mark" src="brand/mark-ss.png" alt="">
+    <span class="brand-name">Seed Scent</span>
+  </a>
+  <nav class="nav-links" id="nav-links" aria-label="Sections">
+    <a href="index.html#drive">How it works</a>
+    <a href="index.html#scents">Scents</a>
+    <a href="index.html#inside">Inside</a>
+    <a href="index.html#firms">For VE firms</a>
+    <a href="shop.html" class="active" aria-current="page">Shop</a>
+    <a href="team.html">Team</a>
+    <a href="index.html#contact">Contact</a>
+  </nav>
+  <div class="nav-actions">
+    <button class="text-btn menu-btn" id="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">Menu <span class="dot">··</span></button>
+    <button class="text-btn" id="motion-toggle" type="button" aria-pressed="false">Pause motion</button>
+    <button class="text-btn" id="bag-toggle" type="button" aria-controls="bag" aria-expanded="false">Bag (<span id="bag-count">0</span>)</button>
+    <a class="pill" href="checkout.html" data-magnetic>Check out <span class="dot">·</span></a>
+  </div>
+</header>
+
+<main id="main" class="page shop-page">
+
+  <!-- Header card: the sage panel from the team page, shorter so the products come first -->
+  <section class="team-hero shop-hero" id="top" aria-labelledby="shop-title">
+    <span class="reg tl" aria-hidden="true">+</span><span class="reg tr" aria-hidden="true">+</span>
+    <span class="reg bl" aria-hidden="true">+</span><span class="reg br" aria-hidden="true">+</span>
+    <div class="team-hero-top">
+      <p class="kicker">The shop</p>
+      <img class="team-hero-logo" src="brand/logo-primary.png" alt="" width="2300" height="1600">
+    </div>
+    <div class="team-hero-copy">
+      <h1 class="display" id="shop-title" data-split>Pick a scent. Pick how it hangs.</h1>
+      <p class="annotation">Add what you need to the bag, then check out. Ordering for your firm? One bulk tier covers the whole bag.</p>
+      <div class="actions">
+        <button class="pill" id="open-bag" type="button" data-magnetic>Open the bag <span class="dot">·</span></button>
+        <a class="pill ghost" href="index.html#firms" data-magnetic>See the bulk tiers</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Product cards: shop.js builds one per line of the "shop" list in js/config.js -->
+  <section class="shop-sec" id="products" aria-labelledby="products-title">
+    <div class="wrap">
+      <div class="section-head small shop-head">
+        <h2 class="display sm" id="products-title">Everything we sell.</h2>
+        <p class="annotation" id="shop-count"></p>
+      </div>
+      <ul class="cards shop-grid" id="shop-grid"></ul>
+      <noscript><p class="kicker">The shop needs JavaScript to show the products. Email the team to order instead.</p></noscript>
+      <p class="kicker soft shop-note" id="shop-note" hidden>Chips mark what the team is still filling in.</p>
+    </div>
+  </section>
+
+  <div class="wrap team-foot">
+    <footer class="footer">
+      <p>A Virtual Enterprise company</p>
+      <p class="school-line"><span class="sl-a"><span class="ph" data-ph="school.name">school</span></span><span class="sl-b"><span class="sl-dot"> · </span><span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></span></p>
+      <p>Smells great. Leaves eventually.</p>
+    </footer>
+  </div>
+</main>
+
+<!-- Bag drawer: the same one as the home page, sharing the saved bag -->
+<aside class="bag" id="bag" aria-hidden="true" aria-label="Your bag">
+  <div class="bag-head">
+    <p class="kicker">Your bag</p>
+    <button class="text-btn" id="bag-close" type="button">Close</button>
+  </div>
+  <ul class="bag-lines" id="bag-lines"></ul>
+  <p class="bag-empty" id="bag-empty">Nothing in the bag yet.</p>
+  <div class="bag-foot">
+    <dl class="bag-totals">
+      <div><dt>Units</dt><dd id="bag-units">0</dd></div>
+      <div><dt>Tier</dt><dd id="bag-tier">1 to 9 <span class="tbc" data-tbc="tiersConfirmed">tbc</span></dd></div>
+      <div><dt>Total</dt><dd id="bag-total"><span class="ph">total</span></dd></div>
+    </dl>
+    <a class="pill" href="checkout.html" id="bag-checkout" data-magnetic>Check out <span class="dot">·</span></a>
+  </div>
+</aside>
+<div class="scrim" id="scrim" hidden></div>
+
+<noscript><p class="noscript">This page needs JavaScript to show the products and the bag. Email the team with your order instead.</p></noscript>
+
+<script type="module" src="js/shop.js"></script>
+</body>
+</html>

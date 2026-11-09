@@ -209,7 +209,7 @@ body[data-theme="soil"] .tbc { color: var(--sage); }
   opacity: 0; transition: opacity .5s;
 }
 body:is([data-chapter="cards"], [data-chapter="inside"], [data-chapter="firms"], [data-chapter="about"], [data-chapter="finale"]) .nav::before { opacity: 1; }
-body[data-page="team"] .nav::before { opacity: 1; }   /* no chapters there: without the backing the page shows through the nav */
+body:is([data-page="team"], [data-page="shop"]) .nav::before { opacity: 1; }   /* no chapters there: without the backing the page shows through the nav */
 .brand { display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto; text-decoration: none; color: var(--fg); }
 .brand-mark { width: 30px; height: auto; }
 body[data-theme="soil"] .brand-mark { filter: brightness(0) saturate(100%) invert(96%) sepia(8%) saturate(400%) hue-rotate(10deg); }
@@ -333,6 +333,7 @@ body[data-theme="soil"] .nav .pill .dot { color: var(--moss); }
 .chip .ph { font-size: 10px; padding: .3em .5em; margin: 0 2px; }
 
 /* cards */
+.shop-link { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 34px; }
 .ch-cards .wrap { padding-top: 4vh; padding-bottom: 22vh; }
 .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
 .card {
@@ -506,8 +507,8 @@ input[type="range"]:hover::-moz-range-thumb, input[type="range"]:active::-moz-ra
   .tiers-block { grid-template-columns: 1fr 1fr; }
   .tiers-block .terms { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
 }
-/* the full nav needs about 1000px on one line: below that the sections fold into the menu */
-@media (max-width: 1010px) {
+/* the full nav needs about 1100px on one line (the shop page has the widest actions): below that the sections fold into the menu */
+@media (max-width: 1120px) {
   .nav-links { display: none; }
   .menu-btn { display: inline-block; }
   .nav.menu-open .nav-links {

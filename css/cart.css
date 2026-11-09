@@ -83,6 +83,7 @@ body.co { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: 
   height: var(--nav-h); padding: 0 var(--gutter); color: var(--fg);
 }
 .co-nav .text-btn { text-decoration: none; }
+.co-links { display: flex; gap: 22px; }
 
 .co-page { flex: 1; width: 100%; padding-top: clamp(20px, 4vh, 48px); padding-bottom: 6vh; }
 .co-head { margin-bottom: 5vh; }

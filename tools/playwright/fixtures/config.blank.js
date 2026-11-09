@@ -53,6 +53,21 @@ window.SEED_SCENT = {
     { id: "scent-3", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "sage" },
   ],
 
+  /* The Shop page (shop.html). One card per line, shown in this order.
+     A line with scent and format takes its name, notes, pack size, price and photo from that
+     scent above (scent: 0 is the first scent). Those count toward the bulk tiers below.
+     To sell something else later, add a line with its own details and a new id, like this:
+       { id: "new-product", name: "Product name", notes: "One line about it", packSize: "What is in the pack", price: 5, image: "images/new-product.jpg" },
+     That kind of line is priced at its own price, one each. Every id must be different. */
+  shop: [
+    { id: "scent-1-mirror", scent: 0, format: "mirror" },
+    { id: "scent-1-vent",   scent: 0, format: "vent" },
+    { id: "scent-2-mirror", scent: 1, format: "mirror" },
+    { id: "scent-2-vent",   scent: 1, format: "vent" },
+    { id: "scent-3-mirror", scent: 2, format: "mirror" },
+    { id: "scent-3-vent",   scent: 2, format: "vent" },
+  ],
+
   /* Bulk pricing for other firms. price is the per-unit price at that quantity.
      The quantity breakpoints are a draft too: set tiersConfirmed to true once they are final. */
   bulkTiers: [

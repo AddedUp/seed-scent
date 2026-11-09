@@ -1,6 +1,7 @@
 /* The bag and the checkout. One module for both pages:
-   index.html gets the drawer, checkout.html gets the summary and the firm form.
-   State lives in localStorage under "seedscent.bag" as [{ scentIndex, format, qty }].
+   index.html and shop.html get the drawer, checkout.html gets the summary and the firm form.
+   State lives in localStorage under "seedscent.bag" as [{ scentIndex, format, qty }], plus
+   [{ item, qty }] for a shop product of its own (one that is not a scent in a format).
    Every hook is optional, so the module runs quietly on a page that lacks it. */
 import { cfg, num, money, escapeHtml, contactEmail, initMagnetic } from './ui.js'
 import { motion, lenis } from './scroll.js'
@@ -8,7 +9,7 @@ import { motion, lenis } from './scroll.js'
 const KEY = 'seedscent.bag'
 const FORMATS = { mirror: 'Mirror cord', vent: 'Vent clip' }
 const MODES = ['email', 'marketplace', 'gateway']
-const MAX_QTY = 9999
+export const MAX_QTY = 9999
 const WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
 const TBC_TITLE = 'To be confirmed by the team'
 
@@ -42,18 +43,58 @@ function scentName(i) { const s = scents()[i]; return s && s.name ? String(s.nam
 function scentText(i) { return scentName(i) || `Scent ${WORDS[i] || i + 1} (name tbc)` }
 function scentHtml(i) { const n = scentName(i); return n ? escapeHtml(n) : chip('scent name') }
 
+/* ---------- the shop's product list (config "shop", drawn by shop.js) ----------
+   A line with scent and format is that scent in that format: it goes in the bag as a scent line,
+   so the home cards, the shop and the checkout all agree, and it counts toward the bulk tiers.
+   Any other line is a product of its own with its own name and price: it goes in the bag as
+   { item: id, qty } and is priced at its own price. Lines without an id, repeated ids and scent
+   lines that point nowhere are left out. */
+export function shopList() {
+  const s = cfg('shop'); if (!Array.isArray(s)) return []
+  const seen = new Set()
+  return s.filter(p => {
+    if (!p || typeof p !== 'object') return false
+    const id = str(p.id); if (!id || seen.has(id)) return false
+    if (p.scent != null) {
+      const i = Number(p.scent)
+      if (!Number.isInteger(i) || !scents()[i] || !isFormat(p.format)) return false
+    }
+    seen.add(id)
+    return true
+  })
+}
+export function shopItem(id) { return shopList().find(p => String(p.id) === String(id)) || null }
+const extraItem = id => { const p = shopItem(id); return p && p.scent == null ? p : null }
+const itemName = p => (p ? str(p.name) : null)
+const itemText = p => itemName(p) || 'Product (name tbc)'
+const itemHtml = p => { const n = itemName(p); return n ? escapeHtml(n) : chip('product name') }
+const hasExtras = () => shopList().some(p => p.scent == null)
+
 /* ---------- state ---------- */
-/* drop anything malformed, merge lines that share a scent and a format */
+/* drop anything malformed, merge lines that share a scent and a format (or a product) */
 function clean(raw) {
   const n = scents().length
   const out = []
-  for (const l of Array.isArray(raw) ? raw : []) {
-    if (!l) continue
-    const i = Number(l.scentIndex), q = Math.floor(Number(l.qty)), f = l.format
-    if (!Number.isInteger(i) || i < 0 || i >= n || !isFormat(f) || !Number.isFinite(q) || q < 1) continue
-    const same = out.find(o => o.scentIndex === i && o.format === f)
+  const merge = (key, q) => {
+    const same = out.find(o => (key.item != null ? o.item === key.item : o.item == null && o.scentIndex === key.scentIndex && o.format === key.format))
     if (same) same.qty = Math.min(MAX_QTY, same.qty + q)
-    else out.push({ scentIndex: i, format: f, qty: Math.min(MAX_QTY, q) })
+    else out.push({ ...key, qty: Math.min(MAX_QTY, q) })
+  }
+  for (const l of Array.isArray(raw) ? raw : []) {
+    if (!l || typeof l !== 'object') continue
+    const q = Math.floor(Number(l.qty))
+    if (!Number.isFinite(q) || q < 1) continue
+    if (l.item != null) {
+      // a shop line: a scent in a format becomes a scent line, a product of its own stays an item;
+      // a product the team has since taken off the shop list drops out
+      const p = shopItem(l.item); if (!p) continue
+      if (p.scent != null) merge({ scentIndex: Number(p.scent), format: p.format }, q)
+      else merge({ item: String(p.id) }, q)
+      continue
+    }
+    const i = Number(l.scentIndex), f = l.format
+    if (!Number.isInteger(i) || i < 0 || i >= n || !isFormat(f)) continue
+    merge({ scentIndex: i, format: f }, q)
   }
   return out
 }
@@ -62,14 +103,24 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(lines)) } catch
 
 let lines = load()
 
-/* one tier for the whole bag: the highest tier whose minimum the unit count reaches */
+/* one tier for the whole bag: the highest tier whose minimum the air freshener count reaches.
+   A shop product of its own is priced at its own price and does not move the tier. */
 function totals() {
   const units = lines.reduce((s, l) => s + l.qty, 0)
+  const scentUnits = lines.reduce((s, l) => s + (l.item == null ? l.qty : 0), 0)
   const T = tiers()
   let tier = T[0] || null
-  for (const t of T) if (units >= t.min) tier = t
+  for (const t of T) if (scentUnits >= t.min) tier = t
   const unit = tier ? num(tier.price) : null
-  return { units, tier, label: tier ? String(tier.label ?? '') : '', unit, total: unit == null ? null : unit * units }
+  const items = lines.filter(l => l.item != null)
+  let total
+  if (!items.length) total = unit == null ? null : unit * scentUnits
+  else {
+    const prices = items.map(l => { const pr = num(extraItem(l.item)?.price); return pr == null ? null : pr * l.qty })
+    const scentPart = scentUnits ? (unit == null ? null : unit * scentUnits) : 0
+    total = scentPart == null || prices.includes(null) ? null : prices.reduce((a, b) => a + b, scentPart)
+  }
+  return { units, scentUnits, tier, label: tier ? String(tier.label ?? '') : '', unit, total }
 }
 function snapshot() {
   const t = totals()
@@ -78,6 +129,7 @@ function snapshot() {
 
 function commit() { save(); render() }
 function addToBag(scentIndex, format, qty = 1) { lines = clean([...lines, { scentIndex, format, qty }]); commit() }
+function addItem(id, qty = 1) { lines = clean([...lines, { item: id, qty }]); commit() }
 function setQty(i, n) {
   if (!lines[i]) return
   lines[i].qty = Math.min(MAX_QTY, Math.max(1, Math.floor(Number(n)) || 1))
@@ -89,17 +141,20 @@ function removeLine(i) { if (lines[i]) { lines.splice(i, 1); commit() } }
 const views = []
 function addView(v) { if (v && v.lines) { views.push(v); bindLines(v) } }
 
-function lineHtml(l, idx, unit) {
-  const label = scentText(l.scentIndex)
-  const each = unit == null ? '' : ` · ${escapeHtml(money(unit))} each`
+function lineHtml(l, idx, tierUnit) {
+  const p = l.item != null ? extraItem(l.item) : null
+  const unit = p ? num(p.price) : tierUnit
+  const label = p ? itemText(p) : scentText(l.scentIndex)
+  const kind = p ? (str(p.packSize) || '') : FORMATS[l.format]
+  const each = unit == null ? '' : `${kind ? ' · ' : ''}${escapeHtml(money(unit))} each`
   const price = unit == null ? chip('price') : escapeHtml(money(unit * l.qty))
   return `<li class="bag-line" data-line="${idx}">
     <div class="line-head">
-      <p class="line-name">${scentHtml(l.scentIndex)}</p>
-      <p class="line-format">${FORMATS[l.format]}${each}</p>
+      <p class="line-name">${p ? itemHtml(p) : scentHtml(l.scentIndex)}</p>
+      <p class="line-format">${escapeHtml(kind)}${each}</p>
     </div>
     <p class="line-price">${price}</p>
-    <div class="qty" role="group" aria-label="Quantity, ${escapeHtml(label)}, ${FORMATS[l.format]}">
+    <div class="qty" role="group" aria-label="Quantity, ${escapeHtml(label)}${kind ? ', ' + escapeHtml(kind) : ''}">
       <button class="qty-btn" type="button" data-act="dec" aria-label="One fewer"${l.qty <= 1 ? ' disabled' : ''}>${ICON.minus}</button>
       <input class="qty-num" type="number" inputmode="numeric" min="1" max="${MAX_QTY}" step="1" value="${l.qty}" aria-label="Quantity">
       <button class="qty-btn" type="button" data-act="inc" aria-label="One more"${l.qty >= MAX_QTY ? ' disabled' : ''}>${ICON.plus}</button>
@@ -249,7 +304,9 @@ function initDrawer() {
   if (foot && !$('.bag-note', foot)) {
     const note = document.createElement('p')
     note.className = 'kicker soft bag-note'
-    note.textContent = 'One bulk tier for the whole bag, picked by total units.'
+    note.textContent = hasExtras()
+      ? 'One bulk tier for all the air fresheners in the bag. Other items are priced each.'
+      : 'One bulk tier for the whole bag, picked by total units.'
     foot.appendChild(note)
   }
 
@@ -257,28 +314,41 @@ function initDrawer() {
   return { open, close, isOpen }
 }
 
-/* ---------- "Add to bag" buttons on the scent cards ---------- */
+/* ---------- "Add to bag" buttons: the home scent cards and the shop cards ---------- */
+const labels = new WeakMap(), timers = new WeakMap()
+/* the tiny acknowledgement: the button says "Added" for a moment */
+function acknowledge(btn, added) {
+  if (!labels.has(btn)) labels.set(btn, btn.innerHTML)
+  btn.innerHTML = 'Added <span class="dot">·</span>'
+  btn.classList.add('is-added')
+  clearTimeout(timers.get(btn))
+  timers.set(btn, setTimeout(() => { btn.innerHTML = labels.get(btn); btn.classList.remove('is-added') }, 1200))
+  const u = totals().units
+  announce(`Added ${added === 1 ? 'one' : added} to the bag. ${u} ${u === 1 ? 'unit' : 'units'} in all.`)
+  bump($('#bag-toggle'))
+}
 function initAddButtons() {
-  const btns = $$('.add-to-bag[data-add]'); if (!btns.length) return
-  const labels = new WeakMap(), timers = new WeakMap()
-  btns.forEach(btn => btn.addEventListener('click', () => {
+  $$('.add-to-bag[data-add]').forEach(btn => btn.addEventListener('click', () => {
     const i = Number(btn.dataset.add)
     if (!scents()[i]) return
     const picked = $(`input[name="format-${i}"]:checked`)
     const format = picked && isFormat(picked.value) ? picked.value : 'mirror'
     addToBag(i, format, 1)
-
-    // the tiny acknowledgement: the button says "Added" for a moment
-    if (!labels.has(btn)) labels.set(btn, btn.innerHTML)
-    btn.innerHTML = 'Added <span class="dot">·</span>'
-    btn.classList.add('is-added')
-    clearTimeout(timers.get(btn))
-    timers.set(btn, setTimeout(() => { btn.innerHTML = labels.get(btn); btn.classList.remove('is-added') }, 1200))
-
-    const u = totals().units
-    announce(`Added to the bag. ${u} ${u === 1 ? 'unit' : 'units'} in all.`)
-    bump($('#bag-toggle'))
+    acknowledge(btn, 1)
   }))
+  // shop cards are drawn by shop.js, perhaps after this runs: one listener serves them all.
+  // The card's own quantity field says how many go in.
+  document.addEventListener('click', e => {
+    const btn = e.target.closest && e.target.closest('.add-to-bag[data-item]'); if (!btn) return
+    const p = shopItem(btn.dataset.item); if (!p) return
+    const card = btn.closest('[data-item-card]'), field = card && card.querySelector('.qty-num')
+    let q = field ? Math.floor(Number(field.value)) : 1
+    if (!Number.isFinite(q) || q < 1) q = 1
+    q = Math.min(MAX_QTY, q)
+    if (field) field.value = String(q)
+    addItem(p.id, q)
+    acknowledge(btn, q)
+  })
 }
 
 /* ---------- checkout.html ---------- */
@@ -311,10 +381,15 @@ function orderText(d) {
     `VE account or firm ID: ${d.account || 'not given'}`, '',
     'Order',
   ]
-  lines.forEach(l => L.push(`${l.qty} x ${scentText(l.scentIndex)}, ${FORMATS[l.format].toLowerCase()}`))
+  lines.forEach(l => {
+    if (l.item == null) { L.push(`${l.qty} x ${scentText(l.scentIndex)}, ${FORMATS[l.format].toLowerCase()}`); return }
+    const p = extraItem(l.item), pr = num(p?.price)
+    L.push(`${l.qty} x ${itemText(p)}${str(p?.packSize) ? `, ${p.packSize}` : ''}, ${pr == null ? 'price tbc' : money(pr) + ' each'}`)
+  })
+  const mixed = lines.some(l => l.item != null)
   L.push('',
     `Units: ${t.units}`, `Tier: ${tierText(t.label)}`,
-    `Each: ${t.unit == null ? 'price tbc' : money(t.unit)}`,
+    `${mixed ? 'Each air freshener' : 'Each'}: ${t.unit == null ? 'price tbc' : money(t.unit)}`,
     `Total: ${t.total == null ? 'total tbc' : money(t.total)}`, '',
     'Delivery notes', d.notes || 'none', '',
     'Sent from the Seed Scent site.')
@@ -403,7 +478,11 @@ function initCheckout() {
     }
     const t = totals()
     hidden('units', t.units); hidden('tier', t.label); hidden('unit_price', t.unit); hidden('total', t.total); hidden('currency', cfg('currency') || 'USD')
-    lines.forEach((l, i) => { hidden(`line_${i + 1}_scent`, scentText(l.scentIndex)); hidden(`line_${i + 1}_format`, l.format); hidden(`line_${i + 1}_qty`, l.qty) })
+    lines.forEach((l, i) => {
+      if (l.item == null) { hidden(`line_${i + 1}_scent`, scentText(l.scentIndex)); hidden(`line_${i + 1}_format`, l.format) }
+      else { const p = extraItem(l.item); hidden(`line_${i + 1}_item`, itemText(p)); hidden(`line_${i + 1}_item_id`, l.item); hidden(`line_${i + 1}_unit_price`, num(p?.price)) }
+      hidden(`line_${i + 1}_qty`, l.qty)
+    })
     hidden('order_text', text)
     hidden('order_json', JSON.stringify({ firm: d.firm, contact: d.name, email: d.email, account: d.account, notes: d.notes, lines, units: t.units, tier: t.label, unitPrice: t.unit, total: t.total }))
   }
@@ -464,5 +543,6 @@ const dbg = (window.__dbg = window.__dbg || {})
 dbg.bag = snapshot
 dbg.bagSet = arr => { lines = clean(arr); commit() }
 dbg.bagClear = () => { lines = []; commit() }
+dbg.bagAddItem = (id, q = 1) => addItem(id, q)
 dbg.mailto = () => lastMailto
 if (drawer) { dbg.bagOpen = () => drawer.open(); dbg.bagClose = () => drawer.close() }

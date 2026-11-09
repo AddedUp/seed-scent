@@ -1,0 +1,68 @@
+/* ==========================================================================
+   Seed Scent · shop page
+   Only what shop.html needs. The shell, the cards and the pills come from
+   site.css, the header card from team.css, the stepper and the drawer from
+   cart.css; every color is a token from tokens.css.
+   ========================================================================== */
+
+.shop-page { padding-bottom: 36px; }
+
+/* header card: shorter than the team page's, so the products show up sooner */
+.shop-hero { min-height: min(50vh, 460px); gap: 36px; }
+.shop-hero .team-hero-copy { max-width: min(820px, 74%); }
+.shop-hero .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* --------------------------------------------------------------------------
+   Product grid
+   -------------------------------------------------------------------------- */
+.shop-sec .wrap { padding-top: 8vh; padding-bottom: 4vh; }
+.shop-head { margin-bottom: 34px; }
+.shop-grid { grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.shop-card { display: flex; flex-direction: column; transition: box-shadow .7s var(--ease-out); }
+.shop-card .card-media { height: auto; aspect-ratio: 16 / 10; }
+.shop-card .card-media img { transition: transform .9s var(--ease-out); }
+.shop-card .card-title { font-size: 26px; margin-bottom: 6px; }
+.shop-format { margin-bottom: 10px; color: var(--moss); }
+.shop-card .card-meta { margin: 16px 0 18px; }
+
+/* quantity and Add to bag sit at the foot of every card, lined up across the row */
+.shop-buy {
+  margin-top: auto;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px;
+}
+.shop-card .qty-btn { background: var(--paper); }
+.shop-card .qty-btn:hover { background: var(--sage-2); }
+.shop-card .qty-btn:disabled { background: var(--paper); }
+.shop-card .add-to-bag { flex: 0 0 auto; }
+
+@media (hover: hover) and (pointer: fine) {
+  .shop-card:hover { box-shadow: 0 28px 60px -34px color-mix(in srgb, var(--ink) 38%, transparent); }
+  .shop-card:hover .card-media img { transform: scale(1.05); }
+}
+body.reduced .shop-card, body.reduced .shop-card .card-media img { transition: none; }
+body.reduced .shop-card:hover .card-media img { transform: none; }
+
+.shop-note { margin-top: 28px; }
+.shop-note[hidden] { display: none; }
+.shop-empty { grid-column: 1 / -1; }
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .shop-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+}
+@media (max-width: 900px) {
+  .shop-hero { min-height: 0; gap: 44px; }
+  .shop-hero .team-hero-copy { max-width: none; }
+}
+@media (max-width: 640px) {
+  .shop-grid { grid-template-columns: 1fr; }
+  .shop-card .ghost-num { font-size: 150px; }
+}
+/* a finger needs bigger targets than a mouse */
+@media (pointer: coarse) {
+  .shop-card .qty-btn { width: 44px; height: 44px; }
+  .shop-card .qty-btn svg { width: 14px; height: 14px; }
+  .shop-card .add-to-bag { min-height: 44px; }
+}
