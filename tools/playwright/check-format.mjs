@@ -7,7 +7,7 @@
 
      cd tools/playwright
      node check-format.mjs
-     SITE_BASE=https://addedup.github.io/seed-scent/ node check-format.mjs
+     SITE_BASE=https://seedscent.com/ node check-format.mjs
 
    Screenshots land in tools/playwright/out/format-*.png. */
 import { chromium } from 'playwright'

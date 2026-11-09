@@ -11,7 +11,7 @@
 
      cd tools/playwright
      node check-facts.mjs
-     SITE_BASE=https://addedup.github.io/seed-scent/ node check-facts.mjs
+     SITE_BASE=https://seedscent.com/ node check-facts.mjs
 
    Requests to instagram.com are answered locally by a stub, so the check never
    leaves this machine. Screenshots land in tools/playwright/out/facts-*.png. */

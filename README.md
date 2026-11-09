@@ -3,9 +3,10 @@
 This folder is the whole Seed Scent website. Nothing needs installing, building
 or logging into. Copy the folder and you have copied the site.
 
-**Live site:** https://addedup.github.io/seed-scent/ (GitHub Pages, served from
-the `main` branch of https://github.com/AddedUp/seed-scent; every push updates
-it within about a minute, see section 4).
+**Live site:** https://seedscent.com (GitHub Pages, served from the `main`
+branch of https://github.com/AddedUp/seed-scent; every push updates it within
+about a minute, see section 4). The old address
+https://addedup.github.io/seed-scent/ and www.seedscent.com both forward to it.
 
 **What it is:** one long home page that tells the story of the plantable car
 air freshener (hang it, breathe, it fades, plant it), shows the three scents,
@@ -212,11 +213,37 @@ under 500 KB each if you can. Big files make the page slow on booth wifi.
 
 ## 4. The site online
 
-The site is live at **https://addedup.github.io/seed-scent/**. It is served by
+The site is live at **https://seedscent.com**. It is served by
 GitHub Pages straight from the `main` branch of the repository
 https://github.com/AddedUp/seed-scent (Settings, Pages: Deploy from a branch,
 `main`, `/ (root)`). The `.nojekyll` file in the folder tells GitHub to serve
 the files exactly as they are; keep it.
+
+### The domain
+
+`seedscent.com` was registered through Cloudflare on 2026-11-09, and Cloudflare
+runs its DNS. These records send it to GitHub Pages; leave them as they are:
+
+| Type | Name | Content | Proxy status |
+| --- | --- | --- | --- |
+| A | `seedscent.com` | `185.199.108.153` | DNS only |
+| A | `seedscent.com` | `185.199.109.153` | DNS only |
+| A | `seedscent.com` | `185.199.110.153` | DNS only |
+| A | `seedscent.com` | `185.199.111.153` | DNS only |
+| CNAME | `www` | `addedup.github.io` | DNS only |
+| TXT | `_github-pages-challenge-AddedUp` | (GitHub's verification code) | |
+
+- Keep every record **DNS only** (grey cloud). Switched to Proxied, GitHub can no
+  longer renew the site's HTTPS certificate.
+- The `CNAME` file in this folder holds the domain name. GitHub Pages reads it;
+  keep it, and keep it to the one line `seedscent.com`.
+- The TXT record proves to GitHub that the domain belongs to the AddedUp account
+  (GitHub, profile picture, Settings, Pages: "seedscent.com Verified"), so no other
+  GitHub site can take the name. Leave it in place.
+- The certificate for https://seedscent.com is issued and renewed by GitHub on its
+  own; "Enforce HTTPS" is on in the repository's Settings, Pages.
+- Cloudflare renews the domain once a year. Check that its auto-renew stays on
+  (Cloudflare, Domains, Registrations), or the site goes dark when the year runs out.
 
 The repository is public, which is what GitHub Pages needs on a free account.
 Everything in this folder is therefore readable by anyone, so never put
@@ -247,7 +274,7 @@ If a change does not show up, hard-refresh the page (Shift and Reload) or add
 log is under the repository's Actions tab, "pages build and deployment".
 
 To check the live site the way the local checks do, from `tools/playwright`:
-`SITE_BASE=https://addedup.github.io/seed-scent/ node review-net.mjs`
+`SITE_BASE=https://seedscent.com/ node review-net.mjs`
 (zero external requests, no 404s), `... node tour.mjs all` (the scroll
 tour at desktop and phone sizes), `... node check-facts.mjs` (every fact
 filled in so far shows where it should, and the Instagram link opens the
@@ -307,7 +334,7 @@ or one that is not usable as typed.
 - [ ] Do that on the actual booth laptop, not just your own.
 - [ ] Set the booth laptop so the screen does not sleep, and bring the charger.
 - [ ] Keep a copy of the folder on a USB stick, and the public link on a card, in case the laptop dies.
-- [ ] Try the live link https://addedup.github.io/seed-scent/ on a phone.
+- [ ] Try the live link https://seedscent.com on a phone.
 
 ---
 

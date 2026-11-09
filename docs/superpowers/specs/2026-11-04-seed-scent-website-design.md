@@ -364,6 +364,13 @@ replaces the placeholder with no code change.
   and checkout pages (the team page's six missing photos 404 by design until
   they are added), 60 fps on the scroll tour at 1440x900 and 390x844, no
   console errors. `SITE_BASE=<url>` points the Playwright probes at any host.
+- **Own domain (2026-11-09).** The firm registered `seedscent.com` through
+  Cloudflare. Its DNS (on Cloudflare, every record DNS only) points the apex at
+  GitHub Pages' four addresses and `www` at `addedup.github.io`; the domain is
+  verified for the AddedUp account (TXT `_github-pages-challenge-AddedUp`), the
+  repository holds a `CNAME` file, and GitHub issues the HTTPS certificate. The
+  github.io address and www both forward to https://seedscent.com. The home page's
+  link preview (`og:image`, `og:url`) and canonical link now use the domain.
 - **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
   School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
   A filled-in fact that is a place to go becomes a link: the handle opens the

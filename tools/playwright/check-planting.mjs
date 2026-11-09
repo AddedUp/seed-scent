@@ -21,7 +21,7 @@
 
      cd tools/playwright
      node check-planting.mjs
-     SITE_BASE=http://127.0.0.1:3004/ node check-planting.mjs
+     SITE_BASE=https://seedscent.com/ node check-planting.mjs
      node check-planting.mjs mouse          (one section only)
 
    Screenshots land in tools/playwright/out/planting-*.png. */

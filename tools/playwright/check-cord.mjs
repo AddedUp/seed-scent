@@ -22,7 +22,7 @@
    in the next chapter; the hero never leaves its card through the top.
 
    cd tools/playwright && node check-cord.mjs
-   SITE_BASE=https://addedup.github.io/seed-scent/ node check-cord.mjs
+   SITE_BASE=https://seedscent.com/ node check-cord.mjs
    DRAFT_PHYSICS=path/to/physics.js node check-cord.mjs   (serve a draft in place of js/physics.js) */
 import { chromium } from 'playwright'
 import fs from 'node:fs'
