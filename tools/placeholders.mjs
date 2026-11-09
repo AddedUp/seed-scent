@@ -215,7 +215,7 @@ function walk(value, trail) {
   if (dotted in SPECIAL) { seen.add(dotted); SPECIAL[dotted](value); return }
   if (/^(photo|image|imageVent)$/i.test(key)) return checkPhoto(dotted, value)
   if (/confirmed$/i.test(key)) return checkFlag(dotted, value)
-  if (key === 'price' && /^(scents|bulkTiers)\.\d+$/.test(parent)) return checkPrice(dotted, value)
+  if (key === 'price' && /^(scents|bulkTiers|shop)\.\d+$/.test(parent)) return checkPrice(dotted, value)
   if (dotted === 'contact.email') return checkEmail(dotted, value)
   if (dotted === 'contact.instagram') return checkInstagram(dotted, value)
   if (isBlank(value)) { nulls.push({ path: dotted, note: emptyNote(value), optional: OPTIONAL[dotted] }); return }
@@ -273,6 +273,30 @@ checkCounts(cfg)
   if (!isObj(s) || typeof s.image !== 'string' || typeof s.imageVent !== 'string') return
   if (s.image.trim() && s.image.trim() === s.imageVent.trim()) wrong.push({ path: `scents.${i}.imageVent`, text: `is the same file as scents.${i}.image. Give the vent clip its own photo; until then the card shows the mirror cord photo under the label "Vent clip".` })
 })
+
+/* the shop list (shop.html): the lines the Shop page would leave out, and what a product of its own
+   still needs. A line with scent and format borrows everything from that scent. */
+if (cfg.shop !== undefined && !isBlank(cfg.shop)) {
+  if (!Array.isArray(cfg.shop)) wrong.push({ path: 'shop', text: `is ${show(cfg.shop)}. It should be a list in [ ] like the one that shipped.` })
+  else {
+    const ids = new Set(), nScents = Array.isArray(cfg.scents) ? cfg.scents.length : 0
+    const which = nScents ? `Use ${Array.from({ length: nScents }, (_, k) => k).join(', ').replace(/, (\d+)$/, ' or $1')} for the scent in that place in the scents list` : 'Use the place of a scent in the scents list'
+    cfg.shop.forEach((p, i) => {
+      if (!isObj(p)) { wrong.push({ path: `shop.${i}`, text: `is ${show(p)}. Each entry is a set of lines inside { } like the others; the Shop page leaves it out.` }); return }
+      const id = typeof p.id === 'string' || typeof p.id === 'number' ? String(p.id).trim() : ''
+      if (p.scent != null) {
+        const n = Number(p.scent)
+        if (!Number.isInteger(n) || n < 0 || n >= nScents) wrong.push({ path: `shop.${i}.scent`, text: `is ${show(p.scent)}. ${which} (0 is the first); the Shop page leaves this line out.` })
+        if (p.format !== 'mirror' && p.format !== 'vent') wrong.push({ path: `shop.${i}.format`, text: `is ${show(p.format)}. Use "mirror" or "vent"; the Shop page leaves this line out.` })
+      } else {
+        for (const k of ['name', 'price', 'image']) if (!(k in p)) nulls.push({ path: `shop.${i}.${k}`, missing: k })
+      }
+      if (!id) wrong.push({ path: `shop.${i}.id`, text: `is ${show(p.id)}. Give every shop line its own id in quotes, like "refill-pack"; the Shop page leaves this one out.` })
+      else if (ids.has(id)) wrong.push({ path: `shop.${i}.id`, text: `"${id}" is used twice. Every id must be different; the Shop page shows only the first.` })
+      else ids.add(id)
+    })
+  }
+}
 
 /* ---------- print ---------- */
 const required = nulls.filter(n => !n.optional)

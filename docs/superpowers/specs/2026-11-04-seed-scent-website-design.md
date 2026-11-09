@@ -371,6 +371,17 @@ replaces the placeholder with no code change.
   repository holds a `CNAME` file, and GitHub issues the HTTPS certificate. The
   github.io address and www both forward to https://seedscent.com. The home page's
   link preview (`og:image`, `og:url`) and canonical link now use the domain.
+- **Shop page (2026-11-09).** `shop.html`, a Shop tab on every page, one card per
+  line of a new `shop` list in `js/config.js`. It starts with the six items (each
+  scent on a mirror cord and on a vent clip), which borrow the scent's facts and go
+  in the bag as ordinary scent lines, so the home cards, the shop and the checkout
+  share one bag. The owner said the list may grow, so a line can also be a product
+  of its own (name, notes, pack, price, photo): it goes in the bag as `{ item, qty }`,
+  is priced at its own price and does not move the bulk tier, which counts air
+  fresheners only. Each card has its own quantity stepper (44 px on touch). The home
+  cards keep Add to bag and gain a "Visit the shop" link; the team page's Bag link
+  and the checkout's Add more go to the shop. The nav now folds into the menu below
+  1120 px. `check-shop.mjs` covers it.
 - **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
   School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
   A filled-in fact that is a place to go becomes a link: the handle opens the

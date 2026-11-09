@@ -11,7 +11,8 @@ https://addedup.github.io/seed-scent/ and www.seedscent.com both forward to it.
 **What it is:** one long home page that tells the story of the plantable car
 air freshener (hang it, breathe, it fades, plant it), shows the three scents,
 the spec sheet, bulk tiers and three ways for other VE firms to order, plus a
-Team page (`team.html`) and a checkout page (`checkout.html`). It is built for
+Shop page (`shop.html`) with every product in one place, a Team page
+(`team.html`) and a checkout page (`checkout.html`). It is built for
 other Virtual Enterprise firms first, and for competition judges second.
 
 **One rule:** the site never invents facts. Anything the team has not decided
@@ -121,6 +122,12 @@ What each field does:
 - `image`: the photo of this scent's mirror cord version, starting with `images/`. See section 3.
 - `imageVent`: the photo of this scent's vent clip version. The card shows `image` while Mirror cord is picked and switches to `imageVent` when the visitor picks Vent clip. If that file is missing, the card keeps the mirror cord photo.
 - `accent`: a brand colour name for the scent, `"ink"`, `"moss"` or `"sage"`, kept with the scent so anything that colour-codes the three agrees on it.
+
+**shop** (one entry per card on the Shop page, `shop.html`, shown in this order)
+- It starts with six entries: each scent on a mirror cord and on a vent clip. Those look like `{ id: "scent-1-mirror", scent: 0, format: "mirror" }`, where `scent: 0` is the first scent in `scents` above and `format` is `"mirror"` or `"vent"`. The card takes the scent's name, notes, pack size, price and photo (`image` for mirror, `imageVent` for vent), so there is nothing to fill in here for them.
+- To sell something else, add an entry with its own details and a new `id`, for example `{ id: "refill-pack", name: "Refill discs", notes: "One line about it", packSize: "What is in the pack", price: 5, image: "images/refill-pack.jpg" },`. It gets its own card, goes in the bag as its own line, and is priced at its own `price`. Only the air fresheners count toward the bulk tiers; the bag says so when the shop sells anything else.
+- Every `id` must be different. To take a product off the shop, delete its line. A shopper who already had it in their bag simply sees it drop out.
+- The bag is shared: something added on the Shop page is in the bag on the home page and at checkout, and the other way round.
 
 **bulkTiers** (four entries, for firm orders)
 - `min`: the quantity where this tier starts. Leave as is unless the tiers change.
@@ -340,7 +347,7 @@ or one that is not usable as typed.
 
 ## What is in the folder
 
-- `index.html`, `team.html`, `checkout.html`: the pages.
+- `index.html`, `shop.html`, `team.html`, `checkout.html`: the pages.
 - `js/config.js`: the facts. The only file most people ever edit.
 - `images/`: photos. Drop files in, see section 3.
 - `brand/`: logo cut-outs from the brand deck. Do not recolour or stretch them.
