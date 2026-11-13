@@ -333,6 +333,7 @@ body[data-theme="soil"] .nav .pill .dot { color: var(--moss); }
 .chip .ph { font-size: 10px; padding: .3em .5em; margin: 0 2px; }
 
 /* cards */
+.guide-link { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 34px; }
 .shop-link { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 34px; }
 .ch-cards .wrap { padding-top: 4vh; padding-bottom: 22vh; }
 .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
@@ -507,8 +508,8 @@ input[type="range"]:hover::-moz-range-thumb, input[type="range"]:active::-moz-ra
   .tiers-block { grid-template-columns: 1fr 1fr; }
   .tiers-block .terms { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
 }
-/* the full nav needs about 1100px on one line (the shop page has the widest actions): below that the sections fold into the menu */
-@media (max-width: 1120px) {
+/* the full nav (eight tabs) needs about 1200px on one line, the shop page the most: below that the sections fold into the menu */
+@media (max-width: 1220px) {
   .nav-links { display: none; }
   .menu-btn { display: inline-block; }
   .nav.menu-open .nav-links {

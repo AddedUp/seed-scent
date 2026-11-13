@@ -1,0 +1,111 @@
+/* ==========================================================================
+   Seed Scent · planting guide page
+   Only what planting-guide.html needs. The shell comes from site.css and the
+   header card from team.css; every color is a token from tokens.css.
+   ========================================================================== */
+
+.guide-page { padding-bottom: 36px; }
+.nav-actions a.text-btn { text-decoration: none; }
+
+/* header card */
+.guide-hero { min-height: min(56vh, 520px); gap: 36px; }
+.guide-hero .team-hero-copy { max-width: min(820px, 74%); }
+.guide-intro { font-size: clamp(17px, 1.4vw, 20px); line-height: 1.5; color: var(--ink); max-width: 58ch; }
+.guide-hero .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* --------------------------------------------------------------------------
+   The two parts and their steps
+   -------------------------------------------------------------------------- */
+.guide-body { padding-top: 9vh; padding-bottom: 4vh; max-width: 1080px; }
+.guide-part { margin-bottom: 9vh; scroll-margin-top: calc(var(--nav-h) + 16px); }
+.guide-part-title {
+  font-size: 13px; color: var(--ink);
+  padding-bottom: 14px; margin-bottom: 8px; border-bottom: 1.5px solid var(--moss);
+}
+.guide-steps { list-style: none; padding: 0; display: grid; }
+.guide-steps li {
+  display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 4px 18px;
+  padding: 26px 0; border-bottom: 1px solid var(--paper-3);
+}
+.guide-steps li:last-child { border-bottom: 0; }
+.guide-steps .step-num {
+  font-family: var(--font-display); font-variation-settings: var(--display-settings);
+  font-weight: 800; font-size: 34px; line-height: 1; color: var(--moss);
+}
+.guide-steps h3 {
+  font-family: var(--font-display); font-variation-settings: var(--display-settings);
+  font-weight: 700; font-size: clamp(22px, 2vw, 27px); line-height: 1.15; color: var(--ink);
+  margin-bottom: 8px;
+}
+.guide-steps p { font-size: 17px; line-height: 1.6; color: var(--ink); max-width: 68ch; }
+.guide-steps em, .guide-next em { font-style: italic; opacity: .9; }
+
+/* --------------------------------------------------------------------------
+   Care table: an ink header row, like the printed guide
+   -------------------------------------------------------------------------- */
+.care { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 18px; border-radius: var(--radius-sm); overflow: hidden; box-shadow: inset 0 0 0 1px var(--paper-3); }
+.care th, .care td { text-align: left; vertical-align: top; padding: 18px 22px; font-size: 16px; line-height: 1.5; color: var(--ink); }
+.care thead th {
+  background: var(--ink); color: var(--paper);
+  font: 500 12px/1.4 var(--font-body); letter-spacing: .09em; text-transform: uppercase;
+}
+.care tbody tr:nth-child(odd) { background: var(--paper-2); }
+.care tbody th {
+  font-family: var(--font-display); font-variation-settings: var(--display-settings);
+  font-weight: 700; font-size: 18px; width: 22%;
+}
+.care tbody tr + tr > * { border-top: 1px solid var(--paper-3); }
+
+/* the closing note */
+.guide-next {
+  margin: 0 0 4vh; padding: 22px 26px;
+  border-radius: var(--radius-sm); background: var(--paper-2);
+  box-shadow: inset 6px 0 0 var(--moss), inset 0 0 0 1px var(--paper-3);
+}
+.guide-next p { font-size: 17px; line-height: 1.6; color: var(--ink); max-width: 75ch; }
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .guide-hero { min-height: 0; gap: 44px; }
+  .guide-hero .team-hero-copy { max-width: none; }
+}
+/* phones: the care table becomes one card per care factor, each value labelled */
+@media (max-width: 640px) {
+  .guide-steps li { grid-template-columns: 44px minmax(0, 1fr); gap: 4px 12px; }
+  .guide-steps .step-num { font-size: 26px; }
+  .care thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .care, .care tbody, .care tr, .care th, .care td { display: block; width: auto; }
+  .care tbody tr { padding: 6px 0; }
+  .care tbody th { width: auto; padding-bottom: 4px; }
+  .care td { padding-top: 6px; padding-bottom: 10px; }
+  .care td::before {
+    content: attr(data-label); display: block; margin-bottom: 2px;
+    font: 500 11px/1.5 var(--font-body); letter-spacing: .09em; text-transform: uppercase; color: var(--moss);
+  }
+  .care tbody tr + tr > * { border-top: 0; }
+  .care tbody tr + tr { border-top: 1px solid var(--paper-3); }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .guide-hero { min-height: 0; gap: 18px; padding: 22px 28px; }
+  .guide-hero .team-hero-logo { width: 84px; }
+}
+
+/* --------------------------------------------------------------------------
+   Print: the guide on paper, without the site around it
+   -------------------------------------------------------------------------- */
+@media print {
+  .nav, .skip, .guide-hero .actions, .reg, .team-foot { display: none !important; }
+  body, .guide-page { background: #fff !important; }
+  .guide-hero { margin: 0; min-height: 0; padding: 0 0 12px; background: none; border-radius: 0; gap: 8px; }
+  .guide-hero .team-hero-logo { width: 110px; }
+  .guide-body { padding-top: 12px; max-width: none; }
+  .guide-part { margin-bottom: 16px; }
+  .guide-steps li { padding: 10px 0; break-inside: avoid; }
+  .care, .guide-next { break-inside: avoid; }
+  .care thead th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  [data-split] { visibility: visible !important; }
+  /* printed before scrolling down, the steps have not risen in yet: print them anyway */
+  .guide-hero *, .guide-steps li, .care, .guide-next { opacity: 1 !important; transform: none !important; }
+}

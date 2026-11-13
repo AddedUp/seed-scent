@@ -382,6 +382,15 @@ replaces the placeholder with no code change.
   cards keep Add to bag and gain a "Visit the shop" link; the team page's Bag link
   and the checkout's Add more go to the shop. The nav now folds into the menu below
   1120 px. `check-shop.mjs` covers it.
+- **Planting guide (2026-11-13).** The firm supplied its printed Planting Guide.
+  It is now `planting-guide.html` with a Planting tab after Shop: both parts (removing
+  the seed paper, planting it), the care table (a labelled card per row on phones),
+  the refill note, and a Print button with a print stylesheet. The words are the
+  guide's own, with its dashes turned into commas and full stops. The home page's
+  four short steps were rewritten from Part 2 (still tear, cover, water, sun, so the
+  tear-and-plant stage keeps its order), `plantingConfirmed` is true and
+  `daysToSprout` is "10 to 14 days". With eight tabs the nav folds below 1220 px.
+  `check-guide.mjs` covers it.
 - **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
   School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
   A filled-in fact that is a place to go becomes a link: the handle opens the

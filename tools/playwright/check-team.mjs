@@ -138,7 +138,7 @@ async function structure(page, label, missing) {
   console.log(`[${label}] numbers:`, JSON.stringify({ cards: d.cards, chips: d.chips, chipKinds: d.chipKinds, photos: d.photos, slots: d.slots, ghostNums: d.ghostNums, ghostOpacity: d.ghostOpacity, gridCols: d.gridCols, pageHeight: d.pageHeight, heroLogo: d.heroLogo, heroColors: d.heroColors, bag: d.bag, menu: d.menu, navLinksDisplay: d.navLinksDisplay, hasLenis: d.hasLenis }))
   check(`[${label}] title`, d.title === 'Seed Scent · The team', d.title)
   check(`[${label}] Team marked active in nav`, d.activeNav === 'Team', String(d.activeNav))
-  check(`[${label}] other nav links go back to index.html anchors, plus the Shop tab`, d.navHrefs.filter(h => h !== 'team.html' && h !== 'shop.html').every(h => /^index\.html#(drive|scents|inside|firms|contact)$/.test(h)) && d.navHrefs.includes('shop.html') && d.navHrefs.length === 7, d.navHrefs.join(' '))
+  check(`[${label}] other nav links go back to index.html anchors, plus the Shop tab`, d.navHrefs.filter(h => h !== 'team.html' && h !== 'shop.html' && h !== 'planting-guide.html').every(h => /^index\.html#(drive|scents|inside|firms|contact)$/.test(h)) && d.navHrefs.includes('shop.html') && d.navHrefs.includes('planting-guide.html') && d.navHrefs.length === 8, d.navHrefs.join(' '))
   check(`[${label}] nav.nav-links has id="nav-links" for the menu button`, d.navLinksId === 'nav-links', String(d.navLinksId))
   check(`[${label}] Order pill links to index.html#firms`, d.orderPill === 'index.html#firms', d.orderPill)
   check(`[${label}] Bag is a link to the shop without an underline`, d.bag && d.bag.tag === 'A' && d.bag.href === 'shop.html' && d.bag.underline === 'none', JSON.stringify(d.bag))

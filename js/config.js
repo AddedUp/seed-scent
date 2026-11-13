@@ -86,16 +86,18 @@ window.SEED_SCENT = {
     seedsConfirmed: false,  // set true once the mix is final
     formatConfirmed: false, // set true once the holder, refills and mirror cord / vent clip formats are final
     scentDuration: null,    // e.g. "about three weeks"
-    daysToSprout: null,     // e.g. "7 to 14 days"
+    daysToSprout: "10 to 14 days",   // from the Planting Guide
     paperSource: null,      // e.g. "recycled cotton fibre"
     fixativeName: null,     // leave null to keep "a natural, plant-based fixative"
+    /* The short version on the home page, taken from the Planting Guide (planting-guide.html).
+       Keep four steps in this order: tear, cover, water, sun. */
     plantingSteps: [
-      "Tear the paper into pieces about the size of a coin.",
-      "Press them into a pot or a patch of soil, no deeper than a fingertip.",
-      "Water well and keep the soil damp.",
-      "Give it sun and wait for the first sprouts.",
+      "Tear the paper into smaller pieces if your pot is small.",
+      "Lay it flat on damp soil and cover it with about 1/8 inch of loose soil.",
+      "Mist or water gently so it stays damp, never soggy, for the first 10 to 14 days.",
+      "Give it a warm, sunny spot and watch for the first sprouts.",
     ],
-    plantingConfirmed: false,
+    plantingConfirmed: true,
   },
 
   /* Team page. Photos go in images/team-1.jpg, team-2.jpg ... */

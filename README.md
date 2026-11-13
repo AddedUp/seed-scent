@@ -11,8 +11,9 @@ https://addedup.github.io/seed-scent/ and www.seedscent.com both forward to it.
 **What it is:** one long home page that tells the story of the plantable car
 air freshener (hang it, breathe, it fades, plant it), shows the three scents,
 the spec sheet, bulk tiers and three ways for other VE firms to order, plus a
-Shop page (`shop.html`) with every product in one place, a Team page
-(`team.html`) and a checkout page (`checkout.html`). It is built for
+Shop page (`shop.html`) with every product in one place, a Planting guide
+(`planting-guide.html`), a Team page (`team.html`) and a checkout page
+(`checkout.html`). It is built for
 other Virtual Enterprise firms first, and for competition judges second.
 
 **One rule:** the site never invents facts. Anything the team has not decided
@@ -148,7 +149,7 @@ What each field does:
 - `daysToSprout`: how long until the first sprouts, for example "7 to 14 days".
 - `paperSource`: what the paper is made from, for example "recycled cotton fibre".
 - `fixativeName`: the fixative ingredient, if the team decides to name it. Leave `null` to keep "a natural, plant-based fixative".
-- `plantingSteps`: the four planting instructions, one per line in quotes. Edit the words, keep the quotes and commas. The small stage beside them (tear the paper, press it into the soil, water it, give it sun) lights each step up as the visitor does it, so keep four steps in that order: tear, press, water, sun. With any other number of steps the stage still works but leaves the list alone.
+- `plantingSteps`: the four short planting instructions on the home page, one per line in quotes, taken from the Planting guide page. If the guide changes, change these to match. Edit the words, keep the quotes and commas. The small stage beside them (tear the paper, press it into the soil, water it, give it sun) lights each step up as the visitor does it, so keep four steps in that order: tear, press, water, sun. With any other number of steps the stage still works but leaves the list alone.
 - `plantingConfirmed`: set to `true` once the steps are checked. Removes the "draft" note above them.
 
 **team** (one entry per person, add or remove entries freely)
@@ -347,7 +348,7 @@ or one that is not usable as typed.
 
 ## What is in the folder
 
-- `index.html`, `shop.html`, `team.html`, `checkout.html`: the pages.
+- `index.html`, `shop.html`, `planting-guide.html`, `team.html`, `checkout.html`: the pages. The planting guide's words are written in `planting-guide.html` itself (edit them there); its Print button prints just the guide.
 - `js/config.js`: the facts. The only file most people ever edit.
 - `images/`: photos. Drop files in, see section 3.
 - `brand/`: logo cut-outs from the brand deck. Do not recolour or stretch them.

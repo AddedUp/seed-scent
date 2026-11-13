@@ -88,7 +88,7 @@ try {
     })
     console.log('[desktop] numbers:', JSON.stringify({ ids: d.ids, names: d.names, imgs: d.imgs, chips: d.chips, gridCols: d.gridCols, navGap: d.navGap }))
     check('[desktop] title and canonical', d.title === 'Seed Scent · Shop' && d.canonical === 'https://seedscent.com/shop.html', `${d.title} ${d.canonical}`)
-    check('[desktop] Shop is the active tab, 7 tabs', d.active === 'Shop' && d.navHrefs.length === 7 && d.navHrefs[4] === 'shop.html', d.navHrefs.join(' '))
+    check('[desktop] Shop is the active tab, 8 tabs', d.active === 'Shop' && d.navHrefs.length === 8 && d.navHrefs[4] === 'shop.html' && d.navHrefs[5] === 'planting-guide.html', d.navHrefs.join(' '))
     check('[desktop] the nav fits on one line with room to spare', d.navGap >= 30, `${Math.round(d.navGap)}px between links and buttons`)
     check('[desktop] six cards, in the order of the shop list', d.ids.join() === 'scent-1-mirror,scent-1-vent,scent-2-mirror,scent-2-vent,scent-3-mirror,scent-3-vent', d.ids.join())
     check('[desktop] the name chip says which scent, so the pairs read as pairs', d.names.join('|') === 'scent one|scent one|scent two|scent two|scent three|scent three', d.names.join('|'))
@@ -302,12 +302,12 @@ try {
   }
 
   /* ---------- tablet and the nav fold point ---------- */
-  for (const w of [1121, 1120, 1100, 900]) {
+  for (const w of [1221, 1220, 1100, 900]) {
     const { ctx, page } = await open(browser, `${w}px`, 'shop.html', { viewport: { width: w, height: 800 } })
     const r = await page.evaluate(() => ({ links: getComputedStyle(document.querySelector('.nav-links')).display, cols: getComputedStyle(document.getElementById('shop-grid')).gridTemplateColumns.split(' ').length, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, gap: document.querySelector('.nav-actions').getBoundingClientRect().left - document.querySelector('.nav-links').getBoundingClientRect().right }))
-    const linksOk = w > 1120 ? r.links === 'flex' && r.gap >= 20 : r.links === 'none'
+    const linksOk = w > 1220 ? r.links === 'flex' && r.gap >= 20 : r.links === 'none'
     const cols = w > 1100 ? 3 : 2
-    check(`[${w}px] nav ${w > 1120 ? 'fits on one line' : 'folds into the menu'}, ${cols} columns, no sideways scroll`, linksOk && r.cols === cols && r.overflow <= 0, JSON.stringify(r))
+    check(`[${w}px] nav ${w > 1220 ? 'fits on one line' : 'folds into the menu'}, ${cols} columns, no sideways scroll`, linksOk && r.cols === cols && r.overflow <= 0, JSON.stringify(r))
     await ctx.close()
   }
 
