@@ -76,6 +76,22 @@ const itemName = p => (p ? str(p.name) : null)
 const itemText = p => itemName(p) || 'Product (name tbc)'
 const itemHtml = p => { const n = itemName(p); return n ? escapeHtml(n) : chip('product name') }
 const hasExtras = () => shopList().some(p => p.scent == null)
+/* the bulk tiers price scent-and-format lines only: with none of those on the shop list
+   (every product has its own price), the tier rows and notes stay out of the way */
+const tiersApply = () => { const s = shopList(); return !s.length || s.some(p => p.scent != null) }
+
+/* A product can offer one choice, picked on its card and kept on the bag line:
+     choice: { label: "Edition", options: ["Hanging", "Vent clip"] }
+     choice: { label: "Scent", from: "scents" }      the names in the scents list
+   itemOptions() is the list of things to pick from ([] when there is no choice). */
+export function itemOptions(p) {
+  const c = p && p.choice; if (!c || typeof c !== 'object') return []
+  if (c.from === 'scents') return scents().map((_, i) => scentName(i) || `Scent ${WORDS[i] || i + 1}`)
+  return (Array.isArray(c.options) ? c.options : []).map(o => str(o)).filter(Boolean)
+}
+const pickOption = (p, o) => { const opts = itemOptions(p); return !opts.length ? null : opts.includes(o) ? o : opts[0] }
+/* "$7.99 a month" for a subscription (per: "month"), "$8.99 each" otherwise */
+const perText = p => (p && str(p.per) ? ` a ${p.per}` : ' each')
 
 /* ---------- state ---------- */
 /* drop anything malformed, merge lines that share a scent and a format (or a product) */
@@ -83,7 +99,7 @@ function clean(raw) {
   const n = scents().length
   const out = []
   const merge = (key, q) => {
-    const same = out.find(o => (key.item != null ? o.item === key.item : o.item == null && o.scentIndex === key.scentIndex && o.format === key.format))
+    const same = out.find(o => (key.item != null ? o.item === key.item && (o.option ?? null) === (key.option ?? null) : o.item == null && o.scentIndex === key.scentIndex && o.format === key.format))
     if (same) same.qty = Math.min(MAX_QTY, same.qty + q)
     else out.push({ ...key, qty: Math.min(MAX_QTY, q) })
   }
@@ -96,7 +112,7 @@ function clean(raw) {
       // a product the team has since taken off the shop list drops out
       const p = shopItem(l.item); if (!p) continue
       if (p.scent != null) merge({ scentIndex: scentPlace(p.scent), format: p.format }, q)
-      else merge({ item: String(p.id) }, q)
+      else { const o = pickOption(p, l.option); merge(o == null ? { item: String(p.id) } : { item: String(p.id), option: o }, q) }
       continue
     }
     const i = Number(l.scentIndex), f = l.format
@@ -138,7 +154,7 @@ function snapshot() {
 
 function commit() { save(); render() }
 function addToBag(scentIndex, format, qty = 1) { lines = clean([...lines, { scentIndex, format, qty }]); commit() }
-function addItem(id, qty = 1) { lines = clean([...lines, { item: id, qty }]); commit() }
+function addItem(id, qty = 1, option = null) { lines = clean([...lines, { item: id, qty, option }]); commit() }
 function setQty(i, n) {
   if (!lines[i]) return
   lines[i].qty = Math.min(MAX_QTY, Math.max(1, Math.floor(Number(n)) || 1))
@@ -154,8 +170,8 @@ function lineHtml(l, idx, tierUnit) {
   const p = l.item != null ? extraItem(l.item) : null
   const unit = p ? num(p.price) : tierUnit
   const label = p ? itemText(p) : scentText(l.scentIndex)
-  const kind = p ? (str(p.packSize) || '') : FORMATS[l.format]
-  const each = unit == null ? '' : `${kind ? ' · ' : ''}${escapeHtml(money(unit))} each`
+  const kind = p ? (l.option || str(p.packSize) || '') : FORMATS[l.format]
+  const each = unit == null ? '' : `${kind ? ' · ' : ''}${escapeHtml(money(unit))}${p ? perText(p) : ' each'}`
   const price = unit == null ? chip('price') : escapeHtml(money(unit * l.qty))
   return `<li class="bag-line" data-line="${idx}">
     <div class="line-head">
@@ -180,6 +196,8 @@ function render() {
     v.lines.innerHTML = lines.map((l, i) => lineHtml(l, i, t.unit)).join('')
     if (v.empty) v.empty.hidden = lines.length > 0
     const noTier = !t.tier && t.units > 0 && !t.scentUnits
+    const showTiers = tiersApply()
+    for (const el of [v.tier, v.each]) if (el && el.parentElement) el.parentElement.hidden = !showTiers
     if (v.units) v.units.textContent = String(t.units)
     if (v.tier) v.tier.innerHTML = noTier ? 'none' : tierHtml(t.label)
     if (v.each) v.each.innerHTML = noTier ? 'none' : t.unit == null ? chip('price') : escapeHtml(money(t.unit))
@@ -314,6 +332,7 @@ function initDrawer() {
   if (foot && !$('.bag-note', foot)) {
     const note = document.createElement('p')
     note.className = 'kicker soft bag-note'
+    if (!tiersApply()) note.hidden = true
     note.textContent = hasExtras()
       ? 'One bulk tier for all the air fresheners in the bag. Other items are priced each.'
       : 'One bulk tier for the whole bag, picked by total units.'
@@ -341,6 +360,10 @@ function initAddButtons() {
   $$('.add-to-bag[data-add]').forEach(btn => btn.addEventListener('click', () => {
     const i = Number(btn.dataset.add)
     if (!scents()[i]) return
+    // when the shop sells refills by scent (config scentRefill names that product), a scent
+    // card adds those refills in its scent
+    const refill = extraItem(cfg('scentRefill'))
+    if (refill) { addItem(refill.id, 1, itemOptions(refill)[i]); acknowledge(btn, 1); return }
     const picked = $(`input[name="format-${i}"]:checked`)
     const format = picked && isFormat(picked.value) ? picked.value : 'mirror'
     addToBag(i, format, 1)
@@ -355,7 +378,8 @@ function initAddButtons() {
     let q = field ? Math.floor(Number(field.value)) : 1
     if (!Number.isFinite(q) || q < 1) q = 1
     q = Math.min(MAX_QTY, q)
-    addItem(p.id, q)
+    const pick = card && card.querySelector('.item-choice')
+    addItem(p.id, q, pick ? pick.value : null)
     // back to one, so a second press does not quietly add the same large number again
     if (field) { field.value = '1'; field.dispatchEvent(new Event('input', { bubbles: true })) }
     acknowledge(btn, q)
@@ -395,13 +419,14 @@ function orderText(d) {
   lines.forEach(l => {
     if (l.item == null) { L.push(`${l.qty} x ${scentText(l.scentIndex)}, ${FORMATS[l.format].toLowerCase()}`); return }
     const p = extraItem(l.item), pr = num(p?.price)
-    L.push(`${l.qty} x ${itemText(p)}${str(p?.packSize) ? `, ${p.packSize}` : ''}, ${pr == null ? 'price tbc' : money(pr) + ' each'}`)
+    const what = l.option || str(p?.packSize)
+    L.push(`${l.qty} x ${itemText(p)}${what ? `, ${what}` : ''}, ${pr == null ? 'price tbc' : money(pr) + perText(p)}`)
   })
   const mixed = lines.some(l => l.item != null)
   L.push('',
     `Units: ${t.units}`, ...(mixed ? [`Air fresheners: ${t.scentUnits}`] : []),
-    `Tier: ${t.tier ? tierText(t.label) : 'none'}`,
-    `${mixed ? 'Each air freshener' : 'Each'}: ${t.tier ? (t.unit == null ? 'price tbc' : money(t.unit)) : 'none'}`,
+    ...(tiersApply() ? [`Tier: ${t.tier ? tierText(t.label) : 'none'}`,
+      `${mixed ? 'Each air freshener' : 'Each'}: ${t.tier ? (t.unit == null ? 'price tbc' : money(t.unit)) : 'none'}`] : []),
     `Total: ${t.total == null ? 'total tbc' : money(t.total)}`, '',
     'Delivery notes', d.notes || 'none', '',
     'Sent from the Seed Scent site.')
@@ -492,7 +517,7 @@ function initCheckout() {
     hidden('units', t.units); hidden('tier', t.label); hidden('unit_price', t.unit); hidden('total', t.total); hidden('currency', cfg('currency') || 'USD')
     lines.forEach((l, i) => {
       if (l.item == null) { hidden(`line_${i + 1}_scent`, scentText(l.scentIndex)); hidden(`line_${i + 1}_format`, l.format) }
-      else { const p = extraItem(l.item); hidden(`line_${i + 1}_item`, itemText(p)); hidden(`line_${i + 1}_item_id`, l.item); hidden(`line_${i + 1}_unit_price`, num(p?.price)) }
+      else { const p = extraItem(l.item); hidden(`line_${i + 1}_item`, itemText(p)); hidden(`line_${i + 1}_item_id`, l.item); hidden(`line_${i + 1}_option`, l.option || ''); hidden(`line_${i + 1}_unit_price`, num(p?.price)) }
       hidden(`line_${i + 1}_qty`, l.qty)
     })
     hidden('order_text', text)

@@ -42,31 +42,81 @@ window.SEED_SCENT = {
 
   currency: "USD",
 
-  /* The three scents. Prices are numbers, e.g. 4.5 for $4.50. */
+  /* The three scents. The team is using these names for now.
+     image: the photo of the hanging version. imageVent: the photo of the vent clip version.
+     The home page card shows whichever the visitor picks. price and packSize describe the refill
+     pack a scent card adds to the bag (see scentRefill below). */
   scents: [
-    /* image: the photo of the mirror cord version. imageVent: the photo of the vent clip version.
-       The card shows whichever format the visitor picks. The three cards share one vent clip
-       mock-up so they all show the same design; give each scent its own photos when the product
-       shots are final. */
-    { id: "scent-1", name: null, notes: null, price: null, packSize: null, image: "images/product-studio-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink" },
-    { id: "scent-2", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss" },
-    { id: "scent-3", name: null, notes: null, price: null, packSize: null, image: "images/product-mirror-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "sage" },
+    { id: "scent-1", name: "Lavender",   notes: null, price: 5.99, packSize: "3 seed papers", image: "images/product-studio-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink" },
+    { id: "scent-2", name: "Mint",       notes: null, price: 5.99, packSize: "3 seed papers", image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss" },
+    { id: "scent-3", name: "Wildflower", notes: null, price: 5.99, packSize: "3 seed papers", image: "images/product-mirror-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "sage" },
   ],
 
-  /* The Shop page (shop.html). One card per line, shown in this order.
-     A line with scent and format takes its name, notes, pack size, price and photo from that
-     scent above (scent: 0 is the first scent). Those count toward the bulk tiers below.
-     To sell something else later, add a line with its own details and a new id, like this:
-       { id: "new-product", name: "Product name", notes: "One line about it", packSize: "What is in the pack", price: 5, image: "images/new-product.jpg" },
-     That kind of line is priced at its own price, one each. Every id must be different. */
+  /* The Shop page (shop.html). One card per entry, shown in this order.
+       id        its own short name, different for every entry
+       name      the product's name            kicker   the small line above it
+       notes     one or two sentences          contents what is in the box, one line each
+       price     a number, 8.99 for $8.99      per      "month" makes it "$7.99 a month"
+       image     the photo
+       choice    one thing the buyer picks on the card:
+                   { label: "Edition", options: ["Hanging", "Vent clip"] }
+                   { label: "Scent", from: "scents" }     (the names in the scents list above)
+       images    a photo for each option, when they differ: { "Hanging": "...", "Vent clip": "..." }
+     To sell something new, copy an entry, give it a new id and change the rest. */
   shop: [
-    { id: "scent-1-mirror", scent: 0, format: "mirror" },
-    { id: "scent-1-vent",   scent: 0, format: "vent" },
-    { id: "scent-2-mirror", scent: 1, format: "mirror" },
-    { id: "scent-2-vent",   scent: 1, format: "vent" },
-    { id: "scent-3-mirror", scent: 2, format: "mirror" },
-    { id: "scent-3-vent",   scent: 2, format: "vent" },
+    { id: "the-vine", name: "The Vine", kicker: "The First Sprout · hanging edition",
+      notes: "A premium starter kit for those who want to make a change. This classic hangs from your rearview mirror.",
+      contents: ["1 reusable wooden box, hanging", "3 seed papers, scents chosen for you"],
+      price: 8.99, image: "images/product-mirror-1.jpg" },
+    { id: "the-dandelion", name: "The Dandelion", kicker: "The First Sprout · vent clip edition",
+      notes: "A premium starter kit for those who want to make a change. This classic clips on to your interior car vents.",
+      contents: ["1 reusable wooden box, vent clip", "3 seed papers, scents chosen for you"],
+      price: 8.99, image: "images/product-vent-clip.jpg" },
+    { id: "the-releaf", name: "The Releaf", kicker: "Custom refill pack",
+      notes: "Refills only. Buy a set of seed paper with the scent of your choice. The sustainable option.",
+      contents: ["3 seed papers in the scent you pick"],
+      price: 5.99, image: "images/product-releaf.jpg", choice: { label: "Scent", from: "scents" } },
+    { id: "the-bloom", name: "The Bloom", kicker: "Grow kit",
+      notes: "Everything you need, start to finish. Complete with planting essentials, including a Seed Scent brand pot, quality soil, and shovels.",
+      contents: ["1 reusable wooden box, hanging or vent clip", "3 seed papers, scents chosen for you", "Terracotta planting pot", "Soil", "Mini shovels"],
+      price: 18.99, image: "images/product-bloom-hanging.jpg", choice: { label: "Edition", options: ["Hanging", "Vent clip"] },
+      images: { "Hanging": "images/product-bloom-hanging.jpg", "Vent clip": "images/product-bloom-vent.jpg" } },
+    { id: "the-garden", name: "The Garden", kicker: "Deluxe bundle",
+      notes: "Everything you need and more. Includes two boxes, six seed papers, and a complete planting kit.",
+      contents: ["2 reusable wooden boxes: 1 hanging, 1 vent clip", "6 seed papers, scents chosen for you", "Terracotta planting pot", "Mini shovels", "Scratch and smell stickers"],
+      price: 28.99, image: "images/product-garden.jpg" },
+    { id: "seed-paper-10", name: "Seed Paper 10 Pack", kicker: "Refills",
+      notes: null,
+      contents: ["10 seed papers"],
+      price: 16.99, image: "images/product-seed-paper-10.jpg" },
+    { id: "limited-3", name: "Limited Edition Seed Pack", kicker: "Limited edition · 3 pack",
+      notes: null,
+      contents: ["3 limited edition seed papers"],
+      price: 7.99, image: "images/product-limited-edition.jpg" },
+    { id: "limited-10", name: "Limited Edition Scent Pack", kicker: "Limited edition · 10 pack",
+      notes: null,
+      contents: ["10 limited edition seed papers"],
+      price: 19.99, image: "images/product-limited-edition.jpg" },
+    { id: "wooden-box", name: "Wooden Box", kicker: "On its own",
+      notes: null,
+      contents: ["1 reusable wooden box, hanging or vent clip"],
+      price: 3.99, image: "images/product-studio-1.jpg", choice: { label: "Edition", options: ["Hanging", "Vent clip"] },
+      images: { "Hanging": "images/product-studio-1.jpg", "Vent clip": "images/product-vent-studio.jpg" } },
+    { id: "subscription-5", name: "Refill Subscription, 5 a Month", kicker: "Subscription",
+      notes: null,
+      contents: ["5 seed papers every month", "3 classic scents", "2 limited edition or scent of the month"],
+      price: 7.99, per: "month", image: "images/refills-flatlay.jpg" },
+    { id: "subscription-10", name: "Refill Subscription, 10 a Month", kicker: "Subscription",
+      notes: null,
+      contents: ["10 seed papers every month", "6 classic scents", "4 limited edition"],
+      price: 12.99, per: "month", image: "images/refills-flatlay.jpg" },
   ],
+
+  /* The id of the shop product a home page scent card adds to the bag, in that card's scent. */
+  scentRefill: "the-releaf",
+
+  /* Every order is delivered in a recycled cardboard box. */
+  packaging: "recycled cardboard boxes",
 
   /* Bulk pricing for other firms. price is the per-unit price at that quantity.
      The quantity breakpoints are a draft too: set tiersConfirmed to true once they are final. */

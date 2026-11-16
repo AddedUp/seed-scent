@@ -3,7 +3,7 @@
    the home page uses, so the bag is shared. Shares scroll.js and ui.js with the other pages. */
 import { lenis, motion, prefersReduced } from './scroll.js'
 import { cfg, escapeHtml, fillPlaceholders, fillSlots, initSplit, fontsSettled, resplitWhenFontsArrive, initMagnetic, initMotionToggle, initMenu } from './ui.js'
-import { shopList, MAX_QTY } from './cart.js'
+import { shopList, itemOptions, MAX_QTY } from './cart.js'
 
 const pad = n => String(n).padStart(2, '0')
 const WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
@@ -29,29 +29,57 @@ function describe(p) {
   }
   const k = raw.indexOf(p)
   const name = p.name ? String(p.name) : 'Product'
-  return { base: `shop.${k}`, image: `shop.${k}.image`, chipName: 'product name', chipNotes: 'product notes', format: null, label: name, alt: name }
+  return { base: `shop.${k}`, image: `shop.${k}.image`, chipName: 'product name', chipNotes: 'product notes', format: null, label: name, alt: name, k }
+}
+
+/* the one choice a product can offer (edition, scent): a small set of radio pills */
+function choiceHtml(p, t) {
+  const opts = itemOptions(p)
+  if (!opts.length) return ''
+  const label = p.choice && p.choice.label ? String(p.choice.label) : 'Choose'
+  return `<fieldset class="item-pick"><legend class="kicker">${escapeHtml(label)}</legend>
+    <select class="item-choice" id="${t}-choice" aria-label="${escapeHtml(label)}">${opts.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}</select>
+  </fieldset>`
+}
+/* what is in the box, one line each */
+function contentsHtml(p) {
+  const c = Array.isArray(p.contents) ? p.contents.filter(x => typeof x === 'string' && x.trim()) : []
+  if (!c.length) return ''
+  return `<div class="item-inside"><p class="kicker">Inside</p><ul>${c.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul></div>`
 }
 
 function cardHtml(p, n) {
   const d = describe(p), id = escapeHtml(String(p.id)), t = `item-${n}`
+  const own = p.scent == null
   const format = d.format
     ? `<p class="kicker shop-format" id="${t}-format">${d.format} <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></p>`
     : ''
+  const kicker = own && p.kicker ? `<p class="kicker shop-kicker">${escapeHtml(String(p.kicker))}</p>` : ''
+  const inside = own ? contentsHtml(p) : ''
+  // a product with no notes yet simply has none: the chip is for scents, whose notes the team owes
+  const notes = own && (p.notes == null || p.notes === '') ? '' : `<p class="card-notes"><span class="ph" data-ph="${d.base}.notes">${d.chipNotes}</span></p>`
+  const per = own && p.per ? `<span class="price-per"> a ${escapeHtml(String(p.per))}</span>` : ''
+  const meta = inside
+    ? `<dl class="card-meta"><div><dt>Price</dt><dd><span class="ph price" data-ph="${d.base}.price">price</span>${per}</dd></div></dl>`
+    : `<dl class="card-meta">
+        <div><dt>Pack</dt><dd><span class="ph" data-ph="${d.base}.packSize">pack size</span></dd></div>
+        <div><dt>Price</dt><dd><span class="ph price" data-ph="${d.base}.price">price</span>${per}</dd></div>
+      </dl>`
   return `
     <li class="card shop-card" data-item-card="${id}">
       <span class="ghost-num" aria-hidden="true">${pad(n + 1)}</span>
       <figure class="card-media">
-        <img class="slot" data-slot="${d.image}" alt="${escapeHtml(d.alt)}" width="1280" height="720" hidden>
+        <img class="slot" data-slot="${d.image}" alt="${escapeHtml(d.alt)}" width="1280" height="800" hidden>
         <span class="slot-label">[Photo]</span>
         ${d.format ? `<figcaption class="media-tag kicker" aria-hidden="true">${d.format}</figcaption>` : ''}
       </figure>
+      ${kicker}
       <h3 class="card-title" id="${t}-title"><span class="ph" data-ph="${d.base}.name">${d.chipName}</span></h3>
       ${format}
-      <p class="card-notes"><span class="ph" data-ph="${d.base}.notes">${d.chipNotes}</span></p>
-      <dl class="card-meta">
-        <div><dt>Pack</dt><dd><span class="ph" data-ph="${d.base}.packSize">pack size</span></dd></div>
-        <div><dt>Price</dt><dd><span class="ph price" data-ph="${d.base}.price">price</span></dd></div>
-      </dl>
+      ${notes}
+      ${inside}
+      ${meta}
+      ${own ? choiceHtml(p, t) : ''}
       <div class="shop-buy">
         <div class="qty" role="group" aria-label="How many, ${escapeHtml(d.label)}">
           <button class="qty-btn" type="button" data-step="-1" aria-label="One fewer" disabled>${ICON.minus}</button>
@@ -61,6 +89,21 @@ function cardHtml(p, n) {
         <button class="pill small add-to-bag" type="button" data-item="${id}" aria-describedby="${t}-title${d.format ? ` ${t}-format` : ''}">Add to bag <span class="dot">·</span></button>
       </div>
     </li>`
+}
+
+/* a product with a photo per option (hanging, vent clip) shows the one that is picked */
+function initChoicePhotos(items) {
+  const list = document.getElementById('shop-grid'); if (!list) return
+  list.addEventListener('change', e => {
+    const sel = e.target.closest('.item-choice'); if (!sel) return
+    const card = sel.closest('[data-item-card]'), p = items.find(x => String(x.id) === card.dataset.itemCard)
+    const src = p && p.images && typeof p.images === 'object' ? p.images[sel.value] : null
+    const img = card.querySelector('img.slot')
+    if (!src || !img || img.hidden) return
+    const probe = new Image()
+    probe.onload = () => { img.src = src }
+    probe.src = src
+  })
 }
 
 function renderShop(items) {
@@ -148,6 +191,7 @@ fillPlaceholders()
 fillSlots()
 noteMissing()
 initSteppers()
+initChoicePhotos(items)
 initMagnetic()
 initMotionToggle()
 initMenu()

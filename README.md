@@ -125,10 +125,17 @@ What each field does:
 - `accent`: a brand colour name for the scent, `"ink"`, `"moss"` or `"sage"`, kept with the scent so anything that colour-codes the three agrees on it.
 
 **shop** (one entry per card on the Shop page, `shop.html`, shown in this order)
-- It starts with six entries: each scent on a mirror cord and on a vent clip. Those look like `{ id: "scent-1-mirror", scent: 0, format: "mirror" }`, where `scent: 0` is the first scent in `scents` above and `format` is `"mirror"` or `"vent"`. The card takes the scent's name, notes, pack size, price and photo (`image` for mirror, `imageVent` for vent), so there is nothing to fill in here for them.
-- To sell something else, add an entry with its own details and a new `id`, for example `{ id: "refill-pack", name: "Refill discs", notes: "One line about it", packSize: "What is in the pack", price: 5, image: "images/refill-pack.jpg" },`. It gets its own card, goes in the bag as its own line, and is priced at its own `price`. Only the air fresheners count toward the bulk tiers; the bag says so when the shop sells anything else.
-- Every `id` must be different. To take a product off the shop, delete its line. A shopper who already had it in their bag simply sees it drop out.
+- The list holds the firm's products, from the product document: The Vine and The Dandelion (The First Sprout starter kit, hanging and vent clip), The Releaf, The Bloom, The Garden, the seed paper 10 pack, the two limited edition packs, the wooden box on its own, and the two refill subscriptions.
+- Each entry has: `id` (its own short name, different for every entry), `name`, `kicker` (the small line above the name), `notes` (a sentence or two, or `null` for none), `contents` (what is in the box, one line each), `price` (a number), and `image` (the photo).
+- `per: "month"` turns the price into "$7.99 a month" (the subscriptions).
+- `choice` gives the card one thing to pick, which is kept on the bag line and in the order: `{ label: "Edition", options: ["Hanging", "Vent clip"] }`, or `{ label: "Scent", from: "scents" }` to offer the names in the `scents` list. `images` can give a photo for each option.
+- To change a price or a description, edit it here. To sell something new, copy an entry, give it a new `id` and change the rest. To stop selling something, delete its entry; a shopper who had it in their bag simply sees it drop out.
 - The bag is shared: something added on the Shop page is in the bag on the home page and at checkout, and the other way round.
+- Because every product has its own price, the bag shows no bulk tier. (An older kind of entry, `{ id, scent: 0, format: "mirror" }`, sells a scent priced by the bulk tiers; the tier rows come back if one is ever added.)
+
+**scentRefill**: the `id` of the shop product a home page scent card adds to the bag, in that card's scent. It is The Releaf. Each scent's `price` and `packSize` describe that pack on the home card, so keep them in step with The Releaf.
+
+**packaging**: how orders are delivered, kept here for reference; the Shop page has the sentence typeset.
 
 **bulkTiers** (four entries, for firm orders)
 - `min`: the quantity where this tier starts. Leave as is unless the tiers change.

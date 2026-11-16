@@ -24,6 +24,25 @@
 .shop-card .card-title { font-size: 26px; margin-bottom: 6px; }
 .shop-format { margin-bottom: 10px; color: var(--moss); }
 .shop-card .card-meta { margin: 16px 0 18px; }
+/* a product of its own: the small line above its name, what is in the box, the one choice */
+.shop-kicker { color: var(--moss); margin-bottom: 6px; }
+.item-inside { margin-top: 14px; }
+.item-inside .kicker { color: var(--moss); margin-bottom: 6px; }
+.item-inside ul { list-style: none; padding: 0; display: grid; gap: 4px; }
+.item-inside li { position: relative; padding-left: 16px; font-size: 15px; line-height: 1.45; color: var(--ink); }
+.item-inside li::before { content: ""; position: absolute; left: 0; top: .62em; width: 6px; height: 6px; border-radius: 50%; background: var(--moss); }
+.price-per { font-size: 14px; opacity: .8; }
+.item-pick { border: 0; padding: 0; margin: 0 0 16px; display: flex; align-items: center; gap: 12px; }
+.item-pick legend { float: left; padding: 0; margin-right: 12px; color: var(--moss); line-height: 40px; }
+.item-choice {
+  flex: 1; min-width: 0; min-height: 40px; padding: 8px 34px 8px 14px;
+  font: 500 15px/1.2 var(--font-body); color: var(--ink);
+  background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4.5l4 4 4-4' fill='none' stroke='%23203419' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center / 12px;
+  border: 1.5px solid var(--paper-3); border-radius: var(--pill);
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+}
+.item-choice:hover { border-color: var(--moss); }
+.item-choice:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
 
 /* quantity and Add to bag sit at the foot of every card, lined up across the row */
 .shop-buy {
@@ -77,6 +96,8 @@ body.reduced .shop-card:hover .card-media img { transform: none; }
 }
 /* a finger needs bigger targets than a mouse */
 @media (pointer: coarse) {
+  .item-choice { min-height: 44px; }
+  .item-pick legend { line-height: 44px; }
   .shop-card .qty-btn { width: 44px; height: 44px; }
   .shop-card .qty-btn svg { width: 14px; height: 14px; }
   .shop-card .add-to-bag { min-height: 44px; }

@@ -162,3 +162,4 @@ body.co { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: 
 @media (prefers-reduced-motion: reduce) {
   .qty-btn, .line-remove, .add-to-bag { transition: none; }
 }
+.bag-totals > div[hidden], .bag-note[hidden] { display: none; }

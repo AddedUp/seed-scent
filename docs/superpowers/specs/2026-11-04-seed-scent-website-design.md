@@ -391,6 +391,18 @@ replaces the placeholder with no code change.
   tear-and-plant stage keeps its order), `plantingConfirmed` is true and
   `daysToSprout` is "10 to 14 days". With eight tabs the nav folds below 1220 px.
   `check-guide.mjs` covers it.
+- **Product line (2026-11-15).** The firm supplied its product document. The shop
+  list is now its eleven products with their prices (The Vine and The Dandelion at
+  $8.99, The Releaf $5.99, The Bloom $18.99, The Garden $28.99, seed paper 10 pack
+  $16.99, limited edition 3 pack $7.99 and 10 pack $19.99, wooden box $3.99, refill
+  subscriptions $7.99 and $12.99 a month). A product can carry one `choice` (scent for
+  The Releaf, hanging or vent clip for The Bloom and the wooden box), kept on the bag
+  line, and `per: "month"`. The scents are Lavender, Mint and Wildflower for now; a home
+  scent card adds The Releaf in its scent. With no tier-priced lines on the list the
+  bag and checkout hide the bulk tier rows. Kit scents are chosen by the firm and the
+  subscription is monthly, both the owner's calls. Photos: The Releaf and The Bloom are
+  cut from the document's mock-ups (the ones without the retired "PLANT ME" card), The
+  Garden and the two paper packs were generated. `check-products.mjs` covers it.
 - **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
   School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
   A filled-in fact that is a place to go becomes a link: the handle opens the
