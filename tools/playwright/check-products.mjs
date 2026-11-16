@@ -12,7 +12,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms))
 const WANT = [
   ['the-vine', 'The Vine', '$8.99'], ['the-dandelion', 'The Dandelion', '$8.99'], ['the-releaf', 'The Releaf', '$5.99'], ['the-releaf-monthly', 'The Releaf, Monthly', '$5.99 a month'],
   ['the-bloom', 'The Bloom', '$18.99'], ['the-garden', 'The Garden', '$28.99'], ['seed-paper-10', 'Seed Paper 10 Pack', '$16.99'],
-  ['limited-3', 'Limited Edition Seed Pack', '$7.99'], ['limited-10', 'Limited Edition Scent Pack', '$19.99'], ['wooden-box', 'Wooden Box', '$3.99'],
+  ['limited-5', 'Limited Edition Seed Pack', '$12.99'], ['wooden-box', 'Wooden Box', '$3.99'],
   ['subscription-5', 'Refill Subscription, 5 a Month', '$7.99 a month'], ['subscription-10', 'Refill Subscription, 10 a Month', '$12.99 a month'],
 ]
 const FIVE = ['Citrus Grove', 'Lavender', 'Vanilla', 'Linen', 'Wildflowers']
@@ -43,11 +43,11 @@ try {
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       tap: Math.min(...[...document.querySelectorAll('.item-choice, .shop-card .add-to-bag, .shop-card a.buy-ve')].map(e => e.getBoundingClientRect().height)),
     }))
-    check(`[${label}] twelve products, with the names and prices from the product document`, JSON.stringify(d.cards) === JSON.stringify(WANT), JSON.stringify(d.cards))
-    check(`[${label}] no placeholder chips, every card has its photo and what is inside`, d.chips === 0 && d.photos.shown === 12 && d.photos.labels === 0 && d.inside, JSON.stringify(d.photos))
+    check(`[${label}] eleven products, with the names and prices from the product document`, JSON.stringify(d.cards) === JSON.stringify(WANT), JSON.stringify(d.cards))
+    check(`[${label}] no placeholder chips, every card has its photo and what is inside`, d.chips === 0 && d.photos.shown === 11 && d.photos.labels === 0 && d.inside, JSON.stringify(d.photos))
     check(`[${label}] six products link to their buy buttons on the VE marketplace`, JSON.stringify(d.ve) === JSON.stringify(VE), JSON.stringify(d.ve))
     check(`[${label}] those buttons open a new tab, say where they go, and replace the bag controls`, d.veSafe && d.veNoBag)
-    check(`[${label}] the other six still go in the bag`, d.bagCards.join() === 'seed-paper-10,limited-3,limited-10,wooden-box,subscription-5,subscription-10', d.bagCards.join())
+    check(`[${label}] the other five still go in the bag`, d.bagCards.join() === 'seed-paper-10,limited-5,wooden-box,subscription-5,subscription-10', d.bagCards.join())
     check(`[${label}] The Vine, The Dandelion and The Releaf pick one of the five signature scents; The Bloom and the Wooden Box pick hanging or vent clip`, JSON.stringify(d.picks) === JSON.stringify({ 'the-vine': FIVE, 'the-dandelion': FIVE, 'the-releaf': FIVE, 'the-bloom': ['Hanging', 'Vent clip'], 'wooden-box': ['Hanging', 'Vent clip'] }), JSON.stringify(d.picks))
     check(`[${label}] no dashes, and never the retired words`, !/[–—]/.test(d.html) && !/plant me|earthscents/i.test(d.html), '')
     check(`[${label}] recycled cardboard boxes are mentioned`, /recycled cardboard box/i.test(d.text))
