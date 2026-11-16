@@ -209,7 +209,7 @@ body[data-theme="soil"] .tbc { color: var(--sage); }
   opacity: 0; transition: opacity .5s;
 }
 body:is([data-chapter="cards"], [data-chapter="inside"], [data-chapter="firms"], [data-chapter="about"], [data-chapter="finale"]) .nav::before { opacity: 1; }
-body:is([data-page="team"], [data-page="shop"]) .nav::before { opacity: 1; }   /* no chapters there: without the backing the page shows through the nav */
+body:is([data-page="team"], [data-page="shop"], [data-page="guide"], [data-page="wholesale"]) .nav::before { opacity: 1; }   /* no chapters there: without the backing the page shows through the nav */
 .brand { display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto; text-decoration: none; color: var(--fg); }
 .brand-mark { width: 30px; height: auto; }
 body[data-theme="soil"] .brand-mark { filter: brightness(0) saturate(100%) invert(96%) sepia(8%) saturate(400%) hue-rotate(10deg); }

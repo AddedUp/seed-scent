@@ -10,7 +10,7 @@ const sizes = {
   desktop: { viewport: { width: 1440, height: 900 } },
   phone: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
 }
-const stops = [['hero', 0], ['drive', 0.3], ['drive', 0.47], ['drive', 0.64], ['drive', 0.88], ['drive', 0.985], ['sprout', 0.6], ['sprout', 0.95], ['scents', 0.12], ['scents', 0.7], ['cards', 0.4], ['inside', 0.15], ['inside', 0.75], ['firms', 0.3], ['about', 0.5], ['finale', 1]]
+const stops = [['hero', 0], ['drive', 0.3], ['drive', 0.47], ['drive', 0.64], ['drive', 0.88], ['drive', 0.985], ['sprout', 0.6], ['sprout', 0.95], ['scents', 0.12], ['scents', 0.7], ['cards', 0.4], ['inside', 0.15], ['inside', 0.75], ['about', 0.5], ['finale', 1]]
 
 for (const [name, opts] of Object.entries(sizes)) {
   if (which !== 'all' && which !== name) continue

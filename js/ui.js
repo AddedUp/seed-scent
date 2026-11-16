@@ -113,7 +113,7 @@ export function fillPlaceholders() {
   const mp = document.getElementById('marketplace-link')
   if (mp) {
     if (CFG.marketplaceUrl) { mp.href = CFG.marketplaceUrl; mp.target = '_blank'; mp.rel = 'noopener' }
-    else { mp.setAttribute('aria-disabled', 'true'); mp.href = '#firms'; mp.tabIndex = -1 }
+    else { mp.setAttribute('aria-disabled', 'true'); mp.href = '#main'; mp.tabIndex = -1 }
   }
   const steps = cfg('product.plantingSteps')
   const list = document.getElementById('planting-steps')

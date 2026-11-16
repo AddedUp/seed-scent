@@ -57,7 +57,7 @@
     <a href="#drive" data-nav="drive">How it works</a>
     <a href="#scents" data-nav="scents">Scents</a>
     <a href="#inside" data-nav="inside">Inside</a>
-    <a href="#firms" data-nav="firms">For VE firms</a>
+    <a href="wholesale.html">Wholesale</a>
     <a href="shop.html">Shop</a>
     <a href="planting-guide.html">Planting</a>
     <a href="team.html">Team</a>
@@ -67,7 +67,7 @@
     <button class="text-btn menu-btn" id="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">Menu <span class="dot">··</span></button>
     <button class="text-btn" id="motion-toggle" type="button" aria-pressed="false">Pause motion</button>
     <button class="text-btn" id="bag-toggle" type="button" aria-controls="bag" aria-expanded="false">Bag (<span id="bag-count">0</span>)</button>
-    <a class="pill" href="#firms" data-magnetic>Order <span class="dot">·</span></a>
+    <a class="pill" href="shop.html" data-magnetic>Shop <span class="dot">·</span></a>
   </div>
 </header>
 
@@ -97,7 +97,7 @@
           <h1 class="display" data-split>The air freshener that doesn't end when the scent does.</h1>
           <p class="lede">A wooden holder, a disc of seed paper, natural essential oils and a plant-based fixative. Hang it, breathe it, then plant the paper.</p>
           <div class="actions">
-            <a class="pill" href="#firms" data-magnetic>Order for your firm <span class="dot">·</span></a>
+            <a class="pill" href="shop.html" data-magnetic>Shop now <span class="dot">·</span></a>
             <a class="pill ghost" href="#drive" data-magnetic>How it works</a>
           </div>
         </div>
@@ -285,75 +285,6 @@
     </div>
   </section>
 
-  <!-- 06 · For VE firms -->
-  <section class="ch ch-firms" id="firms" data-ch="firms">
-    <div class="wrap">
-      <div class="section-head">
-        <h2 class="display" data-split>Stock it in your store.</h2>
-        <p class="annotation">Built for firm-to-firm orders inside Virtual Enterprise: bulk tiers, one contact, three ways to buy.</p>
-      </div>
-
-      <div class="tiers-block">
-        <div class="tier-control">
-          <label class="kicker" for="qty-range">How many? <span class="tbc" data-tbc="tiersConfirmed">tiers tbc</span></label>
-          <output class="qty-out" id="qty-out" for="qty-range">24</output>
-          <input type="range" id="qty-range" min="1" max="200" value="24" step="1">
-          <p class="kicker soft" id="tier-note">Tiers and pricing are being finalized.</p>
-        </div>
-        <ol class="tiers" id="tiers">
-          <li class="tier" data-min="1"><span class="tier-qty">1 to 9</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.0.price">price</span> each</span></li>
-          <li class="tier" data-min="10"><span class="tier-qty">10+</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.1.price">price</span> each</span></li>
-          <li class="tier" data-min="50"><span class="tier-qty">50+</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.2.price">price</span> each</span></li>
-          <li class="tier" data-min="100"><span class="tier-qty">100+</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.3.price">price</span> each</span></li>
-        </ol>
-        <dl class="terms">
-          <div><dt>Lead time</dt><dd><span class="ph" data-ph="leadTime">lead time</span></dd></div>
-          <div><dt>Payment</dt><dd><span class="ph" data-ph="paymentTerms">payment terms</span></dd></div>
-        </dl>
-      </div>
-
-      <div class="ways">
-        <article class="way">
-          <p class="kicker">01 · Request an order</p>
-          <h3 class="way-title">Tell us what you need and we'll confirm it by email.</h3>
-          <form class="order-form" id="order-form" novalidate>
-            <div class="field"><label for="f-firm">Your firm</label><input id="f-firm" name="firm" type="text" autocomplete="organization" required></div>
-            <div class="field"><label for="f-name">Contact name</label><input id="f-name" name="name" type="text" autocomplete="name" required></div>
-            <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
-            <div class="field-row">
-              <div class="field"><label for="f-scent">Scent</label>
-                <select id="f-scent" name="scent">
-                  <option value="mix">A mix of all three</option>
-                  <option value="0">Scent one</option>
-                  <option value="1">Scent two</option>
-                  <option value="2">Scent three</option>
-                </select>
-              </div>
-              <div class="field"><label for="f-qty">Quantity</label><input id="f-qty" name="qty" type="number" min="1" max="10000" value="24" required></div>
-            </div>
-            <div class="field"><label for="f-notes">Notes</label><textarea id="f-notes" name="notes" rows="3" placeholder="Format, delivery date, anything else"></textarea></div>
-            <div class="form-actions">
-              <button class="pill" type="submit" data-magnetic>Send request <span class="dot">·</span></button>
-              <p class="kicker soft form-note">Opens an email to <span class="ph" data-ph="contact.email">contact email</span></p>
-            </div>
-            <div class="form-summary" id="form-summary" hidden></div>
-          </form>
-        </article>
-        <article class="way">
-          <p class="kicker">02 · VE marketplace</p>
-          <h3 class="way-title">Already shopping on the VE marketplace? Order from our store there.</h3>
-          <a class="pill" id="marketplace-link" href="#" data-magnetic>Shop on the VE marketplace <span class="dot">·</span></a>
-          <p class="kicker soft"><span class="ph" data-ph="marketplaceUrl">marketplace link</span></p>
-        </article>
-        <article class="way">
-          <p class="kicker">03 · Order here</p>
-          <h3 class="way-title">Add scents to your bag and check out on this site.</h3>
-          <button class="pill" type="button" id="open-bag" data-magnetic>Open the bag <span class="dot">·</span></button>
-          <p class="kicker soft">Bulk tiers apply automatically.</p>
-        </article>
-      </div>
-    </div>
-  </section>
 
   <!-- 07 · About -->
   <section class="ch ch-about" id="about" data-ch="about">
@@ -382,7 +313,7 @@
             <div><dt>Where</dt><dd><span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></dd></div>
             <div><dt>Instagram</dt><dd><span class="ph" data-ph="contact.instagram" data-link>instagram</span></dd></div>
           </dl>
-          <a class="pill" href="#firms" data-magnetic>Order <span class="dot">·</span></a>
+          <a class="pill" href="shop.html" data-magnetic>Shop <span class="dot">·</span></a>
         </div>
       </div>
     </div>

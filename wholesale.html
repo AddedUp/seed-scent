@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seed Scent · Wholesale</title>
+<meta name="description" content="Wholesale and firm to firm orders from Seed Scent, a Virtual Enterprise company: bulk tiers, an order request form and the VE marketplace.">
+<meta name="theme-color" content="#fbf6e5">
+<link rel="canonical" href="https://seedscent.com/wholesale.html">
+<link rel="icon" type="image/png" href="brand/favicon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/sections.css">
+<link rel="stylesheet" href="css/cart.css">
+<link rel="stylesheet" href="css/team.css">
+<link rel="stylesheet" href="css/wholesale.css">
+<!-- Everything is served locally so the site works offline on a booth laptop. -->
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/SplitText.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="js/config.js"></script>
+</head>
+<body data-theme="cream" data-page="wholesale">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <a class="brand" href="index.html" aria-label="Seed Scent, back to the home page">
+    <img class="brand-mark" src="brand/mark-ss.png" alt="">
+    <span class="brand-name">Seed Scent</span>
+  </a>
+  <nav class="nav-links" id="nav-links" aria-label="Sections">
+    <a href="index.html#drive">How it works</a>
+    <a href="index.html#scents">Scents</a>
+    <a href="index.html#inside">Inside</a>
+    <a href="wholesale.html" class="active" aria-current="page">Wholesale</a>
+    <a href="shop.html">Shop</a>
+    <a href="planting-guide.html">Planting</a>
+    <a href="team.html">Team</a>
+    <a href="index.html#contact">Contact</a>
+  </nav>
+  <div class="nav-actions">
+    <button class="text-btn menu-btn" id="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">Menu <span class="dot">··</span></button>
+    <button class="text-btn" id="motion-toggle" type="button" aria-pressed="false">Pause motion</button>
+    <button class="text-btn" id="bag-toggle" type="button" aria-controls="bag" aria-expanded="false">Bag (<span id="bag-count">0</span>)</button>
+    <a class="pill" href="shop.html" data-magnetic>Shop <span class="dot">·</span></a>
+  </div>
+</header>
+
+<main id="main" class="page wholesale-page">
+
+  <!-- For VE firms: moved here from the home page as it was, to be revisited -->
+  <section class="ch-firms wholesale-sec" id="firms" aria-labelledby="wholesale-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h1 class="display" id="wholesale-title" data-split>Stock it in your store.</h1>
+        <p class="annotation">Built for firm-to-firm orders inside Virtual Enterprise: bulk tiers, one contact, three ways to buy.</p>
+      </div>
+
+      <div class="tiers-block">
+        <div class="tier-control">
+          <label class="kicker" for="qty-range">How many? <span class="tbc" data-tbc="tiersConfirmed">tiers tbc</span></label>
+          <output class="qty-out" id="qty-out" for="qty-range">24</output>
+          <input type="range" id="qty-range" min="1" max="200" value="24" step="1">
+          <p class="kicker soft" id="tier-note">Tiers and pricing are being finalized.</p>
+        </div>
+        <ol class="tiers" id="tiers">
+          <li class="tier" data-min="1"><span class="tier-qty">1 to 9</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.0.price">price</span> each</span></li>
+          <li class="tier" data-min="10"><span class="tier-qty">10+</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.1.price">price</span> each</span></li>
+          <li class="tier" data-min="50"><span class="tier-qty">50+</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.2.price">price</span> each</span></li>
+          <li class="tier" data-min="100"><span class="tier-qty">100+</span><span class="tier-price"><span class="ph price" data-ph="bulkTiers.3.price">price</span> each</span></li>
+        </ol>
+        <dl class="terms">
+          <div><dt>Lead time</dt><dd><span class="ph" data-ph="leadTime">lead time</span></dd></div>
+          <div><dt>Payment</dt><dd><span class="ph" data-ph="paymentTerms">payment terms</span></dd></div>
+        </dl>
+      </div>
+
+      <div class="ways">
+        <article class="way">
+          <p class="kicker">01 · Request an order</p>
+          <h3 class="way-title">Tell us what you need and we'll confirm it by email.</h3>
+          <form class="order-form" id="order-form" novalidate>
+            <div class="field"><label for="f-firm">Your firm</label><input id="f-firm" name="firm" type="text" autocomplete="organization" required></div>
+            <div class="field"><label for="f-name">Contact name</label><input id="f-name" name="name" type="text" autocomplete="name" required></div>
+            <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
+            <div class="field-row">
+              <div class="field"><label for="f-scent">Scent</label>
+                <select id="f-scent" name="scent">
+                  <option value="mix">A mix of all three</option>
+                  <option value="0">Scent one</option>
+                  <option value="1">Scent two</option>
+                  <option value="2">Scent three</option>
+                </select>
+              </div>
+              <div class="field"><label for="f-qty">Quantity</label><input id="f-qty" name="qty" type="number" min="1" max="10000" value="24" required></div>
+            </div>
+            <div class="field"><label for="f-notes">Notes</label><textarea id="f-notes" name="notes" rows="3" placeholder="Format, delivery date, anything else"></textarea></div>
+            <div class="form-actions">
+              <button class="pill" type="submit" data-magnetic>Send request <span class="dot">·</span></button>
+              <p class="kicker soft form-note">Opens an email to <span class="ph" data-ph="contact.email">contact email</span></p>
+            </div>
+            <div class="form-summary" id="form-summary" hidden></div>
+          </form>
+        </article>
+        <article class="way">
+          <p class="kicker">02 · VE marketplace</p>
+          <h3 class="way-title">Already shopping on the VE marketplace? Order from our store there.</h3>
+          <a class="pill" id="marketplace-link" href="#" data-magnetic>Shop on the VE marketplace <span class="dot">·</span></a>
+          <p class="kicker soft"><span class="ph" data-ph="marketplaceUrl">marketplace link</span></p>
+        </article>
+        <article class="way">
+          <p class="kicker">03 · Order here</p>
+          <h3 class="way-title">Add scents to your bag and check out on this site.</h3>
+          <button class="pill" type="button" id="open-bag" data-magnetic>Open the bag <span class="dot">·</span></button>
+          <p class="kicker soft">Bulk tiers apply automatically.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap team-foot">
+    <footer class="footer">
+      <p>A Virtual Enterprise company</p>
+      <p class="school-line"><span class="sl-a"><span class="ph" data-ph="school.name">school</span></span><span class="sl-b"><span class="sl-dot"> · </span><span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></span></p>
+      <p>Smells great. Leaves eventually.</p>
+    </footer>
+  </div>
+</main>
+
+<!-- Bag drawer: the same one as the home page, sharing the saved bag -->
+<aside class="bag" id="bag" aria-hidden="true" aria-label="Your bag">
+  <div class="bag-head">
+    <p class="kicker">Your bag</p>
+    <button class="text-btn" id="bag-close" type="button">Close</button>
+  </div>
+  <ul class="bag-lines" id="bag-lines"></ul>
+  <p class="bag-empty" id="bag-empty">Nothing in the bag yet.</p>
+  <div class="bag-foot">
+    <dl class="bag-totals">
+      <div><dt>Units</dt><dd id="bag-units">0</dd></div>
+      <div><dt>Tier</dt><dd id="bag-tier">1 to 9 <span class="tbc" data-tbc="tiersConfirmed">tbc</span></dd></div>
+      <div><dt>Total</dt><dd id="bag-total"><span class="ph">total</span></dd></div>
+    </dl>
+    <a class="pill" href="checkout.html" id="bag-checkout" data-magnetic>Check out <span class="dot">·</span></a>
+  </div>
+</aside>
+<div class="scrim" id="scrim" hidden></div>
+
+<noscript><p class="noscript">This page needs JavaScript to show the order form and the bag. Email the team with your order instead.</p></noscript>
+
+<script type="module" src="js/wholesale.js"></script>
+</body>
+</html>

@@ -403,6 +403,12 @@ replaces the placeholder with no code change.
   subscription is monthly, both the owner's calls. Photos: The Releaf and The Bloom are
   cut from the document's mock-ups (the ones without the retired "PLANT ME" card), The
   Garden and the two paper packs were generated. `check-products.mjs` covers it.
+- **Wholesale page (2026-11-15).** The owner asked for the firm to firm section to
+  leave the home page and wait on a page of its own. `wholesale.html` holds it
+  unchanged (tier slider, order request form, marketplace, open the bag), run by the
+  same `sections.js` and `cart.js`. The home page has eight chapters now; the nav tab
+  reads Wholesale and the Order pills became Shop pills. Its wording still describes
+  the old tier-priced bag ("Bulk tiers apply automatically"): to revisit.
 - **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
   School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
   A filled-in fact that is a place to go becomes a link: the handle opens the

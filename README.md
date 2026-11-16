@@ -9,10 +9,10 @@ about a minute, see section 4). The old address
 https://addedup.github.io/seed-scent/ and www.seedscent.com both forward to it.
 
 **What it is:** one long home page that tells the story of the plantable car
-air freshener (hang it, breathe, it fades, plant it), shows the three scents,
-the spec sheet, bulk tiers and three ways for other VE firms to order, plus a
+air freshener (hang it, breathe, it fades, plant it), shows the three scents
+and the spec sheet, plus a
 Shop page (`shop.html`) with every product in one place, a Planting guide
-(`planting-guide.html`), a Team page (`team.html`) and a checkout page
+(`planting-guide.html`), a Wholesale page (`wholesale.html`: bulk tiers and three ways for other VE firms to order), a Team page (`team.html`) and a checkout page
 (`checkout.html`). It is built for
 other Virtual Enterprise firms first, and for competition judges second.
 
@@ -355,7 +355,7 @@ or one that is not usable as typed.
 
 ## What is in the folder
 
-- `index.html`, `shop.html`, `planting-guide.html`, `team.html`, `checkout.html`: the pages. The planting guide's words are written in `planting-guide.html` itself (edit them there); its Print button prints just the guide.
+- `index.html`, `shop.html`, `planting-guide.html`, `wholesale.html`, `team.html`, `checkout.html`: the pages. `wholesale.html` holds the firm to firm section (bulk tiers, order request form, VE marketplace) that used to sit on the home page; it was moved as it was and is waiting to be revisited. The planting guide's words are written in `planting-guide.html` itself (edit them there); its Print button prints just the guide.
 - `js/config.js`: the facts. The only file most people ever edit.
 - `images/`: photos. Drop files in, see section 3.
 - `brand/`: logo cut-outs from the brand deck. Do not recolour or stretch them.

@@ -1,0 +1,7 @@
+/* ==========================================================================
+   Seed Scent · wholesale page
+   The firms section as it stood on the home page (styles in site.css and
+   sections.css), given room under the fixed nav on a page of its own.
+   ========================================================================== */
+.wholesale-page { padding-bottom: 36px; }
+.wholesale-sec .wrap { padding-top: calc(var(--nav-h) + 6vh); padding-bottom: 8vh; }

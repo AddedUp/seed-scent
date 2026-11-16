@@ -152,7 +152,9 @@ expect('index.escape.closed', await page.locator('#bag').evaluate(el => !el.clas
 expect('index.scrim.hidden', await page.locator('#scrim').evaluate(el => el.hidden), true)
 expect('index.focus.back', await active(page), 'bag-toggle')
 
-// "Open the bag" in the firms section: Escape returns focus to that opener, scrim click closes
+// "Open the bag" in the firms section, which now lives on wholesale.html with the same drawer:
+// Escape returns focus to that opener, scrim click closes
+await page.goto(`${BASE}/wholesale.html?bust=${bust}`, { waitUntil: 'load' }); await ready(page)
 await page.locator('#open-bag').click()
 await page.waitForSelector('#bag.open'); await page.waitForTimeout(800)
 await page.keyboard.press('Escape'); await page.waitForTimeout(800)
