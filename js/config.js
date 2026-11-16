@@ -15,7 +15,7 @@ window.SEED_SCENT = {
 
   /* Who to contact. The order form and checkout email go to contact.email. */
   contact: {
-    email: null,            // e.g. "orders@seedscent.com"
+    email: "seedscent.ny@gmail.com",
     phone: null,
     instagram: "seedscent.ve",   // the handle; the business card links it to instagram.com/<handle>/
     tiktok: null,
