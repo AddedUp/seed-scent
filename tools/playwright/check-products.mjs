@@ -15,6 +15,7 @@ const WANT = [
   ['limited-3', 'Limited Edition Seed Pack', '$7.99'], ['limited-10', 'Limited Edition Scent Pack', '$19.99'], ['wooden-box', 'Wooden Box', '$3.99'],
   ['subscription-5', 'Refill Subscription, 5 a Month', '$7.99 a month'], ['subscription-10', 'Refill Subscription, 10 a Month', '$12.99 a month'],
 ]
+const FIVE = ['Citrus Grove', 'Lavender', 'Vanilla', 'Linen', 'Wildflowers']
 const BTN = 'https://portal.veinternational.org/buybuttons/us0111040/btn/'
 const VE = {
   'the-vine': BTN + 'the-first-sprout-1010101/', 'the-dandelion': BTN + 'the-first-sprout-1010101/',
@@ -47,7 +48,7 @@ try {
     check(`[${label}] six products link to their buy buttons on the VE marketplace`, JSON.stringify(d.ve) === JSON.stringify(VE), JSON.stringify(d.ve))
     check(`[${label}] those buttons open a new tab, say where they go, and replace the bag controls`, d.veSafe && d.veNoBag)
     check(`[${label}] the other six still go in the bag`, d.bagCards.join() === 'seed-paper-10,limited-3,limited-10,wooden-box,subscription-5,subscription-10', d.bagCards.join())
-    check(`[${label}] the Wooden Box picks hanging or vent clip`, JSON.stringify(d.picks) === JSON.stringify({ 'wooden-box': ['Hanging', 'Vent clip'] }), JSON.stringify(d.picks))
+    check(`[${label}] The Vine, The Dandelion and The Releaf pick one of the five signature scents; The Bloom and the Wooden Box pick hanging or vent clip`, JSON.stringify(d.picks) === JSON.stringify({ 'the-vine': FIVE, 'the-dandelion': FIVE, 'the-releaf': FIVE, 'the-bloom': ['Hanging', 'Vent clip'], 'wooden-box': ['Hanging', 'Vent clip'] }), JSON.stringify(d.picks))
     check(`[${label}] no dashes, and never the retired words`, !/[–—]/.test(d.html) && !/plant me|earthscents/i.test(d.html), '')
     check(`[${label}] recycled cardboard boxes are mentioned`, /recycled cardboard box/i.test(d.text))
     check(`[${label}] no sideways scroll`, d.overflow <= 0, `${d.overflow}px`)

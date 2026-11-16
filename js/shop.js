@@ -80,7 +80,7 @@ function cardHtml(p, n) {
       ${notes}
       ${inside}
       ${meta}
-      ${ve ? `<div class="shop-buy shop-buy-ve">
+      ${ve ? `${own ? choiceHtml(p, t) : ''}<div class="shop-buy shop-buy-ve">
         <a class="pill small buy-ve" href="${escapeHtml(ve)}" target="_blank" rel="noopener" aria-describedby="${t}-title">Buy on the VE marketplace <span class="dot">·</span></a>
         <p class="kicker soft">Opens the VE marketplace in a new tab</p>
       </div>` : `${own ? choiceHtml(p, t) : ''}

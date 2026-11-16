@@ -6,6 +6,9 @@
    Photos are plain files: drop them into images/ with the names below
    and they replace the placeholders automatically.
    ------------------------------------------------------------------ */
+/* The five signature scents, offered in the scent picker on The Vine and The Dandelion. */
+const signatureScents = ["Citrus Grove", "Lavender", "Vanilla", "Linen", "Wildflowers"];
+
 window.SEED_SCENT = {
   brand: {
     name: "Seed Scent",
@@ -70,18 +73,18 @@ window.SEED_SCENT = {
     { id: "the-vine", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-first-sprout-1010101/",
       name: "The Vine", kicker: "The First Sprout · hanging edition",
       notes: "A premium starter kit for those who want to make a change. This classic hangs from your rearview mirror.",
-      contents: ["1 reusable wooden box, hanging", "3 seed papers, scents chosen for you"],
-      price: 8.99, image: "images/product-mirror-1.jpg" },
+      contents: ["1 reusable wooden box, hanging", "3 seed papers in the scent you pick"],
+      price: 8.99, image: "images/product-mirror-1.jpg", choice: { label: "Scent", options: signatureScents } },
     { id: "the-dandelion", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-first-sprout-1010101/",
       name: "The Dandelion", kicker: "The First Sprout · vent clip edition",
       notes: "A premium starter kit for those who want to make a change. This classic clips on to your interior car vents.",
-      contents: ["1 reusable wooden box, vent clip", "3 seed papers, scents chosen for you"],
-      price: 8.99, image: "images/product-vent-clip.jpg" },
+      contents: ["1 reusable wooden box, vent clip", "3 seed papers in the scent you pick"],
+      price: 8.99, image: "images/product-vent-clip.jpg", choice: { label: "Scent", options: signatureScents } },
     { id: "the-releaf", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-2020202/",
       name: "The Releaf", kicker: "Custom refill pack",
       notes: "Refills only. Buy a set of seed paper with the scent of your choice. The sustainable option.",
       contents: ["3 seed papers in the scent you pick"],
-      price: 5.99, image: "images/product-releaf.jpg", choice: { label: "Scent", from: "scents" } },
+      price: 5.99, image: "images/product-releaf.jpg", choice: { label: "Scent", options: signatureScents } },
     { id: "the-releaf-monthly", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-2525252/",
       name: "The Releaf, Monthly", kicker: "Monthly refill plan",
       notes: "The Releaf on a monthly plan. Paid monthly on the VE marketplace, 12 payments in all.",
