@@ -51,7 +51,7 @@ function contentsHtml(p) {
 function cardHtml(p, n) {
   const d = describe(p), id = escapeHtml(String(p.id)), t = `item-${n}`
   const own = p.scent == null
-  const ve = own ? veLink(p) : null
+  const ve = own ? veLink(p, itemOptions(p)[0] ?? null) : null   // the link for the option shown first
   const format = d.format
     ? `<p class="kicker shop-format" id="${t}-format">${d.format} <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></p>`
     : ''
@@ -101,6 +101,9 @@ function initChoicePhotos(items) {
   list.addEventListener('change', e => {
     const sel = e.target.closest('.item-choice'); if (!sel) return
     const card = sel.closest('[data-item-card]'), p = items.find(x => String(x.id) === card.dataset.itemCard)
+    // sold on the VE marketplace with a buy button per option: the button follows the pick
+    const buy = card.querySelector('a.buy-ve'), link = p ? veLink(p, sel.value) : null
+    if (buy && link) buy.href = link
     const src = p && p.images && typeof p.images === 'object' ? p.images[sel.value] : null
     const img = card.querySelector('img.slot')
     if (!src || !img || img.hidden) return

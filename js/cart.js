@@ -92,8 +92,9 @@ export function itemOptions(p) {
 const pickOption = (p, o) => { const opts = itemOptions(p); return !opts.length ? null : opts.includes(o) ? o : opts[0] }
 /* A product sold on the VE marketplace carries veUrl, the shopper's link to its buy button there.
    Only a full https address counts; anything else is ignored and the product stays in the bag flow. */
-export function veLink(p) {
-  const u = p && typeof p.veUrl === 'string' ? p.veUrl.trim() : ''
+export function veLink(p, option = null) {
+  const per = p && p.veUrls && typeof p.veUrls === 'object' && option != null ? p.veUrls[option] : null
+  const u = typeof per === 'string' && per.trim() ? per.trim() : p && typeof p.veUrl === 'string' ? p.veUrl.trim() : ''
   if (!u.toLowerCase().startsWith('https://')) return null
   try { return new URL(u).href } catch { return null }
 }

@@ -68,14 +68,31 @@ window.SEED_SCENT = {
        veUrl     the shopper's link to this product's buy button on the VE marketplace (starts with
                  https://). With one, the card's button becomes "Buy on the VE marketplace" and the
                  product is not added to the bag here. Leave it out to keep Add to bag.
+       veUrls    a buy button link for each option of the choice, when the marketplace has one
+                 per option: { "Lavender": "https://...", ... }. The button follows the pick;
+                 an option without a link of its own uses veUrl.
      To sell something new, copy an entry, give it a new id and change the rest. */
   shop: [
     { id: "the-vine", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-first-sprout-1010101/",
+      veUrls: {
+        "Citrus Grove": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-vine-citrus-grove-11011/",
+        "Lavender": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-vine-lavender-11012/",
+        "Vanilla": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-vine-vanilla-11013/",
+        "Linen": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-vine-linen-11014/",
+        "Wildflowers": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-vine-wildflowers-11015/",
+      },
       name: "The Vine", kicker: "The First Sprout · hanging edition",
       notes: "A premium starter kit for those who want to make a change. This classic hangs from your rearview mirror.",
       contents: ["1 reusable wooden box, hanging", "3 seed papers in the scent you pick"],
       price: 8.99, image: "images/product-mirror-1.jpg", choice: { label: "Scent", options: signatureScents } },
     { id: "the-dandelion", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-first-sprout-1010101/",
+      veUrls: {
+        "Citrus Grove": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-dandelion-citrus-grove-12011/",
+        "Lavender": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-dandelion-lavender-12012/",
+        "Vanilla": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-dandelion-vanilla-12013/",
+        "Linen": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-dandelion-linen-12014/",
+        "Wildflowers": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-dandelion-wildflowers-12015/",
+      },
       name: "The Dandelion", kicker: "The First Sprout · vent clip edition",
       notes: "A premium starter kit for those who want to make a change. This classic clips on to your interior car vents.",
       contents: ["1 reusable wooden box, vent clip", "3 seed papers in the scent you pick"],

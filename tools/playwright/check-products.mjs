@@ -18,7 +18,7 @@ const WANT = [
 const FIVE = ['Citrus Grove', 'Lavender', 'Vanilla', 'Linen', 'Wildflowers']
 const BTN = 'https://portal.veinternational.org/buybuttons/us0111040/btn/'
 const VE = {
-  'the-vine': BTN + 'the-first-sprout-1010101/', 'the-dandelion': BTN + 'the-first-sprout-1010101/',
+  'the-vine': BTN + 'the-vine-citrus-grove-11011/', 'the-dandelion': BTN + 'the-dandelion-citrus-grove-12011/',   // the scent shown first
   'the-releaf': BTN + 'the-releaf-2020202/', 'the-releaf-monthly': BTN + 'the-releaf-2525252/', 'the-bloom': BTN + 'the-bloom-3030303/', 'the-garden': BTN + 'the-garden-4040404/',
 }
 const browser = await chromium.launch()
@@ -53,6 +53,18 @@ try {
     check(`[${label}] recycled cardboard boxes are mentioned`, /recycled cardboard box/i.test(d.text))
     check(`[${label}] no sideways scroll`, d.overflow <= 0, `${d.overflow}px`)
     if (label === 'phone') check('[phone] pickers and buttons are at least 44px', d.tap >= 44, `${d.tap}px`)
+
+    // each scent of The Vine and The Dandelion has its own buy button on the marketplace
+    const SLUG = { 'Citrus Grove': 'citrus-grove', Lavender: 'lavender', Vanilla: 'vanilla', Linen: 'linen', Wildflowers: 'wildflowers' }
+    const got = {}, want = {}
+    for (const [id, base] of [['the-vine', 11010], ['the-dandelion', 12010]]) {
+      for (const [i, sc] of FIVE.entries()) {
+        await page.selectOption(`[data-item-card="${id}"] .item-choice`, sc)
+        got[`${id} ${sc}`] = await page.getAttribute(`[data-item-card="${id}"] a.buy-ve`, 'href')
+        want[`${id} ${sc}`] = `${BTN}${id}-${SLUG[sc]}-${base + i + 1}/`
+      }
+    }
+    check(`[${label}] picking a scent on The Vine or The Dandelion points the button at that scent's buy button`, JSON.stringify(got) === JSON.stringify(want), JSON.stringify(got).slice(0, 300))
 
     await page.evaluate(() => window.__dbg.bagClear())
     await page.selectOption('[data-item-card="wooden-box"] .item-choice', 'Vent clip'); await sleep(600)
