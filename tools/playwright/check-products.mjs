@@ -10,7 +10,7 @@ let fails = 0, passes = 0
 const check = (name, ok, detail = '') => { ok ? passes++ : fails++; console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  :: ' + detail : ''}`) }
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 const WANT = [
-  ['the-vine', 'The Vine', '$8.99'], ['the-dandelion', 'The Dandelion', '$8.99'], ['the-releaf', 'The Releaf', '$5.99'],
+  ['the-vine', 'The Vine', '$8.99'], ['the-dandelion', 'The Dandelion', '$8.99'], ['the-releaf', 'The Releaf', '$5.99'], ['the-releaf-monthly', 'The Releaf, Monthly', '$5.99 a month'],
   ['the-bloom', 'The Bloom', '$18.99'], ['the-garden', 'The Garden', '$28.99'], ['seed-paper-10', 'Seed Paper 10 Pack', '$16.99'],
   ['limited-3', 'Limited Edition Seed Pack', '$7.99'], ['limited-10', 'Limited Edition Scent Pack', '$19.99'], ['wooden-box', 'Wooden Box', '$3.99'],
   ['subscription-5', 'Refill Subscription, 5 a Month', '$7.99 a month'], ['subscription-10', 'Refill Subscription, 10 a Month', '$12.99 a month'],
@@ -18,7 +18,7 @@ const WANT = [
 const BTN = 'https://portal.veinternational.org/buybuttons/us0111040/btn/'
 const VE = {
   'the-vine': BTN + 'the-first-sprout-1010101/', 'the-dandelion': BTN + 'the-first-sprout-1010101/',
-  'the-releaf': BTN + 'the-releaf-2020202/', 'the-bloom': BTN + 'the-bloom-3030303/', 'the-garden': BTN + 'the-garden-4040404/',
+  'the-releaf': BTN + 'the-releaf-2020202/', 'the-releaf-monthly': BTN + 'the-releaf-2525252/', 'the-bloom': BTN + 'the-bloom-3030303/', 'the-garden': BTN + 'the-garden-4040404/',
 }
 const browser = await chromium.launch()
 try {
@@ -42,9 +42,9 @@ try {
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       tap: Math.min(...[...document.querySelectorAll('.item-choice, .shop-card .add-to-bag, .shop-card a.buy-ve')].map(e => e.getBoundingClientRect().height)),
     }))
-    check(`[${label}] eleven products, with the names and prices from the product document`, JSON.stringify(d.cards) === JSON.stringify(WANT), JSON.stringify(d.cards))
-    check(`[${label}] no placeholder chips, every card has its photo and what is inside`, d.chips === 0 && d.photos.shown === 11 && d.photos.labels === 0 && d.inside, JSON.stringify(d.photos))
-    check(`[${label}] five products link to their buy buttons on the VE marketplace`, JSON.stringify(d.ve) === JSON.stringify(VE), JSON.stringify(d.ve))
+    check(`[${label}] twelve products, with the names and prices from the product document`, JSON.stringify(d.cards) === JSON.stringify(WANT), JSON.stringify(d.cards))
+    check(`[${label}] no placeholder chips, every card has its photo and what is inside`, d.chips === 0 && d.photos.shown === 12 && d.photos.labels === 0 && d.inside, JSON.stringify(d.photos))
+    check(`[${label}] six products link to their buy buttons on the VE marketplace`, JSON.stringify(d.ve) === JSON.stringify(VE), JSON.stringify(d.ve))
     check(`[${label}] those buttons open a new tab, say where they go, and replace the bag controls`, d.veSafe && d.veNoBag)
     check(`[${label}] the other six still go in the bag`, d.bagCards.join() === 'seed-paper-10,limited-3,limited-10,wooden-box,subscription-5,subscription-10', d.bagCards.join())
     check(`[${label}] the Wooden Box picks hanging or vent clip`, JSON.stringify(d.picks) === JSON.stringify({ 'wooden-box': ['Hanging', 'Vent clip'] }), JSON.stringify(d.picks))
