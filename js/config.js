@@ -62,6 +62,9 @@ window.SEED_SCENT = {
                    { label: "Edition", options: ["Hanging", "Vent clip"] }
                    { label: "Scent", from: "scents" }     (the names in the scents list above)
        images    a photo for each option, when they differ: { "Hanging": "...", "Vent clip": "..." }
+       veUrl     the shopper's link to this product's buy button on the VE marketplace (starts with
+                 https://). With one, the card's button becomes "Buy on the VE marketplace" and the
+                 product is not added to the bag here. Leave it out to keep Add to bag.
      To sell something new, copy an entry, give it a new id and change the rest. */
   shop: [
     { id: "the-vine", name: "The Vine", kicker: "The First Sprout · hanging edition",

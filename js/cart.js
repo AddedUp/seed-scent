@@ -90,6 +90,13 @@ export function itemOptions(p) {
   return (Array.isArray(c.options) ? c.options : []).map(o => str(o)).filter(Boolean)
 }
 const pickOption = (p, o) => { const opts = itemOptions(p); return !opts.length ? null : opts.includes(o) ? o : opts[0] }
+/* A product sold on the VE marketplace carries veUrl, the shopper's link to its buy button there.
+   Only a full https address counts; anything else is ignored and the product stays in the bag flow. */
+export function veLink(p) {
+  const u = p && typeof p.veUrl === 'string' ? p.veUrl.trim() : ''
+  if (!u.toLowerCase().startsWith('https://')) return null
+  try { return new URL(u).href } catch { return null }
+}
 /* "$7.99 a month" for a subscription (per: "month"), "$8.99 each" otherwise */
 const perText = p => (p && str(p.per) ? ` a ${p.per}` : ' each')
 
@@ -357,12 +364,16 @@ function acknowledge(btn, added) {
   bump($('#bag-toggle'))
 }
 function initAddButtons() {
+  // when the refill pack is sold on the VE marketplace, the scent cards say so before the press
+  const ve = veLink(extraItem(cfg('scentRefill')))
+  if (ve) $$('.add-to-bag[data-add]').forEach(btn => { btn.innerHTML = 'Buy on VE <span class="dot">·</span>'; btn.setAttribute('aria-label', 'Buy on the VE marketplace (opens in a new tab)') })
   $$('.add-to-bag[data-add]').forEach(btn => btn.addEventListener('click', () => {
     const i = Number(btn.dataset.add)
     if (!scents()[i]) return
     // when the shop sells refills by scent (config scentRefill names that product), a scent
     // card adds those refills in its scent
     const refill = extraItem(cfg('scentRefill'))
+    if (refill && veLink(refill)) { window.open(veLink(refill), '_blank', 'noopener'); return }
     if (refill) { addItem(refill.id, 1, itemOptions(refill)[i]); acknowledge(btn, 1); return }
     const picked = $(`input[name="format-${i}"]:checked`)
     const format = picked && isFormat(picked.value) ? picked.value : 'mirror'

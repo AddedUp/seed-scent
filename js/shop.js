@@ -3,7 +3,7 @@
    the home page uses, so the bag is shared. Shares scroll.js and ui.js with the other pages. */
 import { lenis, motion, prefersReduced } from './scroll.js'
 import { cfg, escapeHtml, fillPlaceholders, fillSlots, initSplit, fontsSettled, resplitWhenFontsArrive, initMagnetic, initMotionToggle, initMenu } from './ui.js'
-import { shopList, itemOptions, MAX_QTY } from './cart.js'
+import { shopList, itemOptions, veLink, MAX_QTY } from './cart.js'
 
 const pad = n => String(n).padStart(2, '0')
 const WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
@@ -51,6 +51,7 @@ function contentsHtml(p) {
 function cardHtml(p, n) {
   const d = describe(p), id = escapeHtml(String(p.id)), t = `item-${n}`
   const own = p.scent == null
+  const ve = own ? veLink(p) : null
   const format = d.format
     ? `<p class="kicker shop-format" id="${t}-format">${d.format} <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></p>`
     : ''
@@ -79,7 +80,10 @@ function cardHtml(p, n) {
       ${notes}
       ${inside}
       ${meta}
-      ${own ? choiceHtml(p, t) : ''}
+      ${ve ? `<div class="shop-buy shop-buy-ve">
+        <a class="pill small buy-ve" href="${escapeHtml(ve)}" target="_blank" rel="noopener" aria-describedby="${t}-title">Buy on the VE marketplace <span class="dot">·</span></a>
+        <p class="kicker soft">Opens the VE marketplace in a new tab</p>
+      </div>` : `${own ? choiceHtml(p, t) : ''}
       <div class="shop-buy">
         <div class="qty" role="group" aria-label="How many, ${escapeHtml(d.label)}">
           <button class="qty-btn" type="button" data-step="-1" aria-label="One fewer" disabled>${ICON.minus}</button>
@@ -87,7 +91,7 @@ function cardHtml(p, n) {
           <button class="qty-btn" type="button" data-step="1" aria-label="One more">${ICON.plus}</button>
         </div>
         <button class="pill small add-to-bag" type="button" data-item="${id}" aria-describedby="${t}-title${d.format ? ` ${t}-format` : ''}">Add to bag <span class="dot">·</span></button>
-      </div>
+      </div>`}
     </li>`
 }
 
@@ -126,6 +130,7 @@ function clampQty(v) {
 }
 function syncStepper(card) {
   const field = card.querySelector('.qty-num'), [dec, inc] = card.querySelectorAll('[data-step]')
+  if (!field) return   // sold on the VE marketplace: no quantity here
   const n = clampQty(field.value)
   if (dec) dec.disabled = n <= 1
   if (inc) inc.disabled = n >= MAX_QTY

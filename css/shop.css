@@ -102,3 +102,7 @@ body.reduced .shop-card:hover .card-media img { transform: none; }
   .shop-card .qty-btn svg { width: 14px; height: 14px; }
   .shop-card .add-to-bag { min-height: 44px; }
 }
+
+/* a product sold on the VE marketplace: one button that leaves for the marketplace */
+.shop-buy-ve { display: grid; gap: 8px; justify-items: start; }
+.shop-buy-ve .buy-ve { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; }
