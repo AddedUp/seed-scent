@@ -19,7 +19,7 @@ const FIVE = ['Citrus Grove', 'Lavender', 'Vanilla', 'Linen', 'Wildflowers']
 const BTN = 'https://portal.veinternational.org/buybuttons/us0111040/btn/'
 const VE = {
   'the-vine': BTN + 'the-vine-citrus-grove-11011/', 'the-dandelion': BTN + 'the-dandelion-citrus-grove-12011/',   // the scent shown first
-  'the-releaf': BTN + 'the-releaf-2020202/', 'the-bloom': BTN + 'the-bloom-vent-clip-13012/', 'the-garden': BTN + 'the-garden-4040404/',
+  'the-releaf': BTN + 'the-releaf-citrus-grove-16011/', 'the-bloom': BTN + 'the-bloom-vent-clip-13012/', 'the-garden': BTN + 'the-garden-4040404/',
   'limited-5': BTN + 'limited-edition-seed-pack-14011/', 'wooden-box': BTN + 'wooden-box-hanging-15011/', 'subscription-5': BTN + 'refill-subscription-5-a-month-90234/', 'subscription-10': BTN + 'refill-subscription-10-a-month-95821/',
 }
 const browser = await chromium.launch()
@@ -57,14 +57,14 @@ try {
     // each scent of The Vine and The Dandelion has its own buy button on the marketplace
     const SLUG = { 'Citrus Grove': 'citrus-grove', Lavender: 'lavender', Vanilla: 'vanilla', Linen: 'linen', Wildflowers: 'wildflowers' }
     const got = {}, want = {}
-    for (const [id, base] of [['the-vine', 11010], ['the-dandelion', 12010]]) {
+    for (const [id, base] of [['the-vine', 11010], ['the-dandelion', 12010], ['the-releaf', 16010]]) {
       for (const [i, sc] of FIVE.entries()) {
         await page.selectOption(`[data-item-card="${id}"] .item-choice`, sc)
         got[`${id} ${sc}`] = await page.getAttribute(`[data-item-card="${id}"] a.buy-ve`, 'href')
         want[`${id} ${sc}`] = `${BTN}${id}-${SLUG[sc]}-${base + i + 1}/`
       }
     }
-    check(`[${label}] picking a scent on The Vine or The Dandelion points the button at that scent's buy button`, JSON.stringify(got) === JSON.stringify(want), JSON.stringify(got).slice(0, 300))
+    check(`[${label}] picking a scent on The Vine, The Dandelion or The Releaf points the button at that scent's buy button`, JSON.stringify(got) === JSON.stringify(want), JSON.stringify(got).slice(0, 300))
 
     // The Bloom has a buy button for each edition
     await page.selectOption('[data-item-card="the-bloom"] .item-choice', 'Hanging')

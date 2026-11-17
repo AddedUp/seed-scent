@@ -100,6 +100,13 @@ window.SEED_SCENT = {
       contents: ["1 reusable wooden box, vent clip", "3 seed papers in the scent you pick"],
       price: 8.99, image: "images/product-first-sprout-vent.jpg", choice: { label: "Scent", options: signatureScents } },
     { id: "the-releaf", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-2020202/",
+      veUrls: {
+        "Citrus Grove": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-citrus-grove-16011/",
+        "Lavender": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-lavender-16012/",
+        "Vanilla": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-vanilla-16013/",
+        "Linen": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-linen-16014/",
+        "Wildflowers": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-wildflowers-16015/",
+      },
       name: "The Releaf", kicker: "Custom refill pack",
       notes: "Refills only. Buy a set of seed paper with the scent of your choice. The sustainable option.",
       contents: ["3 seed papers in the scent you pick"],
