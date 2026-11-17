@@ -73,8 +73,20 @@ function linkFor(path, v) {
   return null
 }
 
+/* The site's own bag is only for products without a VE marketplace buy button. When every
+   product on the shop list has one, nothing can go in the bag, so its controls (the Bag link,
+   Check out, Open the bag) are hidden: body.no-bag, styled in site.css. Add a product without
+   veUrl or veUrls and they come back by themselves. */
+export function bagInUse() {
+  const shop = Array.isArray(CFG.shop) ? CFG.shop.filter(p => p && typeof p === 'object') : []
+  if (!shop.length) return true
+  const onVe = p => (typeof p.veUrl === 'string' && p.veUrl.trim()) || (p.veUrls && typeof p.veUrls === 'object' && Object.keys(p.veUrls).length > 0)
+  return shop.some(p => !onVe(p))
+}
+
 /* ---------- placeholders: fill what the config knows, chip the rest ---------- */
 export function fillPlaceholders() {
+  document.body.classList.toggle('no-bag', !bagInUse())
   document.querySelectorAll('[data-ph]').forEach(el => {
     const path = el.dataset.ph
     const raw = cfg(path)

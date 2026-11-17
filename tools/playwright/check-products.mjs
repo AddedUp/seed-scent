@@ -83,6 +83,8 @@ try {
     check(`[${label}] the Wooden Box's button follows hanging or vent clip`, boxHang === BTN + 'wooden-box-hanging-15011/' && boxVent === BTN + 'wooden-box-vent-clip-15012/', `${boxHang} | ${boxVent}`)
     // nothing is sold through the site's own bag any more: it stays empty and out of the way
     const bagNow = await page.evaluate(() => ({ units: window.__dbg.bag().units, count: document.getElementById('bag-count').textContent }))
+    const ctl = await page.evaluate(() => Object.fromEntries(['#bag-toggle', '#open-bag', '.nav a.pill[href="checkout.html"]', '.shop-hero a[href="#products"]'].map(s => { const e = document.querySelector(s); return [s, !!e && e.getClientRects().length > 0] })))
+    check(`[${label}] with nothing to put in it, the Bag link, Check out and Open the bag are hidden`, !ctl['#bag-toggle'] && !ctl['#open-bag'] && !ctl['.nav a.pill[href="checkout.html"]'] && ctl['.shop-hero a[href="#products"]'], JSON.stringify(ctl))
     check(`[${label}] every product sells on the VE marketplace; the bag is empty`, d.bagCards.length === 0 && bagNow.units === 0 && bagNow.count === '0', JSON.stringify(bagNow))
     check(`[${label}] no console errors, nothing fetched from another host`, !errs.length && !ext.length, [...errs, ...ext].join(' | ').slice(0, 200))
 
@@ -114,6 +116,13 @@ try {
       await home.waitForURL(/shop\.html/, { timeout: 8000 }).catch(() => {})
       check('[home] picking a format stays on the page; clicking the card opens the shop', /index\.html/.test(stayed) && /shop\.html/.test(home.url()), home.url())
       check('[home] the wholesale section is off the home page, and nothing links to the hidden wholesale page', !h.firms && !(await home.evaluate(() => document.querySelector('a[href*="wholesale"]'))))
+      const bagLinks = {}
+      for (const pg of ['index.html', 'team.html', 'planting-guide.html']) {
+        const q = await ctx.newPage(); await q.goto(url(pg), { waitUntil: 'load' }); await sleep(pg === 'index.html' ? 2500 : 900)
+        bagLinks[pg] = await q.evaluate(() => { const e = document.getElementById('bag-toggle'); return !!e && e.getClientRects().length > 0 })
+        await q.close()
+      }
+      check('[site] no Bag link on the home, team or planting guide pages either', Object.values(bagLinks).every(v => v === false), JSON.stringify(bagLinks))
       check('[home] no page errors', !herrs.length, herrs.join(' | '))
       await home.close()
     }

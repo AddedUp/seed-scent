@@ -624,3 +624,10 @@ body.reduced .cue { animation: none; }
 
 /* no WebGL: the page reads as a brochure, the hang points stay empty */
 body.no-webgl #gl, body.no-webgl .hint, body.no-webgl #labels { display: none; }
+
+/* --------------------------------------------------------------------------
+   Every product sells on the VE marketplace: the site's own bag has nothing to
+   hold, so its controls step aside (see bagInUse in js/ui.js)
+   -------------------------------------------------------------------------- */
+body.no-bag #bag-toggle, body.no-bag #open-bag, body.no-bag .nav a.pill[href="checkout.html"] { display: none; }
+body:not(.no-bag) .only-no-bag { display: none; }
