@@ -48,7 +48,7 @@ try {
     check(`[${label}] six products link to their buy buttons on the VE marketplace`, JSON.stringify(d.ve) === JSON.stringify(VE), JSON.stringify(d.ve))
     check(`[${label}] those buttons open a new tab, say where they go, and replace the bag controls`, d.veSafe && d.veNoBag)
     check(`[${label}] the other five still go in the bag`, d.bagCards.join() === 'seed-paper-10,limited-5,wooden-box,subscription-5,subscription-10', d.bagCards.join())
-    check(`[${label}] The Vine, The Dandelion and The Releaf pick one of the five signature scents; The Bloom and the Wooden Box pick hanging or vent clip`, JSON.stringify(d.picks) === JSON.stringify({ 'the-vine': FIVE, 'the-dandelion': FIVE, 'the-releaf': FIVE, 'the-bloom': ['Hanging', 'Vent clip'], 'wooden-box': ['Hanging', 'Vent clip'] }), JSON.stringify(d.picks))
+    check(`[${label}] The Vine, The Dandelion and The Releaf pick one of the five signature scents; The Bloom and the Wooden Box pick hanging or vent clip`, JSON.stringify(d.picks) === JSON.stringify({ 'the-vine': FIVE, 'the-dandelion': FIVE, 'the-releaf': FIVE, 'the-bloom': ['Vent clip', 'Hanging'], 'wooden-box': ['Hanging', 'Vent clip'] }), JSON.stringify(d.picks))
     check(`[${label}] no dashes, and never the retired words`, !/[–—]/.test(d.html) && !/plant me|earthscents/i.test(d.html), '')
     check(`[${label}] recycled cardboard boxes are mentioned`, /recycled cardboard box/i.test(d.text))
     check(`[${label}] no sideways scroll`, d.overflow <= 0, `${d.overflow}px`)
