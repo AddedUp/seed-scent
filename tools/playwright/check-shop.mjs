@@ -88,7 +88,7 @@ try {
     })
     console.log('[desktop] numbers:', JSON.stringify({ ids: d.ids, names: d.names, imgs: d.imgs, chips: d.chips, gridCols: d.gridCols, navGap: d.navGap }))
     check('[desktop] title and canonical', d.title === 'Seed Scent · Shop' && d.canonical === 'https://seedscent.com/shop.html', `${d.title} ${d.canonical}`)
-    check('[desktop] Shop is the active tab, 8 tabs', d.active === 'Shop' && d.navHrefs.length === 8 && d.navHrefs[4] === 'shop.html' && d.navHrefs[5] === 'planting-guide.html', d.navHrefs.join(' '))
+    check('[desktop] Shop is the active tab, 7 tabs, no Wholesale tab', d.active === 'Shop' && d.navHrefs.length === 7 && d.navHrefs[3] === 'shop.html' && d.navHrefs[4] === 'planting-guide.html' && !d.navHrefs.includes('wholesale.html'), d.navHrefs.join(' '))
     check('[desktop] the nav fits on one line with room to spare', d.navGap >= 30, `${Math.round(d.navGap)}px between links and buttons`)
     check('[desktop] six cards, in the order of the shop list', d.ids.join() === 'scent-1-mirror,scent-1-vent,scent-2-mirror,scent-2-vent,scent-3-mirror,scent-3-vent', d.ids.join())
     check('[desktop] the name chip says which scent, so the pairs read as pairs', d.names.join('|') === 'scent one|scent one|scent two|scent two|scent three|scent three', d.names.join('|'))

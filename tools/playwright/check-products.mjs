@@ -122,7 +122,7 @@ try {
       await home.locator('#scent-cards .card[data-scent="3"] .card-title').click()
       await home.waitForURL(/shop\.html/, { timeout: 8000 }).catch(() => {})
       check('[home] picking a format stays on the page; clicking the card opens the shop', /index\.html/.test(stayed) && /shop\.html/.test(home.url()), home.url())
-      check('[home] the wholesale section is no longer on the home page', !h.firms)
+      check('[home] the wholesale section is off the home page, and nothing links to the hidden wholesale page', !h.firms && !(await home.evaluate(() => document.querySelector('a[href*="wholesale"]'))))
       check('[home] no page errors', !herrs.length, herrs.join(' | '))
       await home.close()
     }

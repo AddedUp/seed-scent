@@ -88,7 +88,7 @@ try {
       }
     })
     check('[desktop] title and canonical', d.title === 'Seed Scent · Planting guide' && d.canonical === 'https://seedscent.com/planting-guide.html', d.title)
-    check('[desktop] Planting is the active tab, 8 tabs, after Shop', d.active === 'Planting' && d.tabs.length === 8 && d.tabs[5] === 'planting-guide.html' && d.tabs[4] === 'shop.html', d.tabs.join(' '))
+    check('[desktop] Planting is the active tab, 7 tabs, after Shop, and no Wholesale tab', d.active === 'Planting' && d.tabs.length === 7 && d.tabs[4] === 'planting-guide.html' && d.tabs[3] === 'shop.html' && !d.tabs.includes('wholesale.html'), d.tabs.join(' '))
     check('[desktop] heading is the brand tagline', d.h1 === 'From scent to sprout.', String(d.h1))
     check('[desktop] two parts and the care table, as in the printed guide', d.parts.join('|') === 'Part 1 · Removing your seed paper|Part 2 · Planting your seed paper|Quick sprout care reference', d.parts.join('|'))
     check('[desktop] the six steps, in order, numbered 01 to 06', d.titles.join('|') === TITLES.join('|') && d.nums.join() === '01,02,03,04,05,06' && d.starts.join() === '1,4', `${d.titles.join('|')} / ${d.starts}`)
@@ -185,7 +185,7 @@ try {
   /* ---------- the tab on the other pages ---------- */
   for (const pg of ['shop.html', 'team.html']) {
     const { ctx, page } = await open(browser, pg, pg)
-    const ok = await page.evaluate(() => [...document.querySelectorAll('.nav-links a')].map(a => a.getAttribute('href')).indexOf('planting-guide.html') === 5)
+    const ok = await page.evaluate(() => [...document.querySelectorAll('.nav-links a')].map(a => a.getAttribute('href')).indexOf('planting-guide.html') === 4)
     check(`[${pg}] Planting tab after Shop`, ok)
     await ctx.close()
   }
@@ -195,7 +195,7 @@ try {
     const { ctx, page } = await open(browser, pg, pg, { viewport: { width: 1221, height: 800 } })
     await sleep(pg === 'index.html' ? 2500 : 800)
     const r = await page.evaluate(() => ({ shown: getComputedStyle(document.querySelector('.nav-links')).display, gap: document.querySelector('.nav-actions').getBoundingClientRect().left - document.querySelector('.nav-links').getBoundingClientRect().right, lead: document.querySelector('.nav-links').getBoundingClientRect().left - document.querySelector('.nav .brand').getBoundingClientRect().right }))
-    check(`[${pg} at 1221px] the eight tabs fit on one line`, r.shown === 'flex' && r.gap >= 20 && r.lead >= 20, JSON.stringify(r))
+    check(`[${pg} at 1221px] the tabs fit on one line`, r.shown === 'flex' && r.gap >= 20 && r.lead >= 20, JSON.stringify(r))
     await ctx.close()
   }
 } finally {
