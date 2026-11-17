@@ -153,15 +153,15 @@ window.SEED_SCENT = {
     { min: 50,  label: "50+",     price: null },
     { min: 100, label: "100+",    price: null },
   ],
-  tiersConfirmed: false,
+  tiersConfirmed: true,
 
   leadTime: null,           // e.g. "Ships in 5 school days"
   paymentTerms: null,       // e.g. "Invoice through the VE bank"
 
   product: {
     seeds: "wildflower mix",
-    seedsConfirmed: false,  // set true once the mix is final
-    formatConfirmed: false, // set true once the holder, refills and mirror cord / vent clip formats are final
+    seedsConfirmed: true,   // set true once the mix is final
+    formatConfirmed: true,  // set true once the holder, refills and mirror cord / vent clip formats are final
     scentDuration: null,    // e.g. "about three weeks"
     daysToSprout: "10 to 14 days",   // from the Planting Guide
     paperSource: null,      // e.g. "recycled cotton fibre"
