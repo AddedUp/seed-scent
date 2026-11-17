@@ -75,8 +75,7 @@ window.SEED_SCENT = {
                  an option without a link of its own uses veUrl.
      To sell something new, copy an entry, give it a new id and change the rest. */
   shop: [
-    { id: "the-vine", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-first-sprout-1010101/",
-      veUrls: {
+    { id: "the-vine", veUrls: {
         "Citrus Grove": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-vine-citrus-grove-11011/",
         "Lavender": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-vine-lavender-11012/",
         "Vanilla": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-vine-vanilla-11013/",
@@ -87,8 +86,7 @@ window.SEED_SCENT = {
       notes: "A premium starter kit for those who want to make a change. This classic hangs from your rearview mirror.",
       contents: ["1 reusable wooden box, hanging", "3 seed papers in the scent you pick"],
       price: 8.99, image: "images/product-mirror-1.jpg", choice: { label: "Scent", options: signatureScents } },
-    { id: "the-dandelion", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-first-sprout-1010101/",
-      veUrls: {
+    { id: "the-dandelion", veUrls: {
         "Citrus Grove": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-dandelion-citrus-grove-12011/",
         "Lavender": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-dandelion-lavender-12012/",
         "Vanilla": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-dandelion-vanilla-12013/",
@@ -99,8 +97,7 @@ window.SEED_SCENT = {
       notes: "A premium starter kit for those who want to make a change. This classic clips on to your interior car vents.",
       contents: ["1 reusable wooden box, vent clip", "3 seed papers in the scent you pick"],
       price: 8.99, image: "images/product-first-sprout-vent.jpg", choice: { label: "Scent", options: signatureScents } },
-    { id: "the-releaf", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-2020202/",
-      veUrls: {
+    { id: "the-releaf", veUrls: {
         "Citrus Grove": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-citrus-grove-16011/",
         "Lavender": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-lavender-16012/",
         "Vanilla": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-vanilla-16013/",
@@ -111,8 +108,7 @@ window.SEED_SCENT = {
       notes: "Refills only. Buy a set of seed paper with the scent of your choice. The sustainable option.",
       contents: ["3 seed papers in the scent you pick"],
       price: 5.99, image: "images/product-releaf.jpg", choice: { label: "Scent", options: signatureScents } },
-    { id: "the-bloom", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-3030303/",
-      veUrls: { "Hanging": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-hanging-13011/", "Vent clip": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-vent-clip-13012/" },
+    { id: "the-bloom", veUrls: { "Hanging": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-hanging-13011/", "Vent clip": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-vent-clip-13012/" },
       name: "The Bloom", kicker: "Grow kit",
       notes: "Everything you need, start to finish. Complete with planting essentials, including a Seed Scent brand pot, quality soil, and shovels.",
       contents: ["1 reusable wooden box, hanging or vent clip", "3 seed papers, scents chosen for you", "Terracotta planting pot", "Soil", "Mini shovels"],
