@@ -409,6 +409,13 @@ replaces the placeholder with no code change.
   same `sections.js` and `cart.js`. The home page has eight chapters now; the nav tab
   reads Wholesale and the Order pills became Shop pills. Its wording still describes
   the old tier-priced bag ("Bulk tiers apply automatically"): to revisit.
+- **Five scents and the VE marketplace (2026-11-17).** The firm named its five
+  signature scents (Citrus Grove, Lavender, Vanilla, Linen, Wildflowers). The home
+  scents chapter hangs five pendants (smaller; on a phone the second and fourth hang
+  shorter so five fit) over five cards, and each card is a link to the shop: the home
+  page no longer adds to the bag. Products sold on the VE marketplace carry `veUrl`
+  (or `veUrls`, one buy button per option) and show "Buy on the VE marketplace" in
+  place of the bag controls; The Vine and The Dandelion have a buy button per scent.
 - **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
   School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
   A filled-in fact that is a place to go becomes a link: the handle opens the

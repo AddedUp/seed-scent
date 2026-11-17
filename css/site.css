@@ -319,9 +319,11 @@ body[data-theme="soil"] .nav .pill .dot { color: var(--moss); }
 .ch-scents { height: 230vh; }
 .ch-scents .section-head { position: absolute; left: var(--gutter); right: var(--gutter); bottom: 7vh; margin: 0; }
 .hang-row { position: absolute; inset: 0; }
-.hang-row .hang:nth-child(1) { left: 26%; top: 0; }
-.hang-row .hang:nth-child(2) { left: 50%; top: 0; }
-.hang-row .hang:nth-child(3) { left: 74%; top: 0; }
+.hang-row .hang:nth-child(1) { left: 14%; top: 0; }
+.hang-row .hang:nth-child(2) { left: 32%; top: 0; }
+.hang-row .hang:nth-child(3) { left: 50%; top: 0; }
+.hang-row .hang:nth-child(4) { left: 68%; top: 0; }
+.hang-row .hang:nth-child(5) { left: 86%; top: 0; }
 .chip {
   position: absolute; transform: translate(-50%, 0);
   font: 500 11px/1 var(--font-body); letter-spacing: .09em; text-transform: uppercase;
@@ -337,6 +339,17 @@ body[data-theme="soil"] .nav .pill .dot { color: var(--moss); }
 .shop-link { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 34px; }
 .ch-cards .wrap { padding-top: 4vh; padding-bottom: 22vh; }
 .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+/* the five scent cards: one row on a wide screen, three and two below that. Each card is one
+   link to the shop: the pill's hit area covers the card, the format picker stays above it. */
+#scent-cards { grid-template-columns: repeat(5, 1fr); gap: 20px; }
+#scent-cards .card { padding: 20px; display: flex; flex-direction: column; cursor: pointer; }
+#scent-cards .card-media { height: 210px; }
+#scent-cards .card-title { font-size: 24px; }
+#scent-cards .format { position: relative; z-index: 1; margin-top: 12px; }
+#scent-cards .shop-scent { margin-top: auto; align-self: flex-start; text-decoration: none; position: static; }   /* static: its hit area is measured from the card */
+#scent-cards .shop-scent::after { content: ""; position: absolute; inset: 0; }
+#scent-cards .card-notes[hidden] { display: none; }
+@media (max-width: 1280px) { #scent-cards { grid-template-columns: repeat(3, 1fr); } #scent-cards .card-media { height: 240px; } }
 .card {
   position: relative; background: var(--paper-2); border-radius: var(--radius);
   padding: 26px; overflow: hidden; transform-style: preserve-3d;
@@ -549,8 +562,10 @@ input[type="range"]:hover::-moz-range-thumb, input[type="range"]:active::-moz-ra
   .section-head { flex-direction: column; align-items: flex-start; gap: 16px; }
   .section-head .annotation { text-align: left; }
   .ch-scents .section-head { bottom: 12vh; }
-  .hang-row .hang:nth-child(1) { left: 20%; }
-  .hang-row .hang:nth-child(3) { left: 80%; }
+  .hang-row .hang:nth-child(1) { left: 13%; }
+  .hang-row .hang:nth-child(2) { left: 31.5%; }
+  .hang-row .hang:nth-child(4) { left: 68.5%; }
+  .hang-row .hang:nth-child(5) { left: 87%; }
   .biz-card { min-height: 86vh; padding: 48px 24px 24px; }
   .biz-copy { max-width: none; }
   .biz-rows { gap: 10px 24px; margin: 16px 0 18px; }

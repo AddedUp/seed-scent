@@ -68,7 +68,7 @@ export const state = {
 const DAYS = maxNumberIn(cfg('product.daysToSprout'))
 const dayCap = DAYS ? Math.max(3, Math.min(60, Math.round(DAYS))) : null
 
-/* chips under the three scents */
+/* chips under the scents */
 export function initChips() {
   const scents = cfg('scents') || []
   const compact = innerWidth < 760
@@ -76,9 +76,7 @@ export function initChips() {
     const el = document.createElement('span')
     el.className = 'chip'
     const name = s.name ? escapeHtml(s.name) : `<span class="ph">scent name</span>`
-    const m = money(s.price)
-    const price = m != null ? m : `<span class="ph">price</span>`
-    el.innerHTML = compact ? `${String(i + 1).padStart(2, '0')} · ${name}` : `${String(i + 1).padStart(2, '0')} · ${name} · ${price}`
+    el.innerHTML = compact ? name : `${String(i + 1).padStart(2, '0')} · ${name}`   // prices live on the shop page
     dom.labels.appendChild(el)
     return el
   })

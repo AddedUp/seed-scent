@@ -104,16 +104,23 @@ try {
       await home.evaluate(() => { window.__dbg.bagClear(); window.__opened = []; window.open = (u, t, f) => { window.__opened.push([u, t, f]); return null } })
       const h = await home.evaluate(() => ({
         names: [...document.querySelectorAll('#scent-cards .card-title')].map(e => e.textContent.trim()),
-        meta: [...document.querySelectorAll('#scent-cards .card')].map(c => [...c.querySelectorAll('.card-meta dd')].map(e => e.textContent.trim()).join(' | ')),
-        buttons: [...document.querySelectorAll('.add-to-bag[data-add]')].map(x => x.textContent.trim()),
+        links: [...document.querySelectorAll('#scent-cards .card a.shop-scent')].map(x => x.getAttribute('href') + ' ' + x.textContent.trim()),
+        adds: document.querySelectorAll('#scent-cards .add-to-bag').length,
+        hangs: document.querySelectorAll('.hang-row .hang').length,
+        chips: [...document.querySelectorAll('#labels .chip')].map(c => c.textContent.trim()),
+        title: document.querySelector('#scents h2').textContent.trim().replace(/\s+/g, ' '),
         holder: [...document.querySelectorAll('#spec th')].find(t => t.textContent.trim() === 'Holder').nextElementSibling.textContent.trim(),
         firms: !!document.getElementById('firms'),
       }))
-      check('[home] the three scents are named, each card priced as its refill pack', h.names.join() === 'Lavender,Mint,Wildflower' && h.meta.every(m => m === '3 seed papers | $5.99'), JSON.stringify(h))
+      check('[home] the five signature scents, each card a link to the shop', h.names.join() === FIVE.join() && h.links.length === 5 && h.links.every(l => l === 'shop.html Shop this scent ·') && h.adds === 0, JSON.stringify(h.names) + ' ' + h.links[0])
+      check('[home] five pendants hang in the scents chapter, labelled with the scents', h.hangs === 5 && FIVE.every((n, i) => (h.chips[i] || '').endsWith(n)) && /^Five scents\./.test(h.title), JSON.stringify(h.chips) + ' ' + h.title)
       check('[home] the spec sheet calls the holder a reusable wooden box', /^A reusable wooden box\. Seed paper refills slide in\./.test(h.holder), h.holder)
-      await home.evaluate(() => document.querySelector('.add-to-bag[data-add="2"]').click())
-      const o = await home.evaluate(() => ({ opened: window.__opened, lines: window.__dbg.bag().lines }))
-      check('[home] the scent card buttons say Buy on VE and open The Releaf on the marketplace in a new tab', h.buttons.every(t => t === 'Buy on VE ·') && JSON.stringify(o.opened) === JSON.stringify([[VE['the-releaf'], '_blank', 'noopener']]) && o.lines.length === 0, JSON.stringify(o))
+      // a click anywhere on a card (here its title) opens the shop; the format picker still works on the card
+      await home.locator('#scent-cards .card[data-scent="3"] input[value="vent"]').check()
+      const stayed = home.url()
+      await home.locator('#scent-cards .card[data-scent="3"] .card-title').click()
+      await home.waitForURL(/shop\.html/, { timeout: 8000 }).catch(() => {})
+      check('[home] picking a format stays on the page; clicking the card opens the shop', /index\.html/.test(stayed) && /shop\.html/.test(home.url()), home.url())
       check('[home] the wholesale section is no longer on the home page', !h.firms)
       check('[home] no page errors', !herrs.length, herrs.join(' | '))
       await home.close()

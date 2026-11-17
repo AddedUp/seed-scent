@@ -67,7 +67,7 @@ if (plantFig && 'IntersectionObserver' in window) {
 /* ---------- scene + physics ---------- */
 const isSmall = Math.min(innerWidth, innerHeight) < 700
 const scale = isSmall ? 0.62 : 1
-const scentScale = isSmall ? 0.55 : 1
+const scentScale = isSmall ? 0.44 : 0.78   // five across
 const ropes = isSmall ? { hero: 1.9, scents: 2.6, finale: 2.0 } : { hero: 2.5, scents: 3.3, finale: 2.4 }
 
 /* On a short phone screen the hero copy climbs up toward the pendant, which hangs a fixed share
@@ -152,11 +152,11 @@ async function boot() {
 
   heroTextures = { wood, paper, paperFaded }
   buildHero(heroFit(ropes.hero, 1.35 * scale))
-  chap.H.scents = [
-    new P.Hanger({ name: 'scent-0', R: 1.05 * scentScale, L: ropes.scents, segs: 7, textures: { wood, paper } }),
-    new P.Hanger({ name: 'scent-1', R: 1.05 * scentScale, L: ropes.scents, segs: 7, textures: { wood, paper: paper2 } }),
-    new P.Hanger({ name: 'scent-2', R: 1.05 * scentScale, L: ropes.scents, segs: 7, textures: { wood, paper: paper3 } }),
-  ]
+  // one pendant per .hang slot in the scents chapter (five signature scents). On a phone the
+  // second and fourth hang shorter, so five fit across a narrow screen without touching.
+  const papers = [paper, paper2, paper3, paper2, paper3]
+  chap.H.scents = [...document.querySelectorAll('.hang-row .hang')].map((_, i) =>
+    new P.Hanger({ name: `scent-${i}`, R: 1.05 * scentScale, L: ropes.scents * (isSmall && i % 2 ? 0.62 : 1), segs: 7, textures: { wood, paper: papers[i % papers.length] } }))
   chap.H.finale = new P.Hanger({ name: 'finale', R: 1.2 * scale, L: ropes.finale, segs: 8, textures: { wood, paper } })
   chap.initWisps()
   chap.initChips()

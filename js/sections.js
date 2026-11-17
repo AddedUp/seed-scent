@@ -599,6 +599,17 @@ function initFormatPhotos() {
 }
 
 /* ---------- go ---------- */
+/* a scent card is one way into the shop: a click anywhere on it follows its "Shop this scent"
+   link, except on the format picker, which keeps working in place */
+function initScentLinks() {
+  const list = document.getElementById('scent-cards'); if (!list) return
+  list.addEventListener('click', e => {
+    if (e.target.closest('a, input, label, button, .format')) return
+    const card = e.target.closest('.card'), link = card && card.querySelector('a.shop-scent')
+    if (link) link.click()
+  })
+}
+initScentLinks()
 const formats = initFormatPhotos()
 const xsec = initCrossSection()
 const tiers = initTiers()

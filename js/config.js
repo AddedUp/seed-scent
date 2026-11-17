@@ -7,7 +7,7 @@
    and they replace the placeholders automatically.
    ------------------------------------------------------------------ */
 /* The five signature scents, offered in the scent picker on The Vine and The Dandelion. */
-const signatureScents = ["Citrus Grove", "Lavender", "Vanilla", "Linen", "Wildflowers"];
+const signatureScents = ["Citrus Grove", "Lavender", "Vanilla", "Linen", "Wildflowers"];   // keep in step with the scents list below
 
 window.SEED_SCENT = {
   brand: {
@@ -45,14 +45,16 @@ window.SEED_SCENT = {
 
   currency: "USD",
 
-  /* The three scents. The team is using these names for now.
+  /* The five signature scents, as the home page shows them. Each card links to the Shop page.
      image: the photo of the hanging version. imageVent: the photo of the vent clip version.
-     The home page card shows whichever the visitor picks. price and packSize describe the refill
-     pack a scent card adds to the bag (see scentRefill below). */
+     The card shows whichever the visitor picks. notes: one short line about the smell (null
+     hides the line). The product photos are shared between scents until each has its own. */
   scents: [
-    { id: "scent-1", name: "Lavender",   notes: null, price: 5.99, packSize: "3 seed papers", image: "images/product-studio-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink" },
-    { id: "scent-2", name: "Mint",       notes: null, price: 5.99, packSize: "3 seed papers", image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss" },
-    { id: "scent-3", name: "Wildflower", notes: null, price: 5.99, packSize: "3 seed papers", image: "images/product-mirror-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "sage" },
+    { id: "scent-1", name: "Citrus Grove", notes: null, image: "images/product-studio-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink" },
+    { id: "scent-2", name: "Lavender",     notes: null, image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss" },
+    { id: "scent-3", name: "Vanilla",      notes: null, image: "images/product-mirror-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "sage" },
+    { id: "scent-4", name: "Linen",        notes: null, image: "images/product-studio-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink" },
+    { id: "scent-5", name: "Wildflowers",  notes: null, image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss" },
   ],
 
   /* The Shop page (shop.html). One card per entry, shown in this order.
@@ -140,9 +142,6 @@ window.SEED_SCENT = {
       contents: ["10 seed papers every month", "6 classic scents", "4 limited edition"],
       price: 12.99, per: "month", image: "images/refills-flatlay.jpg" },
   ],
-
-  /* The id of the shop product a home page scent card adds to the bag, in that card's scent. */
-  scentRefill: "the-releaf",
 
   /* Every order is delivered in a recycled cardboard box. */
   packaging: "recycled cardboard boxes",

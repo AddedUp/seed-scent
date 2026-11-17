@@ -87,14 +87,9 @@ await page.screenshot({ path: path.join(out, 'cart-desktop-empty.png') })
 await page.keyboard.press('Escape'); await page.waitForTimeout(800)
 
 // add scent 0 twice, scent 1 once (real clicks; Playwright scrolls the cards into view)
-const add0 = page.locator('.add-to-bag[data-add="0"]'), add1 = page.locator('.add-to-bag[data-add="1"]')
-await add0.click()
-expect('index.ack.text', (await add0.textContent()).trim(), s => s.startsWith('Added'))
-await add0.click()
-await add1.click()
+// (the home scent cards link to the shop now; check-shop.mjs covers the Add to bag buttons)
+await page.evaluate(() => window.__dbg.bagSet([{ scentIndex: 0, format: 'mirror', qty: 2 }, { scentIndex: 1, format: 'mirror', qty: 1 }]))
 expect('index.count.after3', await text(page, '#bag-count'), '3')
-await page.waitForTimeout(1400)
-expect('index.ack.reverted', (await add0.textContent()).trim(), s => s.startsWith('Add to bag'))
 expect('index.storage', await page.evaluate(() => JSON.parse(localStorage.getItem('seedscent.bag'))), v => Array.isArray(v) && v.length === 2 && v[0].qty === 2 && v[1].qty === 1 && v[0].format === 'mirror')
 
 // open the drawer

@@ -40,14 +40,14 @@ const OPTIONAL = {
 
 /* Lines every entry in these lists must have. A deleted line counts as a placeholder. */
 const REQUIRED_KEYS = {
-  scents: ['name', 'notes', 'price', 'packSize', 'image', 'imageVent'],
+  scents: ['name', 'image', 'imageVent'],
   bulkTiers: ['min', 'label', 'price'],
   team: ['name', 'role', 'bio', 'photo'],
 }
 
 /* How many entries the pages are typeset for. */
 const COUNTS = {
-  scents: { exactly: 3, why: 'the home page is typeset for three cards' },
+  scents: { exactly: 5, why: 'the home page is typeset for five cards and five pendants' },
   bulkTiers: { exactly: 4, why: 'the tier list is typeset for four rows (1 to 9, 10+, 50+, 100+)' },
   team: { atLeast: 1, why: 'the team page needs at least one person' },
 }

@@ -9,7 +9,7 @@ about a minute, see section 4). The old address
 https://addedup.github.io/seed-scent/ and www.seedscent.com both forward to it.
 
 **What it is:** one long home page that tells the story of the plantable car
-air freshener (hang it, breathe, it fades, plant it), shows the three scents
+air freshener (hang it, breathe, it fades, plant it), shows the five signature scents
 and the spec sheet, plus a
 Shop page (`shop.html`) with every product in one place, a Planting guide
 (`planting-guide.html`), a Wholesale page (`wholesale.html`: bulk tiers and three ways for other VE firms to order), a Team page (`team.html`) and a checkout page
@@ -114,15 +114,14 @@ What each field does:
 
 **currency**: the three-letter code used to format prices, normally `"USD"`.
 
-**scents** (exactly three entries, one per scent; the home page is typeset for three cards)
+**scents** (exactly five entries, the signature scents; the home page is typeset for five cards and five hanging pendants)
 - `id`: an internal name, leave it alone.
-- `name`: the scent's name, for example the one printed on the pack.
-- `notes`: one short line describing the smell.
-- `price`: price for one unit, as a number without quotes: `price: 4.5`, not `price: "4.50"`.
-- `packSize`: what one unit is, for example "1 disc and holder" or "3 refill discs".
-- `image`: the photo of this scent's mirror cord version, starting with `images/`. See section 3.
-- `imageVent`: the photo of this scent's vent clip version. The card shows `image` while Mirror cord is picked and switches to `imageVent` when the visitor picks Vent clip. If that file is missing, the card keeps the mirror cord photo.
-- `accent`: a brand colour name for the scent, `"ink"`, `"moss"` or `"sage"`, kept with the scent so anything that colour-codes the three agrees on it.
+- `name`: the scent's name. If it changes, change the same name in `signatureScents` at the top of the file, which fills the scent pickers on the Shop page.
+- `notes`: one short line describing the smell, or `null` to leave the line off the card.
+- `image`: the photo of this scent's hanging version, starting with `images/`. See section 3.
+- `imageVent`: the photo of this scent's vent clip version. The card shows `image` while Mirror cord is picked and switches to `imageVent` when the visitor picks Vent clip.
+- `accent`: a brand colour name for the scent, `"ink"`, `"moss"` or `"sage"`.
+- Each scent card on the home page is a link to the Shop page. Prices live on the shop.
 
 **shop** (one entry per card on the Shop page, `shop.html`, shown in this order)
 - The list holds the firm's products, from the product document: The Vine and The Dandelion (The First Sprout starter kit, hanging and vent clip), The Releaf, The Bloom, The Garden, the seed paper 10 pack, the two limited edition packs, the wooden box on its own, and the two refill subscriptions.
@@ -132,8 +131,6 @@ What each field does:
 - To change a price or a description, edit it here. To sell something new, copy an entry, give it a new `id` and change the rest. To stop selling something, delete its entry; a shopper who had it in their bag simply sees it drop out.
 - The bag is shared: something added on the Shop page is in the bag on the home page and at checkout, and the other way round.
 - Because every product has its own price, the bag shows no bulk tier. (An older kind of entry, `{ id, scent: 0, format: "mirror" }`, sells a scent priced by the bulk tiers; the tier rows come back if one is ever added.)
-
-**scentRefill**: the `id` of the shop product a home page scent card adds to the bag, in that card's scent. It is The Releaf. Each scent's `price` and `packSize` describe that pack on the home card, so keep them in step with The Releaf.
 
 **packaging**: how orders are delivered, kept here for reference; the Shop page has the sentence typeset.
 

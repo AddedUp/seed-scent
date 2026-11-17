@@ -71,10 +71,10 @@ const browser = await chromium.launch()
 {
   const { ctx, page, errors } = await open(browser, { viewport: { width: 1440, height: 900 } })
   let c = await cards(page)
-  check('[desktop] three cards, each with a mirror cord photo and a vent clip photo', c.length === 3 && c.every(x => x.mirror && x.mirror.loaded && x.vent && x.vent.loaded), c.map(x => `${x.mirror && x.mirror.src} / ${x.vent && x.vent.src}`).join(' · '))
+  check('[desktop] five cards, each with a mirror cord photo and a vent clip photo', c.length === 5 && c.every(x => x.mirror && x.mirror.loaded && x.vent && x.vent.loaded), c.map(x => `${x.mirror && x.mirror.src} / ${x.vent && x.vent.src}`).join(' · '))
   check('[desktop] every card starts on Mirror cord and shows the mirror cord photo', c.every(x => x.picked === 'mirror' && showing(x) === 'mirror' && x.tag === 'Mirror cord'), c.map(say).join(' · '))
   check('[desktop] the photos say what they are', c.every(x => /mirror cord/i.test(x.mirror.alt) && /vent clip/i.test(x.vent.alt)), `"${c[0].mirror.alt}" / "${c[0].vent.alt}"`)
-  check('[desktop] every card has two different photos, one per format, and its own mirror cord photo', c.every(x => x.mirror.src !== x.vent.src) && new Set(c.map(x => x.mirror.src)).size === 3, c.map(x => `${x.mirror.src} / ${x.vent.src}`).join(', '))
+  check('[desktop] every card has two different photos, one per format (the mock-up photos are shared between scents for now)', c.every(x => x.mirror.src !== x.vent.src) && new Set(c.map(x => x.mirror.src)).size >= 3, c.map(x => `${x.mirror.src} / ${x.vent.src}`).join(', '))
   const before = await shot(page, 0, 'desktop-0-mirror')
 
   // pick Vent clip on the first card with the mouse
@@ -128,11 +128,9 @@ const browser = await chromium.launch()
   const zoom = await page.evaluate(() => [...document.querySelectorAll('.card[data-scent] img.slot')].map(i => getComputedStyle(i).animationName))
   check('[desktop] Play motion does not make the photos zoom', zoom.every(a => a === 'none'), zoom.join(', '))
 
-  // the bag still gets the picked format
-  await page.locator('.card[data-scent="0"] .add-to-bag').click()
-  await sleep(900)
-  const line = await page.evaluate(() => (document.querySelector('#bag-lines') || {}).innerText || '')
-  check('[desktop] the bag line carries the picked format', /vent clip/i.test(line), line.replace(/\s+/g, ' ').slice(0, 90))
+  // the card links to the shop now (no Add to bag here); picking a format must not follow that link
+  const link = await page.evaluate(() => { const x = document.querySelector('.card[data-scent="0"] a.shop-scent'); return x ? x.getAttribute('href') : null })
+  check('[desktop] the card links to the shop, and picking a format stayed on the home page', link === 'shop.html' && /index\.html/.test(page.url()), `${link} ${page.url()}`)
   check('[desktop] no console errors', errors.length === 0, errors.join(' | ').slice(0, 200))
   await ctx.close()
 }
