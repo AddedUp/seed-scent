@@ -280,7 +280,7 @@ for (const [label, opts] of Object.entries(sizes)) {
 
   await scents()
   let list = await pend()
-  if (list.filter(p => p.name.startsWith('scent')).length !== 3) check(`[${label}] the three scents hang in their chapter`, false, JSON.stringify(list.map(p => p.name)))
+  if (list.filter(p => p.name.startsWith('scent')).length !== 5) check(`[${label}] the five scents hang in their chapter`, false, JSON.stringify(list.map(p => p.name)))
   else {
     const at = name => { const p = list.find(q => q.name === name); return toPx(p) }
     if (touch) {
