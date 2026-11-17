@@ -10,7 +10,7 @@ let fails = 0, passes = 0
 const check = (name, ok, detail = '') => { ok ? passes++ : fails++; console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  :: ' + detail : ''}`) }
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 const WANT = [
-  ['the-vine', 'The Vine', '$8.99'], ['the-dandelion', 'The Dandelion', '$8.99'], ['the-releaf', 'The Releaf', '$5.99'], ['the-releaf-monthly', 'The Releaf, Monthly', '$5.99 a month'],
+  ['the-vine', 'The Vine', '$8.99'], ['the-dandelion', 'The Dandelion', '$8.99'], ['the-releaf', 'The Releaf', '$5.99'],
   ['the-bloom', 'The Bloom', '$18.99'], ['the-garden', 'The Garden', '$28.99'], ['seed-paper-10', 'Seed Paper 10 Pack', '$16.99'],
   ['limited-5', 'Limited Edition Seed Pack', '$12.99'], ['wooden-box', 'Wooden Box', '$3.99'],
   ['subscription-5', 'Refill Subscription, 5 a Month', '$7.99 a month'], ['subscription-10', 'Refill Subscription, 10 a Month', '$12.99 a month'],
@@ -19,7 +19,8 @@ const FIVE = ['Citrus Grove', 'Lavender', 'Vanilla', 'Linen', 'Wildflowers']
 const BTN = 'https://portal.veinternational.org/buybuttons/us0111040/btn/'
 const VE = {
   'the-vine': BTN + 'the-vine-citrus-grove-11011/', 'the-dandelion': BTN + 'the-dandelion-citrus-grove-12011/',   // the scent shown first
-  'the-releaf': BTN + 'the-releaf-2020202/', 'the-releaf-monthly': BTN + 'the-releaf-2525252/', 'the-bloom': BTN + 'the-bloom-3030303/', 'the-garden': BTN + 'the-garden-4040404/',
+  'the-releaf': BTN + 'the-releaf-2020202/', 'the-bloom': BTN + 'the-bloom-3030303/', 'the-garden': BTN + 'the-garden-4040404/',
+  'subscription-5': BTN + 'refill-subscription-5-a-month-90234/', 'subscription-10': BTN + 'refill-subscription-10-a-month-95821/',
 }
 const browser = await chromium.launch()
 try {
@@ -43,11 +44,11 @@ try {
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       tap: Math.min(...[...document.querySelectorAll('.item-choice, .shop-card .add-to-bag, .shop-card a.buy-ve')].map(e => e.getBoundingClientRect().height)),
     }))
-    check(`[${label}] eleven products, with the names and prices from the product document`, JSON.stringify(d.cards) === JSON.stringify(WANT), JSON.stringify(d.cards))
-    check(`[${label}] no placeholder chips, every card has its photo and what is inside`, d.chips === 0 && d.photos.shown === 11 && d.photos.labels === 0 && d.inside, JSON.stringify(d.photos))
-    check(`[${label}] six products link to their buy buttons on the VE marketplace`, JSON.stringify(d.ve) === JSON.stringify(VE), JSON.stringify(d.ve))
+    check(`[${label}] ten products, with the names and prices from the product document`, JSON.stringify(d.cards) === JSON.stringify(WANT), JSON.stringify(d.cards))
+    check(`[${label}] no placeholder chips, every card has its photo and what is inside`, d.chips === 0 && d.photos.shown === 10 && d.photos.labels === 0 && d.inside, JSON.stringify(d.photos))
+    check(`[${label}] seven products link to their buy buttons on the VE marketplace`, JSON.stringify(d.ve) === JSON.stringify(VE), JSON.stringify(d.ve))
     check(`[${label}] those buttons open a new tab, say where they go, and replace the bag controls`, d.veSafe && d.veNoBag)
-    check(`[${label}] the other five still go in the bag`, d.bagCards.join() === 'seed-paper-10,limited-5,wooden-box,subscription-5,subscription-10', d.bagCards.join())
+    check(`[${label}] the other three still go in the bag`, d.bagCards.join() === 'seed-paper-10,limited-5,wooden-box', d.bagCards.join())
     check(`[${label}] The Vine, The Dandelion and The Releaf pick one of the five signature scents; The Bloom and the Wooden Box pick hanging or vent clip`, JSON.stringify(d.picks) === JSON.stringify({ 'the-vine': FIVE, 'the-dandelion': FIVE, 'the-releaf': FIVE, 'the-bloom': ['Vent clip', 'Hanging'], 'wooden-box': ['Hanging', 'Vent clip'] }), JSON.stringify(d.picks))
     check(`[${label}] no dashes, and never the retired words`, !/[–—]/.test(d.html) && !/plant me|earthscents/i.test(d.html), '')
     check(`[${label}] recycled cardboard boxes are mentioned`, /recycled cardboard box/i.test(d.text))
@@ -76,14 +77,14 @@ try {
     await page.selectOption('[data-item-card="wooden-box"] .item-choice', 'Vent clip')
     await page.locator('[data-item-card="wooden-box"] .add-to-bag').click()
     await page.locator('[data-item-card="seed-paper-10"] .add-to-bag').click()
-    await page.locator('[data-item-card="subscription-10"] .add-to-bag').click()
+    await page.locator('[data-item-card="limited-5"] .add-to-bag').click()
     const b = await page.evaluate(() => window.__dbg.bag())
-    check(`[${label}] the bag keeps each choice as its own line and merges repeats`, JSON.stringify(b.lines) === JSON.stringify([{ item: 'wooden-box', option: 'Vent clip', qty: 2 }, { item: 'wooden-box', option: 'Hanging', qty: 1 }, { item: 'seed-paper-10', qty: 1 }, { item: 'subscription-10', qty: 1 }]), JSON.stringify(b.lines))
+    check(`[${label}] the bag keeps each choice as its own line and merges repeats`, JSON.stringify(b.lines) === JSON.stringify([{ item: 'wooden-box', option: 'Vent clip', qty: 2 }, { item: 'wooden-box', option: 'Hanging', qty: 1 }, { item: 'seed-paper-10', qty: 1 }, { item: 'limited-5', qty: 1 }]), JSON.stringify(b.lines))
     const total = 3 * 3.99 + 16.99 + 12.99
     check(`[${label}] the total is the sum of the prices`, Math.abs(b.total - total) < 0.005, `${b.total} vs ${total.toFixed(2)}`)
     await page.locator('#bag-toggle').click(); await sleep(800)
     const dr = await page.evaluate(() => ({ text: document.getElementById('bag-lines').innerText.replace(/\s+/g, ' '), tierShown: !document.getElementById('bag-tier').parentElement.hidden, note: !!document.querySelector('.bag-note:not([hidden])'), total: document.getElementById('bag-total').textContent }))
-    check(`[${label}] drawer lines show the choice and the price, the subscription per month`, /Wooden Box VENT CLIP · \$3\.99 EACH \$7\.98/i.test(dr.text) && /10 a Month \$12\.99 A MONTH/i.test(dr.text), dr.text.slice(0, 260))
+    check(`[${label}] drawer lines show the choice and the price`, /Wooden Box VENT CLIP · \$3\.99 EACH \$7\.98/i.test(dr.text) && /Limited Edition Seed Pack \$12\.99 EACH/i.test(dr.text), dr.text.slice(0, 260))
     check(`[${label}] no bulk tier row or note, since every product has its own price`, !dr.tierShown && !dr.note && dr.total === '$41.95', JSON.stringify({ t: dr.tierShown, n: dr.note, total: dr.total }))
     check(`[${label}] no console errors, nothing fetched from another host`, !errs.length && !ext.length, [...errs, ...ext].join(' | ').slice(0, 200))
 
@@ -94,7 +95,7 @@ try {
       await co.route('mailto:*', r => r.abort()).catch(() => {})
       await co.locator('#co-final button[type="submit"]').first().click().catch(() => {}); await sleep(600)
       const order = await co.evaluate(() => document.getElementById('co-order').textContent)
-      check('[checkout] the written order lists each product, its choice and price, with no tier lines', order.includes('2 x Wooden Box, Vent clip, $3.99 each') && order.includes('1 x Refill Subscription, 10 a Month, $12.99 a month') && order.includes('Total: $41.95') && !/Tier:/.test(order), order.replace(/\n/g, ' / ').slice(0, 420))
+      check('[checkout] the written order lists each product, its choice and price, with no tier lines', order.includes('2 x Wooden Box, Vent clip, $3.99 each') && order.includes('1 x Limited Edition Seed Pack, $12.99 each') && order.includes('Total: $41.95') && !/Tier:/.test(order), order.replace(/\n/g, ' / ').slice(0, 420))
       await co.close()
 
       // the home page: named scents; a scent card sells The Releaf, which is on the VE marketplace
