@@ -19,7 +19,7 @@ const FIVE = ['Citrus Grove', 'Lavender', 'Vanilla', 'Linen', 'Wildflowers']
 const BTN = 'https://portal.veinternational.org/buybuttons/us0111040/btn/'
 const VE = {
   'the-vine': BTN + 'the-vine-citrus-grove-11011/', 'the-dandelion': BTN + 'the-dandelion-citrus-grove-12011/',   // the scent shown first
-  'the-releaf': BTN + 'the-releaf-2020202/', 'the-bloom': BTN + 'the-bloom-3030303/', 'the-garden': BTN + 'the-garden-4040404/',
+  'the-releaf': BTN + 'the-releaf-2020202/', 'the-bloom': BTN + 'the-bloom-vent-clip-13012/', 'the-garden': BTN + 'the-garden-4040404/',
   'subscription-5': BTN + 'refill-subscription-5-a-month-90234/', 'subscription-10': BTN + 'refill-subscription-10-a-month-95821/',
 }
 const browser = await chromium.launch()
@@ -66,6 +66,13 @@ try {
       }
     }
     check(`[${label}] picking a scent on The Vine or The Dandelion points the button at that scent's buy button`, JSON.stringify(got) === JSON.stringify(want), JSON.stringify(got).slice(0, 300))
+
+    // The Bloom has a buy button for each edition
+    await page.selectOption('[data-item-card="the-bloom"] .item-choice', 'Hanging')
+    const bloomHang = await page.getAttribute('[data-item-card="the-bloom"] a.buy-ve', 'href')
+    await page.selectOption('[data-item-card="the-bloom"] .item-choice', 'Vent clip')
+    const bloomVent = await page.getAttribute('[data-item-card="the-bloom"] a.buy-ve', 'href')
+    check(`[${label}] The Bloom's button follows hanging or vent clip`, bloomHang === BTN + 'the-bloom-hanging-13011/' && bloomVent === BTN + 'the-bloom-vent-clip-13012/', `${bloomHang} | ${bloomVent}`)
 
     await page.evaluate(() => window.__dbg.bagClear())
     await page.selectOption('[data-item-card="wooden-box"] .item-choice', 'Vent clip'); await sleep(600)

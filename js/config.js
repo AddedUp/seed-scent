@@ -105,6 +105,7 @@ window.SEED_SCENT = {
       contents: ["3 seed papers in the scent you pick"],
       price: 5.99, image: "images/product-releaf.jpg", choice: { label: "Scent", options: signatureScents } },
     { id: "the-bloom", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-3030303/",
+      veUrls: { "Hanging": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-hanging-13011/", "Vent clip": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-vent-clip-13012/" },
       name: "The Bloom", kicker: "Grow kit",
       notes: "Everything you need, start to finish. Complete with planting essentials, including a Seed Scent brand pot, quality soil, and shovels.",
       contents: ["1 reusable wooden box, hanging or vent clip", "3 seed papers, scents chosen for you", "Terracotta planting pot", "Soil", "Mini shovels"],
