@@ -120,7 +120,7 @@ window.SEED_SCENT = {
       notes: null,
       contents: ["10 seed papers"],
       price: 16.99, image: "images/product-seed-paper-10.jpg" },
-    { id: "limited-5", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/bake-and-bloom-70707/",
+    { id: "limited-5", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/limited-edition-seed-pack-14011/",
       name: "Bake and Bloom Collection *LIMITED EDITION*", kicker: "Limited edition · 5 pack",
       notes: null,
       contents: ["5 limited edition seed papers"],
