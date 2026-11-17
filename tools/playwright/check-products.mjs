@@ -20,7 +20,7 @@ const BTN = 'https://portal.veinternational.org/buybuttons/us0111040/btn/'
 const VE = {
   'the-vine': BTN + 'the-vine-citrus-grove-11011/', 'the-dandelion': BTN + 'the-dandelion-citrus-grove-12011/',   // the scent shown first
   'the-releaf': BTN + 'the-releaf-2020202/', 'the-bloom': BTN + 'the-bloom-vent-clip-13012/', 'the-garden': BTN + 'the-garden-4040404/',
-  'limited-5': BTN + 'bake-and-bloom-70707/', 'subscription-5': BTN + 'refill-subscription-5-a-month-90234/', 'subscription-10': BTN + 'refill-subscription-10-a-month-95821/',
+  'limited-5': BTN + 'limited-edition-seed-pack-14011/', 'subscription-5': BTN + 'refill-subscription-5-a-month-90234/', 'subscription-10': BTN + 'refill-subscription-10-a-month-95821/',
 }
 const browser = await chromium.launch()
 try {
@@ -109,6 +109,7 @@ try {
       home.on('pageerror', e => herrs.push(e.message))
       await home.goto(url('index.html'), { waitUntil: 'load' }); await home.waitForFunction(() => window.__dbg && window.__dbg.bag, null, { timeout: 20000 })
       await home.evaluate(() => { window.__dbg.bagClear(); window.__opened = []; window.open = (u, t, f) => { window.__opened.push([u, t, f]); return null } })
+      await home.waitForFunction(() => document.querySelectorAll("#labels .chip").length >= 5, null, { timeout: 30000 }).catch(() => {})   // the labels arrive with the 3D scene
       const h = await home.evaluate(() => ({
         names: [...document.querySelectorAll('#scent-cards .card-title')].map(e => e.textContent.trim()),
         links: [...document.querySelectorAll('#scent-cards .card a.shop-scent')].map(x => x.getAttribute('href') + ' ' + x.textContent.trim()),
