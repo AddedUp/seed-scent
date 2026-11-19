@@ -19,6 +19,8 @@
 <link rel="stylesheet" href="css/sections.css">
 <link rel="stylesheet" href="css/planting.css">
 <link rel="stylesheet" href="css/cart.css">
+<link rel="stylesheet" href="css/intro.css">
+<script src="js/intro.js"></script>
 <!-- Everything is served locally so the site works offline on a booth laptop. -->
 <script src="vendor/gsap.min.js"></script>
 <script src="vendor/ScrollTrigger.min.js"></script>
@@ -34,6 +36,40 @@
 </head>
 <body data-chapter="hero" data-theme="cream">
 <a class="skip" href="#main">Skip to content</a>
+
+<!-- Startup animation: the cycle from air freshener to plant (css/intro.css, js/intro.js) -->
+<div class="intro" id="intro" aria-hidden="true">
+  <svg class="intro-art" viewBox="0 0 240 250" fill="none">
+    <g class="i-top">
+      <g class="i-swing">
+        <g class="i-mirror"><rect class="o" x="78" y="6" width="84" height="26" rx="11" fill="var(--ink)"/><path d="M92 14 h22" stroke="var(--sage)" stroke-width="4" stroke-linecap="round"/></g>
+        <path class="i-cord o" d="M120 32 V78"/>
+        <g class="i-disc">
+          <circle class="o" cx="120" cy="102" r="26" fill="var(--paper-2)"/>
+          <circle cx="120" cy="84" r="3" fill="var(--ink)"/>
+          <path d="M120 116 V102 M120 107 C113 107 110 102 110 97 C116 97 120 101 120 107 M120 103 C126 103 130 99 130 94 C125 94 120 97 120 103" stroke="var(--moss)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+      </g>
+    </g>
+    <path class="i-wisp w1" d="M80 100 c-9 -8 7 -15 -2 -25"/>
+    <path class="i-wisp w2" d="M160 104 c9 -8 -7 -15 2 -25"/>
+    <path class="i-wisp w3" d="M66 122 c-8 -7 6 -13 -2 -22"/>
+    <path class="i-ground o" d="M24 240 H216"/>
+    <path class="i-mound o" d="M34 240 Q120 150 206 240 Z" fill="var(--ink)"/>
+    <g class="i-plant">
+      <path class="i-stem" d="M120 198 C112 160 128 120 120 62"/>
+      <path class="i-leaf l1 o" d="M118 160 C100 160 86 151 82 135 C100 133 114 142 118 160 Z"/>
+      <path class="i-leaf l2 o" d="M123 138 C141 138 155 129 159 113 C141 111 127 120 123 138 Z"/>
+      <path class="i-leaf l3 o" d="M120 110 C105 110 94 102 91 89 C106 88 117 96 120 110 Z"/>
+      <g class="i-flower"><circle class="p o" cx="137.0" cy="54.0" r="12"/><circle class="p o" cx="128.5" cy="68.7" r="12"/><circle class="p o" cx="111.5" cy="68.7" r="12"/><circle class="p o" cx="103.0" cy="54.0" r="12"/><circle class="p o" cx="111.5" cy="39.3" r="12"/><circle class="p o" cx="128.5" cy="39.3" r="12"/><circle class="c o" cx="120" cy="54" r="11"/></g>
+    </g>
+    <g transform="translate(98 122)"><path class="i-drop d1 o" d="M0 -10 C6 -2 8 2 8 5 A8 8 0 0 1 -8 5 C-8 2 -6 -2 0 -10 Z"/></g>
+    <g transform="translate(142 110)"><path class="i-drop d2 o" d="M0 -10 C6 -2 8 2 8 5 A8 8 0 0 1 -8 5 C-8 2 -6 -2 0 -10 Z"/></g>
+    <g transform="translate(120 118)"><path class="i-drop d3 o" d="M0 -10 C6 -2 8 2 8 5 A8 8 0 0 1 -8 5 C-8 2 -6 -2 0 -10 Z"/></g>
+  </svg>
+  <p class="intro-words"><span class="s1">Hang it.</span><span class="s2">Plant it.</span><span class="s3">Watch it grow.</span></p>
+  <button class="intro-skip" type="button" tabindex="-1">Skip</button>
+</div>
 
 <!-- Fixed background layers, back to front -->
 <div class="layer layer-card" id="card-panel" aria-hidden="true">

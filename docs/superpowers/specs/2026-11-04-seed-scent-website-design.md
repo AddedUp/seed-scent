@@ -427,6 +427,12 @@ replaces the placeholder with no code change.
   shop cards (`goesWith`), and `shop.html?scent=Name`, which opens the shop with that
   scent picked. Every product sells through a VE buy button, one per option. The owner
   discloses AI use in the submission, not on the site. `check-rubric.mjs` covers it.
+- **Startup animation (2026-11-19).** The home page opens on a short cartoon of the cycle:
+  the freshener hangs from a mirror, drops into soil, is watered and grows into a flower
+  ("Hang it. Plant it. Watch it grow."). SVG and CSS only (`css/intro.css`), switched by
+  `js/intro.js`: once per visit, about four seconds, any tap or key skips it, never under
+  reduced motion or for automated browsers (`?intro=1` forces it, `?intro=hold` keeps it up).
+  The headline reveal and the pendant wait for it to lift. `check-intro.mjs` covers it.
 - **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
   School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
   A filled-in fact that is a place to go becomes a link: the handle opens the

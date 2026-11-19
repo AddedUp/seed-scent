@@ -32,7 +32,9 @@ layout()
    typeface; they hide for those few milliseconds so the reveal is the first thing you see. */
 const splitEls = [...document.querySelectorAll('[data-split]')]
 if (!prefersReduced) splitEls.forEach(el => { el.style.visibility = 'hidden' })
-const fontsIn = fontsSettled(splitEls).then(how => {
+/* the startup animation (js/intro.js) plays first: the reveal waits for its curtain to lift */
+const introDone = (window.__intro && window.__intro.done) || Promise.resolve()
+const fontsIn = Promise.all([fontsSettled(splitEls), introDone]).then(([how]) => {
   splitEls.forEach(el => { el.style.visibility = '' })
   initSplit()
   layout(); ScrollTrigger.refresh()
