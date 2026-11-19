@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seed Scent · Thank you</title>
+<meta name="description" content="Thank you for your Seed Scent order.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#fbf6e5">
+<link rel="canonical" href="https://seedscent.com/thank-you.html">
+<link rel="icon" type="image/png" href="brand/favicon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/team.css">
+<link rel="stylesheet" href="css/guide.css">
+<!-- Everything is served locally so the site works offline on a booth laptop. -->
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/SplitText.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="js/config.js"></script>
+</head>
+<body data-theme="cream" data-page="guide" data-thanks>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <a class="brand" href="index.html" aria-label="Seed Scent, back to the home page">
+    <img class="brand-mark" src="brand/mark-ss.png" alt="">
+    <span class="brand-name">Seed Scent</span>
+  </a>
+  <nav class="nav-links" id="nav-links" aria-label="Sections">
+    <a href="index.html#drive">How it works</a>
+    <a href="index.html#scents">Scents</a>
+    <a href="index.html#inside">Inside</a>
+    <a href="shop.html">Shop</a>
+    <a href="planting-guide.html">Planting</a>
+    <a href="team.html">Team</a>
+    <a href="index.html#contact">Contact</a>
+  </nav>
+  <div class="nav-actions">
+    <button class="text-btn menu-btn" id="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">Menu <span class="dot">··</span></button>
+    <button class="text-btn" id="motion-toggle" type="button" aria-pressed="false">Pause motion</button>
+    <!-- The bag lives on the shop and the home page. The count here is read from the saved bag. -->
+    <a class="text-btn" id="bag-toggle" href="shop.html">Bag (<span id="bag-count">0</span>)</a>
+    <a class="pill" href="shop.html" data-magnetic>Shop <span class="dot">·</span></a>
+  </div>
+</header>
+
+<main id="main" class="page guide-page thanks-page">
+
+  <!-- Where the VE marketplace sends a buyer after a successful checkout -->
+  <section class="team-hero guide-hero" id="top" aria-labelledby="thanks-title">
+    <span class="reg tl" aria-hidden="true">+</span><span class="reg tr" aria-hidden="true">+</span>
+    <span class="reg bl" aria-hidden="true">+</span><span class="reg br" aria-hidden="true">+</span>
+    <div class="team-hero-top">
+      <p class="kicker">Order complete</p>
+      <img class="team-hero-logo" src="brand/logo-primary.png" alt="" width="2300" height="1600">
+    </div>
+    <div class="team-hero-copy">
+      <h1 class="display" id="thanks-title" data-split>Thank you for your order.</h1>
+      <p class="guide-intro">Your checkout on the Virtual Enterprise marketplace is complete. Thank you for taking your first step toward a greener drive. When the scent fades, don't toss the paper. Plant it and watch it grow.</p>
+      <div class="actions">
+        <a class="pill" href="planting-guide.html" data-magnetic>Read the planting guide <span class="dot">·</span></a>
+        <a class="pill ghost" href="shop.html" data-magnetic>Back to the shop</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap team-foot">
+    <footer class="footer">
+      <p>A Virtual Enterprise company</p>
+      <p class="school-line"><span class="sl-a"><span class="ph" data-ph="school.name">school</span></span><span class="sl-b"><span class="sl-dot"> · </span><span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></span></p>
+      <p>Smells great. Leaves eventually.</p>
+    </footer>
+    <div class="site-meta">
+      <p class="site-links" data-hide-empty><span class="site-link">Follow us on Instagram <span class="ph" data-ph="contact.instagram" data-link>instagram</span></span><span class="site-link">Email <span class="ph" data-ph="contact.email" data-link>contact email</span></span></p>
+      <p class="disclaimer">Disclaimer: This Virtual Enterprise online store is for educational purposes only (2026-2027 - Seed Scent).</p>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="js/guide.js"></script>
+</body>
+</html>
