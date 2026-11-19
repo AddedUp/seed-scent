@@ -385,6 +385,7 @@ body[data-theme="soil"] .nav .pill .dot { color: var(--moss); }
 .spec th, .spec td { padding: 18px 0; border-top: 1px solid var(--paper-3); text-align: left; vertical-align: top; }
 .spec th { font: 500 11px/1.9 var(--font-body); letter-spacing: .09em; text-transform: uppercase; color: var(--moss); width: 28%; }
 .spec td { font-size: 18px; }
+.spec td::first-letter { text-transform: uppercase; }
 .spec tr:last-child th, .spec tr:last-child td { border-bottom: 1px solid var(--paper-3); }
 .xsec { background: var(--paper-2); border-radius: var(--radius); padding: 18px 18px 14px; }
 #paper-xsec { width: 100%; height: auto; border-radius: var(--radius-sm); background: var(--paper); }
@@ -631,3 +632,16 @@ body.no-webgl #gl, body.no-webgl .hint, body.no-webgl #labels { display: none; }
    -------------------------------------------------------------------------- */
 body.no-bag #bag-toggle, body.no-bag #open-bag, body.no-bag .nav a.pill[href="checkout.html"] { display: none; }
 body:not(.no-bag) .only-no-bag { display: none; }
+
+/* --------------------------------------------------------------------------
+   Under every footer: where to follow and write to the firm, and the Virtual
+   Enterprise educational disclaimer
+   -------------------------------------------------------------------------- */
+.site-meta { display: grid; gap: 10px; padding-top: 6px; padding-bottom: 28px; }
+.site-meta.wrap { padding-top: 6px; padding-bottom: 28px; }
+.site-links { display: flex; flex-wrap: wrap; gap: 6px 28px; font: 500 12px/1.6 var(--font-body); letter-spacing: .09em; text-transform: uppercase; color: var(--ink); }
+.site-links[hidden] { display: none; }
+.site-links .fact-link { text-transform: none; letter-spacing: 0; font-size: 15px; }
+.site-links .ph { font-size: 10px; }
+.disclaimer { font-size: 13px; line-height: 1.5; color: var(--ink); opacity: .78; max-width: 80ch; }
+@media print { .site-meta { display: none; } }

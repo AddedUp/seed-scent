@@ -70,12 +70,15 @@ window.SEED_SCENT = {
        veUrl     the shopper's link to this product's buy button on the VE marketplace (starts with
                  https://). With one, the card's button becomes "Buy on the VE marketplace" and the
                  product is not added to the bag here. Leave it out to keep Add to bag.
+       goesWith  the id of another product to suggest on this card ("Goes well with ..."), and
+                 goesWithNote, a few words about why
        veUrls    a buy button link for each option of the choice, when the marketplace has one
                  per option: { "Lavender": "https://...", ... }. The button follows the pick;
                  an option without a link of its own uses veUrl.
      To sell something new, copy an entry, give it a new id and change the rest. */
   shop: [
-    { id: "the-vine", veUrls: {
+    { id: "the-vine", goesWith: "the-releaf", goesWithNote: "Refills for when the scent fades.",
+      veUrls: {
         "Citrus Grove": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-vine-citrus-grove-11011/",
         "Lavender": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-vine-lavender-11012/",
         "Vanilla": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-vine-vanilla-11013/",
@@ -86,7 +89,8 @@ window.SEED_SCENT = {
       notes: "A premium starter kit for those who want to make a change. This classic hangs from your rearview mirror.",
       contents: ["1 reusable wooden box, hanging", "3 seed papers in the scent you pick"],
       price: 8.99, image: "images/product-mirror-1.jpg", choice: { label: "Scent", options: signatureScents } },
-    { id: "the-dandelion", veUrls: {
+    { id: "the-dandelion", goesWith: "the-releaf", goesWithNote: "Refills for when the scent fades.",
+      veUrls: {
         "Citrus Grove": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-dandelion-citrus-grove-12011/",
         "Lavender": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-dandelion-lavender-12012/",
         "Vanilla": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-dandelion-vanilla-12013/",
@@ -97,7 +101,8 @@ window.SEED_SCENT = {
       notes: "A premium starter kit for those who want to make a change. This classic clips on to your interior car vents.",
       contents: ["1 reusable wooden box, vent clip", "3 seed papers in the scent you pick"],
       price: 8.99, image: "images/product-first-sprout-vent.jpg", choice: { label: "Scent", options: signatureScents } },
-    { id: "the-releaf", veUrls: {
+    { id: "the-releaf", goesWith: "subscription-5", goesWithNote: "Refills every month.",
+      veUrls: {
         "Citrus Grove": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-citrus-grove-16011/",
         "Lavender": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-lavender-16012/",
         "Vanilla": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-releaf-vanilla-16013/",
@@ -108,13 +113,15 @@ window.SEED_SCENT = {
       notes: "Refills only. Buy a set of seed paper with the scent of your choice. The sustainable option.",
       contents: ["3 seed papers in the scent you pick"],
       price: 5.99, image: "images/product-releaf.jpg", choice: { label: "Scent", options: signatureScents } },
-    { id: "the-bloom", veUrls: { "Hanging": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-hanging-13011/", "Vent clip": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-vent-clip-13012/" },
+    { id: "the-bloom", goesWith: "the-garden", goesWithNote: "Two wooden boxes and six seed papers.",
+      veUrls: { "Hanging": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-hanging-13011/", "Vent clip": "https://portal.veinternational.org/buybuttons/us0111040/btn/the-bloom-vent-clip-13012/" },
       name: "The Bloom", kicker: "Grow kit",
       notes: "Everything you need, start to finish. Complete with planting essentials, including a Seed Scent brand pot, quality soil, and shovels.",
       contents: ["1 reusable wooden box, hanging or vent clip", "3 seed papers, scents chosen for you", "Terracotta planting pot", "Soil", "Mini shovels"],
       price: 18.99, image: "images/product-bloom-vent.jpg", choice: { label: "Edition", options: ["Vent clip", "Hanging"] },
       images: { "Hanging": "images/product-bloom-hanging.jpg", "Vent clip": "images/product-bloom-vent.jpg" } },
-    { id: "the-garden", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-garden-4040404/",
+    { id: "the-garden", goesWith: "subscription-10", goesWithNote: "Ten seed papers every month.",
+      veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/the-garden-4040404/",
       name: "The Garden", kicker: "Deluxe bundle",
       notes: "Everything you need and more. Includes two boxes, six seed papers, and a complete planting kit.",
       contents: ["2 reusable wooden boxes: 1 hanging, 1 vent clip", "6 seed papers, scents chosen for you", "Terracotta planting pot", "Mini shovels", "Scratch and smell stickers"],
@@ -124,7 +131,8 @@ window.SEED_SCENT = {
       notes: null,
       contents: ["5 limited edition seed papers"],
       price: 12.99, image: "images/product-limited-edition.jpg" },
-    { id: "wooden-box", veUrls: { "Hanging": "https://portal.veinternational.org/buybuttons/us0111040/btn/wooden-box-hanging-15011/", "Vent clip": "https://portal.veinternational.org/buybuttons/us0111040/btn/wooden-box-vent-clip-15012/" },
+    { id: "wooden-box", goesWith: "the-releaf", goesWithNote: "Seed paper to fill it.",
+      veUrls: { "Hanging": "https://portal.veinternational.org/buybuttons/us0111040/btn/wooden-box-hanging-15011/", "Vent clip": "https://portal.veinternational.org/buybuttons/us0111040/btn/wooden-box-vent-clip-15012/" },
       name: "Wooden Box", kicker: "On its own",
       notes: null,
       contents: ["1 reusable wooden box, hanging or vent clip"],
@@ -162,7 +170,7 @@ window.SEED_SCENT = {
     seeds: "wildflower mix",
     seedsConfirmed: true,   // set true once the mix is final
     formatConfirmed: true,  // set true once the holder, refills and mirror cord / vent clip formats are final
-    scentDuration: null,    // e.g. "about three weeks"
+    scentDuration: "about a month",
     daysToSprout: "10 to 14 days",   // from the Planting Guide
     paperSource: null,      // e.g. "recycled cotton fibre"
     fixativeName: null,     // leave null to keep "a natural, plant-based fixative"
@@ -177,13 +185,35 @@ window.SEED_SCENT = {
     plantingConfirmed: true,
   },
 
-  /* Team page. Photos go in images/team-1.jpg, team-2.jpg ... */
+  /* Team page (team.html), from the firm's org chart. One entry per person, in order.
+       name, role   as they should read on the card
+       dept         the department heading the card sits under (cards with the same dept stay together)
+       photo        the photo file; leave the line out and the card shows the person's initials
+       bio          optional: one line about them. Leave it out for no bio line. */
   team: [
-    { name: null, role: null, bio: null, photo: "images/team-1.jpg" },
-    { name: null, role: null, bio: null, photo: "images/team-2.jpg" },
-    { name: null, role: null, bio: null, photo: "images/team-3.jpg" },
-    { name: null, role: null, bio: null, photo: "images/team-4.jpg" },
-    { name: null, role: null, bio: null, photo: "images/team-5.jpg" },
-    { name: null, role: null, bio: null, photo: "images/team-6.jpg" },
+    { name: "Jack Monteforte", role: "CEO", dept: "Executive", photo: "images/team/jack-monteforte.jpg" },
+    { name: "Maya Knobloch", role: "CBO", dept: "Executive", photo: "images/team/maya-knobloch.jpg" },
+    { name: "Saanvi Sanghavi", role: "COO", dept: "Executive", photo: "images/team/saanvi-sanghavi.jpg" },
+    { name: "Jacob Epstein", role: "CFO", dept: "Finance", photo: "images/team/jacob-epstein.jpg" },
+    { name: "Ateeq Panjwani", role: "VP of Finance", dept: "Finance", photo: "images/team/ateeq-panjwani.jpg" },
+    { name: "Kaylea Chen", role: "VP of Accounting", dept: "Finance", photo: "images/team/kaylea-chen.jpg" },
+    { name: "Elva Chen", role: "Associate", dept: "Finance", photo: "images/team/elva-chen.jpg" },
+    { name: "Jacob Marin", role: "Associate", dept: "Finance", photo: "images/team/jacob-marin.jpg" },
+    { name: "Felix Yan", role: "Associate", dept: "Finance", photo: "images/team/felix-yan.jpg" },
+    { name: "Joe Cascon", role: "Associate", dept: "Finance" },
+    { name: "Waney Kim", role: "CMO", dept: "Marketing", photo: "images/team/waney-kim.jpg" },
+    { name: "Nora Young", role: "VP of Social Media", dept: "Marketing", photo: "images/team/nora-young.jpg" },
+    { name: "Rachel Hui", role: "Associate", dept: "Marketing", photo: "images/team/rachel-hui.jpg" },
+    { name: "Shubhu Pradhan", role: "Associate", dept: "Marketing", photo: "images/team/shubhu-pradhan.jpg" },
+    { name: "Lily Silveira", role: "Associate", dept: "Marketing", photo: "images/team/lily-silveira.jpg" },
+    { name: "Max Wolkoff", role: "CHRO", dept: "Human Resources", photo: "images/team/max-wolkoff.jpg" },
+    { name: "Jonah Han", role: "Associate", dept: "Human Resources", photo: "images/team/jonah-han.jpg" },
+    { name: "Hailey Cohen", role: "Associate", dept: "Human Resources", photo: "images/team/hailey-cohen.jpg" },
+    { name: "Savir Peri", role: "Associate", dept: "Human Resources", photo: "images/team/savir-peri.jpg" },
+    { name: "Ryan Sakhai", role: "CSO", dept: "Sales", photo: "images/team/ryan-sakhai.jpg" },
+    { name: "Sam Goldberg", role: "Associate", dept: "Sales", photo: "images/team/sam-goldberg.jpg" },
+    { name: "Zachary Yedvarb", role: "Associate", dept: "Sales", photo: "images/team/zachary-yedvarb.jpg" },
+    { name: "Liam Urrutia", role: "Associate", dept: "Sales", photo: "images/team/liam-urrutia.jpg" },
+    { name: "Sahil Shah", role: "Associate", dept: "Sales", photo: "images/team/sahil-shah.jpg" },
   ],
 };

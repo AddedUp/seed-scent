@@ -36,13 +36,14 @@ const OPTIONAL = {
   'contact.tiktok': 'not shown on the site unless you want it',
   'contact.linkedin': 'not shown on the site unless you want it',
   'product.fixativeName': 'leave null to keep "a natural, plant-based fixative"',
+  'product.paperSource': 'not shown on the site unless you add it back to the spec sheet',
 }
 
 /* Lines every entry in these lists must have. A deleted line counts as a placeholder. */
 const REQUIRED_KEYS = {
   scents: ['name', 'image', 'imageVent'],
   bulkTiers: ['min', 'label', 'price'],
-  team: ['name', 'role', 'bio', 'photo'],
+  team: ['name', 'role'],
 }
 
 /* How many entries the pages are typeset for. */

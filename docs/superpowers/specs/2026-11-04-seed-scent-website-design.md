@@ -416,6 +416,17 @@ replaces the placeholder with no code change.
   page no longer adds to the bag. Products sold on the VE marketplace carry `veUrl`
   (or `veUrls`, one buy button per option) and show "Buy on the VE marketplace" in
   place of the bag controls; The Vine and The Dandelion have a buy button per scent.
+- **Competition rubric pass (2026-11-19).** Checked against the National E-Commerce
+  Website Competition scoring guide. Added: the VE educational disclaimer under every
+  footer (with a hyphen where VE's template has a dash, by the site's own copy rule),
+  Instagram and the order email in every footer, link-preview tags on every page,
+  `robots.txt` and `sitemap.xml`. The team page now lists the firm's 24 people by
+  department from its org chart (name, title, photo; initials where there is no photo).
+  Scent duration is "about a month"; the paper source line is gone. New: a three-question
+  "Find your scent" quiz on the home page (`js/quiz.js`), "Goes well with" suggestions on
+  shop cards (`goesWith`), and `shop.html?scent=Name`, which opens the shop with that
+  scent picked. Every product sells through a VE buy button, one per option. The owner
+  discloses AI use in the submission, not on the site. `check-rubric.mjs` covers it.
 - **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
   School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
   A filled-in fact that is a place to go becomes a link: the handle opens the

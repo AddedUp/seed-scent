@@ -106,7 +106,7 @@ try {
         holder: [...document.querySelectorAll('#spec th')].find(t => t.textContent.trim() === 'Holder').nextElementSibling.textContent.trim(),
         firms: !!document.getElementById('firms'),
       }))
-      check('[home] the five signature scents, each card a link to the shop', h.names.join() === FIVE.join() && h.links.length === 5 && h.links.every(l => l === 'shop.html Shop this scent ·') && h.adds === 0, JSON.stringify(h.names) + ' ' + h.links[0])
+      check('[home] the five signature scents, each card a link to the shop', h.names.join() === FIVE.join() && h.links.length === 5 && h.links.every((l, i) => l === `shop.html?scent=${encodeURIComponent(FIVE[i])}#products Shop this scent ·`) && h.adds === 0, JSON.stringify(h.names) + ' ' + h.links[0])
       check('[home] five pendants hang in the scents chapter, labelled with the scents', h.hangs === 5 && FIVE.every((n, i) => (h.chips[i] || '').endsWith(n)) && /^Five scents\./.test(h.title), JSON.stringify(h.chips) + ' ' + h.title)
       check('[home] the spec sheet calls the holder a reusable wooden box', /^A reusable wooden box\. Seed paper refills slide in\./.test(h.holder), h.holder)
       // a click anywhere on a card (here its title) opens the shop; the format picker still works on the card

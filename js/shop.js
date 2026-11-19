@@ -48,6 +48,14 @@ function contentsHtml(p) {
   return `<div class="item-inside"><p class="kicker">Inside</p><ul>${c.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul></div>`
 }
 
+/* upselling: a product can point at another one that goes well with it (goesWith: its id) */
+function goesWithHtml(p) {
+  const other = p.goesWith ? shopList().find(x => String(x.id) === String(p.goesWith)) : null
+  if (!other || !other.name) return ''
+  const note = p.goesWithNote ? ` <span class="goes-note">${escapeHtml(String(p.goesWithNote))}</span>` : ''
+  return `<p class="goes-with"><span class="kicker">Goes well with</span> <a class="text-link" href="#p-${escapeHtml(String(other.id))}">${escapeHtml(String(other.name))}</a>${note}</p>`
+}
+
 function cardHtml(p, n) {
   const d = describe(p), id = escapeHtml(String(p.id)), t = `item-${n}`
   const own = p.scent == null
@@ -67,7 +75,7 @@ function cardHtml(p, n) {
         <div><dt>Price</dt><dd><span class="ph price" data-ph="${d.base}.price">price</span>${per}</dd></div>
       </dl>`
   return `
-    <li class="card shop-card" data-item-card="${id}">
+    <li class="card shop-card" id="p-${id}" data-item-card="${id}">
       <span class="ghost-num" aria-hidden="true">${pad(n + 1)}</span>
       <figure class="card-media">
         <img class="slot" data-slot="${d.image}" alt="${escapeHtml(d.alt)}" width="1280" height="800" hidden>
@@ -80,6 +88,7 @@ function cardHtml(p, n) {
       ${notes}
       ${inside}
       ${meta}
+      ${own ? goesWithHtml(p) : ''}
       ${ve ? `${own ? choiceHtml(p, t) : ''}<div class="shop-buy shop-buy-ve">
         <a class="pill small buy-ve" href="${escapeHtml(ve)}" target="_blank" rel="noopener" aria-describedby="${t}-title">Buy on the VE marketplace <span class="dot">·</span></a>
         <p class="kicker soft">Opens the VE marketplace in a new tab</p>
@@ -200,6 +209,14 @@ fillSlots()
 noteMissing()
 initSteppers()
 initChoicePhotos(items)
+/* shop.html?scent=Lavender (from a home scent card or the quiz): every scent picker that offers
+   that scent starts on it, and its button points at that scent */
+const wanted = new URLSearchParams(location.search).get('scent')
+if (wanted) document.querySelectorAll('.item-choice').forEach(sel => {
+  if (![...sel.options].some(o => o.value === wanted)) return
+  sel.value = wanted
+  sel.dispatchEvent(new Event('change', { bubbles: true }))
+})
 initMagnetic()
 initMotionToggle()
 initMenu()

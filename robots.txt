@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /checkout.html
+Disallow: /wholesale.html
+
+Sitemap: https://seedscent.com/sitemap.xml

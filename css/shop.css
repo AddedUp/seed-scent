@@ -106,3 +106,9 @@ body.reduced .shop-card:hover .card-media img { transform: none; }
 /* a product sold on the VE marketplace: one button that leaves for the marketplace */
 .shop-buy-ve { display: grid; gap: 8px; justify-items: start; }
 .shop-buy-ve .buy-ve { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; }
+
+/* upselling: what goes well with this product */
+.goes-with { margin: 0 0 16px; font-size: 15px; line-height: 1.45; color: var(--ink); }
+.goes-with .kicker { color: var(--moss); margin-right: 6px; }
+.goes-note { opacity: .8; }
+.shop-card { scroll-margin-top: calc(var(--nav-h) + 16px); }

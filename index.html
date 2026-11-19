@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Seed Scent · the air freshener that grows</title>
-<meta name="description" content="Seed Scent makes a plantable car air freshener: a wooden holder with a seed paper disc scented with natural essential oils. When the scent fades, plant the paper and it grows.">
+<meta name="description" content="Seed Scent makes a plantable car air freshener: a reusable wooden box with seed paper scented with natural essential oils, in five scents. When the scent fades, plant the paper and it grows.">
 <meta name="theme-color" content="#fbf6e5">
 <meta property="og:title" content="Seed Scent · the air freshener that grows">
 <meta property="og:description" content="A plantable car air freshener: a wooden holder with a seed paper disc, scented with natural essential oils. When the scent fades, plant the paper.">
@@ -233,6 +233,16 @@
         </li>
       </ul>
       <p class="shop-link"><a class="pill ghost" href="shop.html" data-magnetic>Visit the shop <span class="dot">·</span></a><span class="kicker soft">Starter kits, refills, grow kits and the monthly refill subscription.</span></p>
+
+      <!-- Find your scent: js/quiz.js fills the stage. Hidden until the script runs. -->
+      <section class="scent-quiz" id="scent-quiz" aria-labelledby="quiz-title" hidden>
+        <div class="quiz-head">
+          <p class="kicker">Not sure which one?</p>
+          <h2 class="display sm" id="quiz-title">Find your scent.</h2>
+          <p class="annotation">Three quick questions. One of the five.</p>
+        </div>
+        <div class="quiz-stage" aria-live="polite"></div>
+      </section>
     </div>
   </section>
 
@@ -247,7 +257,7 @@
         <table class="spec" id="spec">
           <tbody>
             <tr><th scope="row">Holder</th><td>A reusable wooden box. Seed paper refills slide in. <span class="tbc" data-tbc="product.formatConfirmed">tbc</span></td></tr>
-            <tr><th scope="row">Paper</th><td>Plantable seed paper, <span class="ph" data-ph="product.paperSource">paper source</span></td></tr>
+            <tr><th scope="row">Paper</th><td>Plantable seed paper</td></tr>
             <tr><th scope="row">Seeds</th><td>Wildflower mix <span class="tbc" data-tbc="product.seedsConfirmed">tbc</span></td></tr>
             <tr><th scope="row">Scent</th><td>Natural essential oils</td></tr>
             <tr><th scope="row">Fixative</th><td><span id="fixative-text">Natural, plant-based</span><span class="ph optional" data-ph="product.fixativeName">ingredient</span></td></tr>
@@ -335,6 +345,10 @@
   <p class="school-line" data-hide-empty><span class="sl-a"><span class="ph" data-ph="school.name">school</span></span><span class="sl-b"><span class="sl-dot"> · </span><span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></span></p>
   <p>Smells great. Leaves eventually.</p>
 </footer>
+<div class="site-meta wrap">
+  <p class="site-links" data-hide-empty><span class="site-link">Follow us on Instagram <span class="ph" data-ph="contact.instagram" data-link>instagram</span></span><span class="site-link">Email <span class="ph" data-ph="contact.email" data-link>contact email</span></span></p>
+  <p class="disclaimer">Disclaimer: This Virtual Enterprise online store is for educational purposes only (2026-2027 - Seed Scent).</p>
+</div>
 
 <!-- Bag drawer -->
 <aside class="bag" id="bag" aria-hidden="true" aria-label="Your bag">
@@ -360,5 +374,6 @@
 <script type="module" src="js/main.js"></script>
 <script type="module" src="js/sections.js" async></script>
 <script type="module" src="js/cart.js" async></script>
+<script type="module" src="js/quiz.js" async></script>
 </body>
 </html>

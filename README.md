@@ -156,11 +156,11 @@ What each field does:
 - `plantingSteps`: the four short planting instructions on the home page, one per line in quotes, taken from the Planting guide page. If the guide changes, change these to match. Edit the words, keep the quotes and commas. The small stage beside them (tear the paper, press it into the soil, water it, give it sun) lights each step up as the visitor does it, so keep four steps in that order: tear, press, water, sun. With any other number of steps the stage still works but leaves the list alone.
 - `plantingConfirmed`: set to `true` once the steps are checked. Removes the "draft" note above them.
 
-**team** (one entry per person, add or remove entries freely)
-- `name`: the person's name.
-- `role`: their job title in the firm.
-- `bio`: one line about them.
-- `photo`: their photo file, `images/team-1.jpg`, `images/team-2.jpg` and so on.
+**team** (one entry per person, in order; from the firm's org chart)
+- `name`, `role`: as they should read on the card.
+- `dept`: the department heading the card sits under. Keep people in the same department next to each other.
+- `photo`: their photo file in `images/team/`. Leave the line out and the card shows the person's initials.
+- `bio`: optional, one line about them. Leave it out for no bio line.
 
 ---
 

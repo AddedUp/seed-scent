@@ -216,3 +216,23 @@ body.reduced #qty-range::-webkit-slider-thumb, body.reduced #qty-range::-moz-ran
   .card[data-scent] .card-media[data-format] img.slot[data-for] { transition: none; animation: none; }
   .way, #qty-range::-webkit-slider-thumb, #qty-range::-moz-range-thumb { transition: none; }
 }
+
+/* --------------------------------------------------------------------------
+   Find your scent (js/quiz.js): a sage panel under the scent cards
+   -------------------------------------------------------------------------- */
+.scent-quiz {
+  margin-top: 9vh; padding: clamp(24px, 4vw, 48px); border-radius: var(--radius); background: var(--sage);
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 28px 48px; align-items: center;
+}
+.scent-quiz[hidden] { display: none; }
+.scent-quiz .kicker, .scent-quiz .annotation { color: var(--ink); }
+.scent-quiz .annotation { max-width: none; margin-top: 10px; }
+.quiz-head .display { margin-top: 10px; }
+.quiz-stage { min-height: 190px; display: grid; align-content: center; gap: 14px; }
+.quiz-ask { font-family: var(--font-display); font-variation-settings: var(--display-settings); font-weight: 700; font-size: clamp(24px, 2.4vw, 34px); line-height: 1.15; color: var(--ink); }
+.quiz-ask:focus { outline: none; }
+.quiz-result { font-size: clamp(34px, 4vw, 56px); }
+.quiz-answers { display: flex; flex-wrap: wrap; gap: 10px; }
+.quiz-answer { min-height: 44px; }
+.quiz-back { justify-self: start; }
+@media (max-width: 900px) { .scent-quiz { grid-template-columns: minmax(0, 1fr); } .quiz-stage { min-height: 0; } }

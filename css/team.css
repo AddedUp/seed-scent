@@ -81,3 +81,23 @@
   .team-card .card-media { aspect-ratio: 1 / 1; }
   .team-card .ghost-num { font-size: 150px; bottom: -38px; }
 }
+
+/* --------------------------------------------------------------------------
+   The whole firm, by department: smaller cards, four across, a heading per department
+   -------------------------------------------------------------------------- */
+.team-grid.by-dept { grid-template-columns: repeat(5, 1fr); gap: 20px; }
+@media (max-width: 1320px) { .team-grid.by-dept { grid-template-columns: repeat(4, 1fr); } }
+.team-dept { grid-column: 1 / -1; margin-top: 5vh; padding-bottom: 12px; border-bottom: 1.5px solid var(--moss); }
+.team-dept:first-child { margin-top: 0; }
+.by-dept .team-card { padding: 18px; }
+.by-dept .team-card .card-media { aspect-ratio: 4 / 5; margin-bottom: 16px; }
+.by-dept .team-card .card-media img { object-position: 50% 30%; }
+.by-dept .team-card .card-title { font-size: 21px; margin-bottom: 6px; }
+.by-dept .team-card .team-role { margin-bottom: 0; }
+.by-dept .team-card .ghost-num { font-size: 120px; bottom: -30px; opacity: .08; }
+/* no photo: the person's initials on the brand sage */
+.team-initials { background: var(--sage); }
+.team-initials span { font-family: var(--font-display); font-variation-settings: var(--display-settings); font-weight: 800; font-size: clamp(44px, 5vw, 72px); color: var(--ink); }
+.team-card .card-media.team-initials { aspect-ratio: 4 / 5; }
+@media (max-width: 1100px) { .team-grid.by-dept { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 760px) { .team-grid.by-dept { grid-template-columns: repeat(2, 1fr); gap: 14px; } .by-dept .team-card { padding: 12px; } .by-dept .team-card .card-title { font-size: 18px; } .by-dept .team-card .card-media { aspect-ratio: 4 / 5; } }

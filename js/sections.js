@@ -603,6 +603,11 @@ function initFormatPhotos() {
    link, except on the format picker, which keeps working in place */
 function initScentLinks() {
   const list = document.getElementById('scent-cards'); if (!list) return
+  // the link carries the card's scent, so the shop opens with it picked
+  list.querySelectorAll('.card[data-scent]').forEach(card => {
+    const name = cfg(`scents.${card.dataset.scent}.name`), link = card.querySelector('a.shop-scent')
+    if (name && link) link.href = `shop.html?scent=${encodeURIComponent(name)}#products`
+  })
   list.addEventListener('click', e => {
     if (e.target.closest('a, input, label, button, .format')) return
     const card = e.target.closest('.card'), link = card && card.querySelector('a.shop-scent')

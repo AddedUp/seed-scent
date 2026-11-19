@@ -1,7 +1,7 @@
 /* Team page: cards from config, placeholders, photo slots, hover tilt, rise-in.
    Shares scroll.js (Lenis + GSAP plugins) and ui.js with the home page. */
 import { lenis, motion, prefersReduced, isCoarse } from './scroll.js'
-import { cfg, fillPlaceholders, fillSlots, initSplit, fontsSettled, resplitWhenFontsArrive, initMagnetic, initMotionToggle } from './ui.js'
+import { cfg, escapeHtml, fillPlaceholders, fillSlots, initSplit, fontsSettled, resplitWhenFontsArrive, initMagnetic, initMotionToggle } from './ui.js'
 
 const pad = n => String(n).padStart(2, '0')
 
@@ -15,21 +15,34 @@ function renderTeam(team) {
   }
   // Values are never written into the markup here: the chips carry a config
   // path and fillPlaceholders() sets the text, so nothing needs escaping.
-  list.innerHTML = team.map((m, i) => `
-    <li class="card team-card" data-tilt data-index="${i}">
-      <span class="ghost-num" aria-hidden="true">${pad(i + 1)}</span>
-      <figure class="card-media team-photo">
+  // A member with a dept sits under that department's heading. A member with no photo line shows
+  // their initials; one with no bio line has no bio (a bio set to null still shows its chip).
+  const initials = m => String(m.name || '').split(/\s+/).filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase()
+  const grouped = team.some(m => m && m.dept)
+  list.classList.toggle('by-dept', grouped)
+  let lastDept = null
+  list.innerHTML = team.map((m, i) => {
+    const head = grouped && m.dept !== lastDept ? `<li class="team-dept"><h2 class="display sm">${escapeHtml(String(m.dept || 'Team'))}</h2></li>` : ''
+    lastDept = m.dept
+    const media = 'photo' in m
+      ? `<figure class="card-media team-photo">
         <img class="slot" data-slot="team.${i}.photo" alt="" hidden>
         <span class="slot-label">[Photo]</span>
-      </figure>
-      <h2 class="card-title"><span class="ph" data-ph="team.${i}.name">name</span></h2>
+      </figure>`
+      : `<figure class="card-media team-photo team-initials" aria-hidden="true"><span>${escapeHtml(initials(m))}</span></figure>`
+    return `${head}
+    <li class="card team-card" data-tilt data-index="${i}">
+      <span class="ghost-num" aria-hidden="true">${pad(i + 1)}</span>
+      ${media}
+      <${grouped ? 'h3' : 'h2'} class="card-title"><span class="ph" data-ph="team.${i}.name">name</span></${grouped ? 'h3' : 'h2'}>
       <p class="kicker team-role"><span class="ph" data-ph="team.${i}.role">role</span></p>
-      <p class="team-bio"><span class="ph" data-ph="team.${i}.bio">bio</span></p>
-    </li>`).join('')
+      ${'bio' in m ? `<p class="team-bio"><span class="ph" data-ph="team.${i}.bio">bio</span></p>` : ''}
+    </li>`
+  }).join('')
   // a photo gets the person's name as alt text once there is one
-  list.querySelectorAll('img.slot').forEach((img, i) => {
-    const name = team[i] && team[i].name
-    if (name) img.alt = String(name)
+  list.querySelectorAll('.team-card').forEach(card => {
+    const m = team[Number(card.dataset.index)], img = card.querySelector('img.slot')
+    if (img && m && m.name) img.alt = String(m.name)
   })
   return [...list.querySelectorAll('.team-card')]
 }
@@ -38,7 +51,7 @@ function renderTeam(team) {
 function noteMissing(team) {
   const note = document.getElementById('team-note')
   if (!note) return
-  const missing = team.some(m => !m || m.name == null || m.role == null || m.bio == null)
+  const missing = team.some(m => !m || m.name == null || m.role == null || ('bio' in m && m.bio == null))
   note.hidden = !missing
 }
 
