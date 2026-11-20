@@ -28,15 +28,22 @@ try {
   check('[hang] five name labels, each a link to its scent in the shop', s.length === 5 && s.every((c, i) => c.tag === 'A' && c.href === `shop.html?scent=${encodeURIComponent(NAMES[i])}#products` && c.opacity > 0.9 && c.pe === 'auto'), JSON.stringify(s.map(c => [c.tag, c.href, c.opacity, c.pe])))
 
   // a drag swings the pendant and goes nowhere
-  const d = s[2], discY = d.top - 70
+  const d = s[2], discY = d.top - 120
   await page.mouse.move(d.x, discY); await sleep(200)
   check('[hang] the cursor over a scent pendant is a pointing hand', await page.evaluate(() => document.body.style.cursor) === 'pointer')
   const px = () => page.evaluate(() => window.__dbg.hangers().find(h => h.name === 'scent-2').pos.x)
-  const x0 = await px()
-  await page.mouse.down(); await page.mouse.move(d.x + 160, discY + 20, { steps: 12 })
-  let x1 = x0
-  for (let i = 0; i < 12 && x1 - x0 <= 0.5; i++) { await sleep(120); x1 = await px() }   // a slow frame rate takes a moment to catch up
-  await page.mouse.up(); await sleep(700)
+  // the cursor nudges a pendant as it arrives, so press only once the pendant has settled under it
+  let x0 = 0, x1 = 0
+  for (let attempt = 0; attempt < 4 && x1 - x0 <= 0.5; attempt++) {
+    await page.mouse.move(d.x - 200, discY + 200); await sleep(1200)
+    await page.mouse.move(d.x, discY, { steps: 6 }); await sleep(700)
+    if (await page.evaluate(() => document.body.style.cursor) !== 'pointer') continue
+    x0 = await page.evaluate(() => window.__dbg.hangers().find(h => h.name === 'scent-2').target.x)   // where it hangs at rest
+    await page.mouse.down(); await page.mouse.move(d.x + 160, discY + 20, { steps: 12 })
+    x1 = x0
+    for (let i = 0; i < 10 && x1 - x0 <= 0.5; i++) { await sleep(120); x1 = await px() }
+    await page.mouse.up(); await sleep(700)
+  }
   check('[hang] dragging a pendant still only swings it', (await shopScent(page)).path === 'index.html' && x1 - x0 > 0.5, `moved ${(x1 - x0).toFixed(2)}`)
   await sleep(1800)
 
@@ -51,7 +58,7 @@ try {
   // a click on the air freshener itself
   page = await open(ctx)
   s = await spots(page)
-  await page.mouse.move(s[4].x, s[4].top - 70); await sleep(150)
+  await page.mouse.move(s[4].x, s[4].top - 120); await sleep(150)
   await page.mouse.down(); await sleep(60); await page.mouse.up()
   await page.waitForURL(/shop\.html/, { timeout: 8000 }).catch(() => {}); await page.waitForFunction(() => window.__shop && window.__shop.ready, null, { timeout: 8000 }).catch(() => {})
   at = await shopScent(page)
