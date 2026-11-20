@@ -7,7 +7,7 @@
    and the pendant can wait for it. A tap, a click, any key or the Skip button ends it early. */
 (function () {
   var root = document.documentElement, q = location.search, KEY = 'seedscent.intro'
-  var LENGTH = 4300, LIFT = 700
+  var LENGTH = 2600, LIFT = 550   // LENGTH: the cartoon, and the count from 0 to 100 that runs under it
   var on = true
   try { on = !sessionStorage.getItem(KEY) } catch (e) {}
   if (navigator.webdriver) on = false
@@ -47,6 +47,14 @@
     var still = function (e) { e.preventDefault(); e.stopPropagation() }
     el.addEventListener('wheel', still, { passive: false })
     el.addEventListener('touchmove', still, { passive: false })
-    if (!hold) timer = setTimeout(end, LENGTH)
+    // the count: 0 to 100 over the length of the cartoon, then the curtain lifts
+    var pct = document.getElementById('intro-pct'), t0 = performance.now()
+    ;(function count() {
+      if (api.over) return
+      var p = Math.min(1, (performance.now() - t0) / LENGTH)
+      if (pct) pct.textContent = String(Math.round(p * 100))
+      if (p < 1) requestAnimationFrame(count)
+      else if (!hold) timer = setTimeout(end, 180)   // 100 stays up for a beat
+    })()
   })
 })()

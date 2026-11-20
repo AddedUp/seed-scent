@@ -1,0 +1,25 @@
+/* ==========================================================================
+   Seed Scent · Scent Breakdown page
+   Only what scent-breakdown.html needs. The shell comes from site.css, the header
+   card from team.css and guide.css, and the card and blend bar from site.css.
+   ========================================================================== */
+.scents-part { padding-top: 9vh; scroll-margin-top: calc(var(--nav-h) + 16px); }
+.scents-part .kicker { color: var(--moss); }
+.scents-h { font-size: clamp(34px, 4.4vw, 64px); line-height: 1.02; margin: 8px 0 12px; }
+.scents-lede { font-size: clamp(16px, 1.3vw, 19px); line-height: 1.5; max-width: 56ch; }
+.scent-grid { margin-top: 30px; grid-template-columns: repeat(5, 1fr); gap: 20px; align-items: stretch; list-style: none; padding: 0; }
+.scent-card { padding: 20px; display: flex; flex-direction: column; scroll-margin-top: calc(var(--nav-h) + 16px); }
+.scent-card .card-media { height: 210px; margin-bottom: 20px; }
+.scent-card .card-title { font-size: 24px; }
+.scent-card .card-notes { font-size: 15px; line-height: 1.45; min-height: 0; }
+.scent-card .blend { margin-bottom: 20px; }
+.blend-deep { gap: 12px !important; margin-top: 12px !important; }
+.blend-row { font-size: 15px; font-weight: 600; }
+.blend-row b { font-weight: 700; }
+.blend-about { margin-top: 3px; font-size: 14px; line-height: 1.45; color: var(--ink); opacity: .9; }
+.blend-about strong { font-weight: 600; }
+.scent-card .scent-shop { margin-top: auto; align-self: flex-start; text-decoration: none; }
+
+@media (max-width: 1280px) { .scent-grid { grid-template-columns: repeat(3, 1fr); } .scent-card .card-media { height: 240px; } }
+@media (max-width: 900px) { .scent-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .scent-grid { grid-template-columns: minmax(0, 1fr); } .scents-part { padding-top: 7vh; } }

@@ -11,7 +11,7 @@ let fails = 0, passes = 0
 const check = (name, ok, detail = '') => { ok ? passes++ : fails++; console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? '  :: ' + detail : ''}`) }
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 const DISCLAIMER = 'Disclaimer: This Virtual Enterprise online store is for educational purposes only (2026-2027 - Seed Scent).'
-const PAGES = ['index.html', 'shop.html', 'planting-guide.html', 'team.html']
+const PAGES = ['index.html', 'shop.html', 'scent-breakdown.html', 'planting-guide.html', 'team.html']
 
 const browser = await chromium.launch()
 try {
@@ -41,7 +41,7 @@ try {
     check(`[${pg}] firm name and logo in the header`, d.brand)
     check(`[${pg}] Instagram and the firm's email in the footer`, !!d.insta && !!d.mail, `${d.insta} ${d.mail}`)
     check(`[${pg}] nothing unfinished on screen: no placeholder chips, photo gaps or tbc tags`, d.chips.length === 0 && d.photoGaps === 0 && d.tbc === 0, JSON.stringify({ chips: d.chips, gaps: d.photoGaps, tbc: d.tbc }))
-    check(`[${pg}] the same seven tabs in the menu`, d.tabs.join('|') === 'How it works|Scents|Inside|Shop|Planting|Team|Contact', d.tabs.join('|'))
+    check(`[${pg}] the same eight tabs in the menu`, d.tabs.join('|') === 'How it works|Scents|Scent Breakdown|Inside|Shop|Planting|Team|Contact', d.tabs.join('|'))
     check(`[${pg}] a description and link-preview tags for search and sharing`, d.desc.length > 50 && d.og >= 5, `${d.desc.length} chars, ${d.og} og tags`)
     check(`[${pg}] no dashes, no sideways scroll, no console errors`, !d.dashes && d.overflow <= 0 && !errs.length, `${d.overflow}px ${errs.join(' | ').slice(0, 160)}`)
     if (pg === 'index.html') {
@@ -76,6 +76,16 @@ try {
       check('[shop] Bake and Bloom: a description, its five scents with their profiles, and its own photo', /Five bakery scents/.test(le.notes) && le.inside.join('|') === 'Chocolate Chip Cookie|Brownie|Cake Batter|Cinnamon|Cupcake' && /bake-and-bloom/.test(le.img) && le.ok, JSON.stringify(le))
       check('[shop] upselling: cards suggest a product that goes well, linking to its card', s.goes.length === 6 && s.targets && s.goes.includes('the-vine>#p-the-releaf'), s.goes.join(' '))
     }
+    if (pg === 'scent-breakdown.html') {
+      const b = await page.evaluate(() => {
+        const cards = id => [...document.querySelectorAll(`#${id} .scent-card`)].map(c => ({ name: c.querySelector('.card-title').textContent.trim(), notes: (c.querySelector('.card-notes') || {}).textContent || '', rows: [...c.querySelectorAll('.blend-row')].map(r => r.textContent.replace(/\s+/g, ' ').trim()), about: [...c.querySelectorAll('.blend-about')].map(r => r.textContent.trim()), btn: c.querySelector('a.scent-shop').textContent.replace(/[\s·]+$/, '').trim(), href: c.querySelector('a.scent-shop').getAttribute('href'), img: (() => { const i = c.querySelector('img'); return !!i && i.complete && i.naturalWidth > 100 })() }))
+        return { sig: cards('signature-grid'), bake: cards('bake-grid'), active: (document.querySelector('.nav-links a[aria-current="page"]') || {}).textContent, text: document.body.innerText }
+      })
+      check('[breakdown] its tab is the current one', b.active === 'Scent Breakdown')
+      check('[breakdown] five signature scents, each with a photo, a description, three notes in depth and a button to that scent in the shop', b.sig.length === 5 && b.sig.every(s => s.img && s.notes.length > 30 && s.rows.length === 3 && s.about.length === 3 && s.about.every(a => a.length > 40) && s.btn === 'Shop this scent' && s.href === `shop.html?scent=${encodeURIComponent(s.name)}#products`) && b.sig[0].rows[0] === '60% Lemon' && /^Bright lemon top\. A bold, zesty burst/.test(b.sig[0].about[0]), JSON.stringify(b.sig[0]))
+      check('[breakdown] the five Bake and Bloom scents, each with a button to the bundle', b.bake.map(s => s.name).join('|') === 'Chocolate Chip Cookie|Brownie|Cake Batter|Cinnamon|Cupcake' && b.bake.every(s => s.img && s.notes.length > 30 && s.btn === 'Shop the bundle' && s.href === 'shop.html#p-limited-5') && b.bake[0].rows.join(', ') === '40% Vanilla, 40% Chocolate, 20% Benzoin' && b.bake[3].rows.length === 0, JSON.stringify(b.bake.map(s => [s.name, s.rows.length, s.btn])))
+      check('[breakdown] supplier names stay off the page', !/Eden Botanicals|Nature.s Flavors|apothecary/i.test(b.text))
+    }
     if (pg === 'team.html') {
       const t = await page.evaluate(() => ({ cards: document.querySelectorAll('.team-card').length, depts: [...document.querySelectorAll('.team-dept')].map(e => e.textContent.trim()), photos: document.querySelectorAll('.team-card img.slot:not([hidden])').length, initials: [...document.querySelectorAll('.team-initials')].map(e => e.textContent.trim()), first: document.querySelector('.team-card .card-title').textContent.trim() + ', ' + document.querySelector('.team-card .team-role').textContent.trim(), alts: [...document.querySelectorAll('.team-card img.slot')].every(i => i.alt.length > 3) }))
       check('[team] 24 people under five departments, 23 photos with names as alt text, initials for the one without', t.cards === 24 && t.depts.join('|') === 'Executive|Finance|Marketing|Human Resources|Sales' && t.photos === 23 && t.initials.join() === 'JC' && t.alts && t.first === 'Jack Monteforte, CEO', JSON.stringify(t))
@@ -89,6 +99,12 @@ try {
   const v = await shop.evaluate(() => ['the-vine', 'the-dandelion', 'the-releaf'].map(id => { const c = document.querySelector(`[data-item-card="${id}"]`); return c.querySelector('.item-choice').value + ' ' + c.querySelector('a.buy-ve').href.replace(/^.*btn\//, '') }))
   check('[shop] shop.html?scent=Vanilla opens with Vanilla picked and its buy buttons', v.join(' | ') === 'Vanilla the-vine-vanilla-11013/ | Vanilla the-dandelion-vanilla-12013/ | Vanilla the-releaf-vanilla-16013/', v.join(' | '))
   await shop.close()
+  // the bundle button on the Scent Breakdown page lands on the bundle's card
+  const bun = await ctx.newPage()
+  await bun.goto(url('shop.html') + '#p-limited-5', { waitUntil: 'load' }); await bun.waitForFunction(() => window.__shop && window.__shop.ready); await sleep(1500)
+  const bt = await bun.evaluate(() => { const r = document.getElementById('p-limited-5').getBoundingClientRect(); return { top: Math.round(r.top), h: innerHeight } })
+  check('[shop] shop.html#p-limited-5 opens on the Bake and Bloom card', bt.top > -50 && bt.top < bt.h * 0.6, JSON.stringify(bt))
+  await bun.close()
 
   // phone: the new pieces fit
   const mob = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })

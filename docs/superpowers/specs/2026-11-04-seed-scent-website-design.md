@@ -440,6 +440,14 @@ replaces the placeholder with no code change.
   lines for Fresh Linen and Wildflower Meadow were copies of other scents' lines, so those
   two are written from their own note descriptions. The Bake and Bloom pack lists its five
   bakery scents with their profiles and has its own mock-up photo.
+- **Scent Breakdown page (2026-11-20).** An eighth tab, `scent-breakdown.html`
+  (`js/scents.js`, `css/scents.css`): the home scent cards in more depth, each oil with its
+  note and a line about it (`note`, `about` on a `blend` entry), and a "Shop this scent"
+  button. A second row gives the five Bake and Bloom scents (`limitedScents` in the config)
+  with "Shop the bundle" buttons to `shop.html#p-limited-5`; Cinnamon has no blend in the
+  firm's sheet, so its card has none. The home pendants and their name labels link to the
+  shop too. The startup animation runs in 2.6 seconds with a count from 0 to 100 in place of
+  the captions. The Dandelion, Releaf and Garden box photos were redone with round seed paper.
 - **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
   School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
   A filled-in fact that is a place to go becomes a link: the handle opens the

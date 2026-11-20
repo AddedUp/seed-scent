@@ -48,25 +48,86 @@ window.SEED_SCENT = {
   /* The five signature scents, as the home page shows them. Each card links to the Shop page.
      image: the photo of the hanging version. imageVent: the photo of the vent clip version.
      The card shows whichever the visitor picks. blend: the three oils and roughly what share each is, from the
-     firm's scent profiles (leave it out and the card shows no blend). notes: one short line about the smell (null
+     firm's scent profiles (leave it out and the card shows no blend); note and about are the
+     longer words the Scent Breakdown page adds under each oil. notes: one short line about the smell (null
      hides the line). The product photos are shared between scents until each has its own. */
   scents: [
     { id: "scent-1", name: "Citrus Grove", image: "images/product-studio-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink",
       notes: "Cool citrus blend with lemon, orange, and grapefruit.",
-      blend: [{ share: 60, oil: "Lemon" }, { share: 25, oil: "Orange" }, { share: 15, oil: "Grapefruit" }] },
+      blend: [
+        { share: 60, oil: "Lemon", note: "Bright lemon top", about: "A bold, zesty burst of fresh lemon peel." },
+        { share: 25, oil: "Orange", note: "Juicy orange", about: "A sweet, sunny citrus aroma that adds a juicy and vibrant layer." },
+        { share: 15, oil: "Grapefruit", note: "Crisp grapefruit", about: "A bright, slightly tart citrus aroma that balances the blend with a clean, refreshing finish." },
+      ] },
     { id: "scent-2", name: "Lavender", image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss",
       notes: "Soft lavender with calming floral and herbal notes. A fresh, relaxing car scent.",
-      blend: [{ share: 60, oil: "Lavender" }, { share: 25, oil: "Rosemary" }, { share: 15, oil: "Roman chamomile" }] },
+      blend: [
+        { share: 60, oil: "Lavender", note: "Soft lavender", about: "A soft, floral aroma that creates a calming and refreshing scent." },
+        { share: 25, oil: "Rosemary", note: "Fresh herbal notes", about: "A fresh, green herbal scent that adds a clean and earthy touch to the lavender." },
+        { share: 15, oil: "Roman chamomile", note: "Gentle sweetness", about: "A light, sweet floral scent that balances the herbal notes and creates a smooth, relaxing finish." },
+      ] },
     { id: "scent-3", name: "Vanilla", image: "images/product-mirror-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "sage",
       notes: "Soft, creamy vanilla with warm and comforting sweet notes. A smooth, cozy car scent.",
-      blend: [{ share: 60, oil: "Vanilla" }, { share: 25, oil: "Benzoin" }, { share: 15, oil: "Tonka bean" }] },
+      blend: [
+        { share: 60, oil: "Vanilla", note: "Creamy vanilla", about: "A rich, sweet vanilla note that creates the smooth and comforting base of the scent." },
+        { share: 25, oil: "Benzoin", note: "Warm sweetness", about: "A warm, soft, slightly balsamic scent that adds depth and a cozy sweetness to the vanilla." },
+        { share: 15, oil: "Tonka bean", note: "Soft creamy finish", about: "A gentle, creamy note with hints of sweetness that rounds out the blend and gives it a soft, relaxing finish." },
+      ] },
     { id: "scent-4", name: "Linen", image: "images/product-studio-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink",
       notes: "Bright, clean citrus with soft lavender and a cool herbal finish. Like freshly washed laundry.",
-      blend: [{ share: 60, oil: "Lemon" }, { share: 25, oil: "Lavender" }, { share: 15, oil: "Eucalyptus" }] },
+      blend: [
+        { share: 60, oil: "Lemon", note: "Fresh clean notes", about: "A bright, clean citrus scent that creates a crisp and refreshing aroma similar to freshly washed laundry." },
+        { share: 25, oil: "Lavender", note: "Soft floral freshness", about: "A gentle, floral scent that adds a soft, relaxing touch and gives the blend a fresh laundry feeling." },
+        { share: 15, oil: "Eucalyptus", note: "Light herbal finish", about: "A cool, refreshing herbal scent that balances the citrus and floral notes, creating a smooth, airy finish." },
+      ] },
     { id: "scent-5", name: "Wildflowers", image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss",
       notes: "Sweet, rosy florals with green herbs and a soft floral sweetness. Like an open meadow.",
-      blend: [{ share: 60, oil: "Geranium" }, { share: 25, oil: "Clary sage" }, { share: 15, oil: "Roman chamomile" }] },
+      blend: [
+        { share: 60, oil: "Geranium", note: "Fresh floral notes", about: "A sweet, rosy floral aroma that creates a fresh and uplifting wildflower scent." },
+        { share: 25, oil: "Clary sage", note: "Green herbal freshness", about: "A fresh, green herbal scent that adds an earthy touch and captures the feeling of an open meadow." },
+        { share: 15, oil: "Roman chamomile", note: "Soft floral sweetness", about: "A gentle, sweet floral scent with light fruity notes that balances the herbs and creates a smooth, refreshing finish." },
+      ] },
   ],
+
+  /* The five scents of the limited edition Bake and Bloom Collection, for the Scent Breakdown
+     page. Same fields as a signature scent; a scent with no blend yet has an empty list.
+     bundle: the id of the shop product they are sold in. */
+  limitedScents: {
+    name: "Bake and Bloom Collection", bundle: "limited-5",
+    scents: [
+      { name: "Chocolate Chip Cookie", image: "images/bake-cookie.jpg",
+        notes: "Warm brown sugar and melted chocolate over a buttery vanilla dough base.",
+        blend: [
+          { share: 40, oil: "Vanilla", note: "Cookie base", about: "A rich, warm, sweet scent with a deep balsamic body." },
+          { share: 40, oil: "Chocolate", note: "Chocolate", about: "Made with organic sunflower oil and natural flavors." },
+          { share: 20, oil: "Benzoin", note: "Brown sugar and caramel", about: "A plant resin with a warm vanilla and caramel scent. It also helps the other notes last longer." },
+        ] },
+      { name: "Brownie", image: "images/bake-brownie.jpg",
+        notes: "Rich dark cocoa and fudge with hints of toasted walnut and caramel.",
+        blend: [
+          { share: 40, oil: "Vanilla", note: "Vanilla base", about: "A rich, cozy smell of real vanilla bean: smooth, creamy and sweet, wrapped in warm caramel and gentle woods." },
+          { share: 30, oil: "Cocoa extract", note: "Dark cocoa", about: "Extracted from roasted cocoa beans. A deep, bittersweet warmth with hints of roasted espresso and silky truffle." },
+          { share: 30, oil: "Ethyl maltol", note: "Caramelized sugar", about: "The sweet smell of freshly spun cotton candy and warm caramelized sugar, for a golden, sugary richness." },
+        ] },
+      { name: "Cake Batter", image: "images/bake-cake-batter.jpg",
+        notes: "Sweet vanilla buttercream and fresh batter with a light note of rainbow sprinkles and sugar.",
+        blend: [
+          { share: 50, oil: "Birthday cake", note: "Cake batter base", about: "Sweet, creamy vanilla notes and cake batter essence." },
+          { share: 30, oil: "Vanilla", note: "Vanilla buttercream", about: "The same organic vanilla as the cookie." },
+          { share: 20, oil: "Tonka bean", note: "Sugary sweetness", about: "A rich, caramel-like, powdery-sweet scent that reads like frosting and sugar." },
+        ] },
+      { name: "Cinnamon", image: "images/bake-cinnamon.jpg",
+        notes: "Spiced cinnamon and clove wrapped in warm brown sugar and soft vanilla.",
+        blend: [] },
+      { name: "Cupcake", image: "images/bake-cupcake.jpg",
+        notes: "Fluffy vanilla sponge topped with whipped frosting and a touch of strawberry.",
+        blend: [
+          { share: 45, oil: "Birthday cake", note: "Cupcake base", about: "A sweet, buttery cake scent that resembles freshly baked cupcakes." },
+          { share: 40, oil: "Vanilla", note: "Vanilla frosting", about: "A rich, warm, creamy sweetness that helps create the smell of vanilla frosting." },
+          { share: 15, oil: "Strawberry", note: "Strawberry sweetness", about: "A light, fruity strawberry scent that complements the vanilla cupcake base." },
+        ] },
+    ],
+  },
 
   /* The Shop page (shop.html). One card per entry, shown in this order.
        id        its own short name, different for every entry

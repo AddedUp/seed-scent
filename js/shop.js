@@ -228,6 +228,12 @@ if (wanted) document.querySelectorAll('.item-choice').forEach(sel => {
   sel.value = wanted
   sel.dispatchEvent(new Event('change', { bubbles: true }))
 })
+/* shop.html#p-limited-5 (from the Scent Breakdown page): the cards are built after the page
+   loads, so the browser's own jump to the card has nothing to land on; go there now */
+if (/^#p-/.test(location.hash)) {
+  const card = document.getElementById(decodeURIComponent(location.hash.slice(1)))
+  if (card) requestAnimationFrame(() => { lenis ? lenis.scrollTo(card, { offset: -90, immediate: true }) : card.scrollIntoView() })
+}
 initMagnetic()
 initMotionToggle()
 initMenu()

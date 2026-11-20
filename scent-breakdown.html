@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seed Scent · Scent breakdown</title>
+<meta name="description" content="What is in every Seed Scent: the three notes behind each of our five signature scents and the five bakery scents of the limited edition Bake and Bloom Collection.">
+<meta name="theme-color" content="#fbf6e5">
+<meta property="og:title" content="Seed Scent · Scent breakdown">
+<meta property="og:description" content="The three notes behind each Seed Scent, signature and limited edition.">
+<meta property="og:image" content="https://seedscent.com/images/product-mirror-1.jpg">
+<meta property="og:url" content="https://seedscent.com/scent-breakdown.html">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://seedscent.com/scent-breakdown.html">
+<link rel="icon" type="image/png" href="brand/favicon.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/team.css">
+<link rel="stylesheet" href="css/guide.css">
+<link rel="stylesheet" href="css/scents.css">
+<!-- Everything is served locally so the site works offline on a booth laptop. -->
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/SplitText.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="js/config.js"></script>
+</head>
+<body data-theme="cream" data-page="scents">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <a class="brand" href="index.html" aria-label="Seed Scent, back to the home page">
+    <img class="brand-mark" src="brand/mark-ss.png" alt="">
+    <span class="brand-name">Seed Scent</span>
+  </a>
+  <nav class="nav-links" id="nav-links" aria-label="Sections">
+    <a href="index.html#drive">How it works</a>
+    <a href="index.html#scents">Scents</a>
+    <a href="scent-breakdown.html" class="active" aria-current="page">Scent Breakdown</a>
+    <a href="index.html#inside">Inside</a>
+    <a href="shop.html">Shop</a>
+    <a href="planting-guide.html">Planting</a>
+    <a href="team.html">Team</a>
+    <a href="index.html#contact">Contact</a>
+  </nav>
+  <div class="nav-actions">
+    <button class="text-btn menu-btn" id="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links">Menu <span class="dot">··</span></button>
+    <button class="text-btn" id="motion-toggle" type="button" aria-pressed="false">Pause motion</button>
+    <!-- The bag lives on the shop and the home page. The count here is read from the saved bag. -->
+    <a class="text-btn" id="bag-toggle" href="shop.html">Bag (<span id="bag-count">0</span>)</a>
+    <a class="pill" href="shop.html" data-magnetic>Shop <span class="dot">·</span></a>
+  </div>
+</header>
+
+<main id="main" class="page guide-page scents-page">
+
+  <section class="team-hero guide-hero" id="top" aria-labelledby="scents-title">
+    <span class="reg tl" aria-hidden="true">+</span><span class="reg tr" aria-hidden="true">+</span>
+    <span class="reg bl" aria-hidden="true">+</span><span class="reg br" aria-hidden="true">+</span>
+    <div class="team-hero-top">
+      <p class="kicker">Scent breakdown</p>
+      <img class="team-hero-logo" src="brand/logo-primary.png" alt="" width="2300" height="1600">
+    </div>
+    <div class="team-hero-copy">
+      <h1 class="display" id="scents-title" data-split>What's in every scent.</h1>
+      <p class="guide-intro">Every Seed Scent is a blend of three notes. Here is what goes into each of our five signature scents, and into the five bakery scents of the limited edition Bake and Bloom Collection. The shares are approximate.</p>
+      <div class="actions">
+        <a class="pill" href="#signature" data-magnetic>Signature scents <span class="dot">·</span></a>
+        <a class="pill ghost" href="#bake-and-bloom" data-magnetic>Bake and Bloom</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Both lists are built by js/scents.js from the scents and limitedScents lists in js/config.js -->
+  <section class="wrap scents-part" id="signature" aria-labelledby="signature-title">
+    <p class="kicker">The five signatures</p>
+    <h2 class="display scents-h" id="signature-title">Signature scents</h2>
+    <ul class="cards scent-grid" id="signature-grid"></ul>
+  </section>
+
+  <section class="wrap scents-part" id="bake-and-bloom" aria-labelledby="bake-title">
+    <p class="kicker">Limited edition</p>
+    <h2 class="display scents-h" id="bake-title">Bake and Bloom Collection</h2>
+    <p class="scents-lede">Five bakery scents, sold together in one bundle of five seed papers.</p>
+    <ul class="cards scent-grid" id="bake-grid"></ul>
+  </section>
+
+  <div class="wrap team-foot">
+    <footer class="footer">
+      <p>A Virtual Enterprise company</p>
+      <p class="school-line"><span class="sl-a"><span class="ph" data-ph="school.name">school</span></span><span class="sl-b"><span class="sl-dot"> · </span><span class="ph" data-ph="school.city">city</span>, <span class="ph" data-ph="school.state">state</span></span></p>
+      <p>Smells great. Leaves eventually.</p>
+    </footer>
+    <div class="site-meta">
+      <p class="site-links" data-hide-empty><span class="site-link">Follow us on Instagram <span class="ph" data-ph="contact.instagram" data-link>instagram</span></span><span class="site-link">Email <span class="ph" data-ph="contact.email" data-link>contact email</span></span></p>
+      <p class="disclaimer">Disclaimer: This Virtual Enterprise online store is for educational purposes only (2026-2027 - Seed Scent).</p>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="js/scents.js"></script>
+</body>
+</html>
