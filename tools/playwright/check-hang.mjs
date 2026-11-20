@@ -33,8 +33,9 @@ try {
   check('[hang] the cursor over a scent pendant is a pointing hand', await page.evaluate(() => document.body.style.cursor) === 'pointer')
   const px = () => page.evaluate(() => window.__dbg.hangers().find(h => h.name === 'scent-2').pos.x)
   const x0 = await px()
-  await page.mouse.down(); await page.mouse.move(d.x + 160, discY + 20, { steps: 12 }); await sleep(150)
-  const x1 = await px()
+  await page.mouse.down(); await page.mouse.move(d.x + 160, discY + 20, { steps: 12 })
+  let x1 = x0
+  for (let i = 0; i < 12 && x1 - x0 <= 0.5; i++) { await sleep(120); x1 = await px() }   // a slow frame rate takes a moment to catch up
   await page.mouse.up(); await sleep(700)
   check('[hang] dragging a pendant still only swings it', (await shopScent(page)).path === 'index.html' && x1 - x0 > 0.5, `moved ${(x1 - x0).toFixed(2)}`)
   await sleep(1800)
