@@ -449,7 +449,7 @@ replaces the placeholder with no code change.
   shop too. The startup animation runs in 2.6 seconds with a count from 0 to 100 in place of
   the captions. The Dandelion, Releaf and Garden box photos were redone with round seed paper.
 - **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
-  School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
+  School), the place (Syosset, New York) and the Instagram handle (`seed.scent.ve`, corrected 2026-11-20).
   A filled-in fact that is a place to go becomes a link: the handle opens the
   profile in a new tab, the email address (when it arrives) opens an email. A
   handle or address the site cannot use keeps its chip, and the report says why.

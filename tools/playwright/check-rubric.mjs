@@ -28,7 +28,7 @@ try {
         photoGaps: [...document.querySelectorAll('.slot-label')].filter(vis).length,
         tbc: [...document.querySelectorAll('.tbc')].filter(vis).length,
         brand: !!document.querySelector('.nav .brand-mark') && /Seed Scent/.test(document.querySelector('.nav .brand').textContent),
-        insta: [...document.querySelectorAll('.site-links a')].map(a => a.href).find(h => /instagram\.com\/seedscent\.ve/.test(h)) || null,
+        insta: [...document.querySelectorAll('.site-links a')].map(a => a.href).find(h => /instagram\.com\/seed\.scent\.ve/.test(h)) || null,
         mail: [...document.querySelectorAll('.site-links a')].map(a => a.getAttribute('href')).find(h => /^mailto:seedscent\.ny@gmail\.com$/.test(h)) || null,
         tabs: [...document.querySelectorAll('.nav-links a')].map(a => a.textContent.trim()),
         desc: (document.querySelector('meta[name=description]') || {}).content || '',

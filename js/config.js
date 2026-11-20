@@ -20,7 +20,7 @@ window.SEED_SCENT = {
   contact: {
     email: "seedscent.ny@gmail.com",
     phone: null,
-    instagram: "seedscent.ve",   // the handle; the business card links it to instagram.com/<handle>/
+    instagram: "seed.scent.ve",   // the handle; the business card links it to instagram.com/<handle>/
     tiktok: null,
     linkedin: null,
   },

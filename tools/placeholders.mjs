@@ -171,7 +171,7 @@ function instagramHandle(v) {
 function checkInstagram(dotted, value) {
   if (isBlank(value)) { nulls.push({ path: dotted, note: emptyNote(value), optional: OPTIONAL[dotted] }); return }
   if (!instagramHandle(value)) {
-    wrong.push({ path: dotted, text: `is ${show(value)}. Use the handle on its own in quotes, like "seedscent.ve" (letters, numbers, dots and underscores, 30 at most), or paste the link to the profile itself. Until it is, the site keeps the chip.` })
+    wrong.push({ path: dotted, text: `is ${show(value)}. Use the handle on its own in quotes, like "seed.scent.ve" (letters, numbers, dots and underscores, 30 at most), or paste the link to the profile itself. Until it is, the site keeps the chip.` })
   }
 }
 

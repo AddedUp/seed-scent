@@ -93,7 +93,7 @@ What each field does:
 **contact**
 - `email`: where the order-request form and the email checkout send orders. The single most important field. Type the address on its own, like `"orders@school.org"`. On the business card it becomes a link that opens an email. If the chip stays after you fill it in, the value is not an address an email app can use, and no order email is sent until it is; the report (section 5) says so under Looks wrong.
 - `phone`: a phone number, if the team wants one shown.
-- `instagram`: the handle, for example `"seedscent.ve"`. An @ in front or a pasted profile link works too. Shown on the business card as a link that opens the profile in a new tab. If the chip stays after you fill it in, the value is not a handle Instagram accepts (letters, numbers, dots and underscores, 30 at most), or the link is to a post and not to the profile; the report says so under Looks wrong.
+- `instagram`: the handle, for example `"seed.scent.ve"`. An @ in front or a pasted profile link works too. Shown on the business card as a link that opens the profile in a new tab. If the chip stays after you fill it in, the value is not a handle Instagram accepts (letters, numbers, dots and underscores, 30 at most), or the link is to a post and not to the profile; the report says so under Looks wrong.
 - `tiktok`: the handle, for when a TikTok link is added.
 - `linkedin`: the profile or page link, for when a LinkedIn link is added.
 
