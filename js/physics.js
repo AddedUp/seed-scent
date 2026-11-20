@@ -353,8 +353,10 @@ function bindPointer() {
     cursor.x = p.x; cursor.y = p.y; cursor.active = true
     // the held pendant is moved in step(), where the cord's reach is enforced
     if (grab.held) { grab.want.set(p.x + grab.offset.x, p.y + grab.offset.y, 0); return }
-    const over = !!hitHanger()
-    if (over !== cursor.over) { cursor.over = over; document.body.style.cursor = over ? 'grab' : '' }
+    const hit = hitHanger(), over = !!hit
+    // a scent pendant is also a link (a click opens the shop), so it shows the hand that says so
+    const look = !over ? '' : /^scent-/.test(hit.name) ? 'pointer' : 'grab'
+    if (over !== cursor.over || look !== cursor.look) { cursor.over = over; cursor.look = look; document.body.style.cursor = look }
   }, { passive: true })
 
   addEventListener('pointerdown', e => {
@@ -367,6 +369,7 @@ function bindPointer() {
     if (!h) return
     e.preventDefault()
     grab.held = h; grab.pointerId = e.pointerId
+    grab.down = { x: e.clientX, y: e.clientY, t: performance.now() }
     h.body.setBodyType(RAPIER.RigidBodyType.KinematicPositionBased, true)
     const b = h.body.translation()
     grab.offset.set(b.x - pt.x, b.y - pt.y, 0)
@@ -397,7 +400,7 @@ function bindPointer() {
     }
     h.body.setLinvel({ x: v.x, y: v.y, z: 0 }, true)
     h.body.setAngvel({ x: 0, y: 0, z: 0 }, true)
-    document.body.style.cursor = cursor.over ? 'grab' : ''
+    document.body.style.cursor = cursor.over ? (cursor.look || 'grab') : ''
     lenis && lenis.start()
   }
   // while a finger holds the pendant, the page must not scroll under it
@@ -405,7 +408,13 @@ function bindPointer() {
   const up = e => {
     // a lifted finger or pen takes its invisible ball with it, so nothing is left leaning on it
     if (e.pointerType !== 'mouse') cursor.active = false
-    if (grab.held && e.pointerId === grab.pointerId) release()
+    if (grab.held && e.pointerId === grab.pointerId) {
+      // pressed and let go in place, quickly: a click on the pendant, not a drag or a throw
+      const h = grab.held, d = grab.down
+      const tap = e.type === 'pointerup' && d && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 8 && performance.now() - d.t < 500
+      release()
+      if (tap) dispatchEvent(new CustomEvent('pendant:tap', { detail: { name: h.name } }))
+    }
   }
   addEventListener('pointerup', up)
   addEventListener('pointercancel', up)

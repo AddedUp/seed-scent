@@ -73,15 +73,23 @@ export function initChips() {
   const scents = cfg('scents') || []
   const compact = innerWidth < 760
   state.chips = scents.map((s, i) => {
-    const el = document.createElement('span')
+    // a named scent's chip is a link to the shop with that scent picked (so is a click on its pendant)
+    const el = document.createElement(s.name ? 'a' : 'span')
     el.className = 'chip'
+    if (s.name) { el.href = scentHref(s.name); el.tabIndex = -1 }   // the scent cards below are the keyboard's way in
     const name = s.name ? escapeHtml(s.name) : `<span class="ph">scent name</span>`
     el.innerHTML = compact ? name : `${String(i + 1).padStart(2, '0')} · ${name}`   // prices live on the shop page
     dom.labels.appendChild(el)
     return el
   })
   addEventListener('resize', () => state.chips.forEach(el => { el._w = 0 }))   // widths are measured once, then again after a resize
+  // a click or tap on a scent pendant that was not a drag opens the shop on that scent
+  addEventListener('pendant:tap', e => {
+    const m = /^scent-(\d+)$/.exec(e.detail && e.detail.name || ''), s = m && scents[Number(m[1])]
+    if (s && s.name) location.href = scentHref(s.name)
+  })
 }
+const scentHref = name => `shop.html?scent=${encodeURIComponent(name)}#products`
 
 const _slot = new THREE.Vector3(), _slotQ = new THREE.Quaternion(), _plantPos = new THREE.Vector3(), _tmpQ = new THREE.Quaternion(), _off = new THREE.Vector3()
 const PLANT_TILT = new THREE.Quaternion().setFromEuler(new THREE.Euler(-1.15, 0.25, 0.35))
@@ -336,7 +344,7 @@ export function afterPhysics(dt, time) {
     H.scents.forEach((hg, i) => {
       const el = state.chips[i]
       if (!el) return
-      if (!hg.enabled || !state.scentsVisible) { el.style.opacity = 0; return }
+      if (!hg.enabled || !state.scentsVisible) { el.style.opacity = 0; el.style.pointerEvents = 'none'; return }
       const p = hg.position()
       const disc = project(_slot.set(p.x, p.y, p.z))
       const sc = project(_slot.set(p.x, p.y - hg.R - 0.55, p.z))
@@ -346,7 +354,9 @@ export function afterPhysics(dt, time) {
       // a chip follows its disc but never runs off the side of a narrow screen
       const half = width(el) / 2 + 6
       el.style.left = Math.min(Math.max(sc.x, half), Math.max(half, view.w - half)) + 'px'; el.style.top = (sc.y + stagger) + 'px'
-      el.style.opacity = ((1 - state.soil) * onScreen).toFixed(3)
+      const shown = (1 - state.soil) * onScreen
+      el.style.opacity = shown.toFixed(3)
+      el.style.pointerEvents = shown > 0.6 ? 'auto' : 'none'   // #labels lets clicks through; a chip in view takes its own
     })
   }
 }

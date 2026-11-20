@@ -333,6 +333,8 @@ body[data-theme="soil"] .nav .pill .dot { color: var(--moss); }
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
 .chip .ph { font-size: 10px; padding: .3em .5em; margin: 0 2px; }
+a.chip { text-decoration: none; cursor: pointer; transition: background-color .2s, color .2s; }
+a.chip:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
 /* cards */
 .guide-link { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 34px; }
