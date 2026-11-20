@@ -349,6 +349,17 @@ body[data-theme="soil"] .nav .pill .dot { color: var(--moss); }
 #scent-cards .shop-scent { margin-top: auto; align-self: flex-start; text-decoration: none; position: static; }   /* static: its hit area is measured from the card */
 #scent-cards .shop-scent::after { content: ""; position: absolute; inset: 0; }
 #scent-cards .card-notes[hidden] { display: none; }
+#scent-cards .card-notes { font-size: 15px; line-height: 1.45; }
+/* the scent's blend: a bar cut to the rough share of each oil, and the three oils under it */
+.blend { margin-top: 14px; }
+.blend[hidden] { display: none; }
+.blend .kicker { color: var(--moss); margin-bottom: 8px; }
+.blend-bar { display: flex; gap: 3px; height: 8px; }
+.blend-bar i { border-radius: var(--pill); background: var(--ink); }
+.blend-bar i:nth-child(2) { background: var(--moss); }
+.blend-bar i:nth-child(3) { background: var(--sage-3); }
+.blend ul { list-style: none; padding: 0; margin-top: 8px; display: grid; gap: 2px; font-size: 14px; line-height: 1.4; }
+.blend b { display: inline-block; min-width: 2.6em; font-weight: 600; font-variant-numeric: tabular-nums; }
 @media (max-width: 1280px) { #scent-cards { grid-template-columns: repeat(3, 1fr); } #scent-cards .card-media { height: 240px; } }
 .card {
   position: relative; background: var(--paper-2); border-radius: var(--radius);

@@ -607,6 +607,15 @@ function initScentLinks() {
   list.querySelectorAll('.card[data-scent]').forEach(card => {
     const name = cfg(`scents.${card.dataset.scent}.name`), link = card.querySelector('a.shop-scent')
     if (name && link) link.href = `shop.html?scent=${encodeURIComponent(name)}#products`
+    // the scent's profile: its three oils, with a bar cut to their rough shares
+    const blend = cfg(`scents.${card.dataset.scent}.blend`), box = card.querySelector('.blend')
+    const parts = Array.isArray(blend) ? blend.filter(b => b && b.oil && Number(b.share) > 0) : []
+    if (box && parts.length) {
+      box.innerHTML = `<p class="kicker">The blend, roughly</p>
+        <div class="blend-bar" aria-hidden="true">${parts.map(b => `<i style="flex:${Number(b.share)}"></i>`).join('')}</div>
+        <ul>${parts.map(b => `<li><b>${Number(b.share)}%</b> ${escapeHtml(b.oil)}</li>`).join('')}</ul>`
+      box.hidden = false
+    }
   })
   list.addEventListener('click', e => {
     if (e.target.closest('a, input, label, button, .format')) return

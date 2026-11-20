@@ -47,6 +47,9 @@ try {
     if (pg === 'index.html') {
       check('[home] company description, slogan and contact details', /our mission is to redefine everyday freshness/i.test(d.text) && /from scent to sprout/i.test(d.text) && /seedscent\.ny@gmail\.com/.test(d.text) && /Syosset Senior High School/.test(d.text))
       check('[home] the scent lasts about a month, in the story and the spec sheet', (d.text.match(/about a month/gi) || []).length >= 2)
+      // the scent profiles on the five cards
+      const sp = await page.evaluate(() => [...document.querySelectorAll('#scent-cards .card')].map(c => ({ notes: c.querySelector('.card-notes').textContent.trim(), rows: [...c.querySelectorAll('.blend li')].map(l => l.textContent.replace(/\s+/g, ' ').trim()), bar: [...c.querySelectorAll('.blend-bar i')].map(i => i.style.flexGrow).join('/') })))
+      check('[home] every scent card says what it smells like and shows its three oil blend', sp.length === 5 && sp.every(s => s.notes.length > 30 && s.rows.length === 3 && s.bar === '60/25/15') && sp[0].rows.join(', ') === '60% Lemon, 25% Orange, 15% Grapefruit' && /laundry/.test(sp[3].notes), JSON.stringify(sp[0]))
       // the quiz, start to finish
       await page.evaluate(() => document.getElementById('scent-quiz').scrollIntoView({ block: 'center' })); await sleep(1500)
       const q0 = await page.evaluate(() => ({ shown: !document.getElementById('scent-quiz').hidden, n: document.querySelectorAll('.quiz-answer').length, ask: document.querySelector('.quiz-ask').textContent }))
@@ -54,6 +57,7 @@ try {
       for (const label of ['Calm and quiet', 'A field of lavender', 'Purple']) { await page.locator('.quiz-answer', { hasText: label }).click(); await sleep(150) }
       const q1 = await page.evaluate(() => ({ result: window.__quiz.result(), head: document.querySelector('.quiz-result').textContent, href: document.querySelector('.quiz-stage a.pill').getAttribute('href'), focus: document.activeElement.className }))
       check('[home] three answers give a scent and a link to the shop with that scent picked', q1.result === 'Lavender' && q1.head === 'Lavender.' && q1.href === 'shop.html?scent=Lavender#products' && /quiz-ask/.test(q1.focus), JSON.stringify(q1))
+      check('[home] the quiz result says what the scent smells like', await page.evaluate(() => /^Soft lavender with calming floral/.test((document.querySelector('.quiz-notes') || {}).textContent || '')))
       await page.locator('[data-again]').click(); await sleep(150)
       check('[home] Start again goes back to the first question', await page.evaluate(() => window.__quiz.step() === 0))
     }
@@ -66,6 +70,10 @@ try {
         targets: [...document.querySelectorAll('.goes-with a')].every(a => document.querySelector(a.getAttribute('href'))),
       }))
       check('[shop] nine products, each with a price and a working VE buy button link', s.cards === 9 && s.priced && s.buy, JSON.stringify({ c: s.cards, p: s.priced, b: s.buy }))
+      const pr = await page.evaluate(() => { const c = document.querySelector('[data-item-card="the-vine"]'), sel = c.querySelector('.item-choice'), a = c.querySelector('.scent-profile').textContent; sel.value = 'Vanilla'; sel.dispatchEvent(new Event('change', { bubbles: true })); return { a, b: c.querySelector('.scent-profile').textContent, n: document.querySelectorAll('.scent-profile').length, bloom: !!document.querySelector('[data-item-card="the-bloom"] .scent-profile') } })
+      check('[shop] the three scent pickers show the picked scent\'s profile, and it follows the pick', pr.n === 3 && !pr.bloom && /^Cool citrus blend.*About 60% lemon, 25% orange, 15% grapefruit\.$/.test(pr.a) && /creamy vanilla.*About 60% vanilla, 25% benzoin, 15% tonka bean\.$/.test(pr.b), JSON.stringify(pr))
+      const le = await page.evaluate(() => { const c = document.querySelector('[data-item-card="limited-5"]'); return { notes: c.querySelector('.card-notes').textContent.trim(), inside: [...c.querySelectorAll('.item-inside li')].map(l => l.textContent.trim().split(':')[0]), img: c.querySelector('img.slot').getAttribute('src'), ok: c.querySelector('img.slot').naturalWidth > 600 } })
+      check('[shop] Bake and Bloom: a description, its five scents with their profiles, and its own photo', /Five bakery scents/.test(le.notes) && le.inside.join('|') === 'Chocolate Chip Cookie|Brownie|Cake Batter|Cinnamon|Cupcake' && /bake-and-bloom/.test(le.img) && le.ok, JSON.stringify(le))
       check('[shop] upselling: cards suggest a product that goes well, linking to its card', s.goes.length === 6 && s.targets && s.goes.includes('the-vine>#p-the-releaf'), s.goes.join(' '))
     }
     if (pg === 'team.html') {

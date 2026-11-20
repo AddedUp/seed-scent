@@ -236,3 +236,5 @@ body.reduced #qty-range::-webkit-slider-thumb, body.reduced #qty-range::-moz-ran
 .quiz-answer { min-height: 44px; }
 .quiz-back { justify-self: start; }
 @media (max-width: 900px) { .scent-quiz { grid-template-columns: minmax(0, 1fr); } .quiz-stage { min-height: 0; } }
+
+.quiz-notes { max-width: 40ch; margin: 0; font-size: 17px; line-height: 1.45; color: var(--ink); }

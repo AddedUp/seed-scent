@@ -47,14 +47,25 @@ window.SEED_SCENT = {
 
   /* The five signature scents, as the home page shows them. Each card links to the Shop page.
      image: the photo of the hanging version. imageVent: the photo of the vent clip version.
-     The card shows whichever the visitor picks. notes: one short line about the smell (null
+     The card shows whichever the visitor picks. blend: the three oils and roughly what share each is, from the
+     firm's scent profiles (leave it out and the card shows no blend). notes: one short line about the smell (null
      hides the line). The product photos are shared between scents until each has its own. */
   scents: [
-    { id: "scent-1", name: "Citrus Grove", notes: null, image: "images/product-studio-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink" },
-    { id: "scent-2", name: "Lavender",     notes: null, image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss" },
-    { id: "scent-3", name: "Vanilla",      notes: null, image: "images/product-mirror-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "sage" },
-    { id: "scent-4", name: "Linen",        notes: null, image: "images/product-studio-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink" },
-    { id: "scent-5", name: "Wildflowers",  notes: null, image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss" },
+    { id: "scent-1", name: "Citrus Grove", image: "images/product-studio-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink",
+      notes: "Cool citrus blend with lemon, orange, and grapefruit.",
+      blend: [{ share: 60, oil: "Lemon" }, { share: 25, oil: "Orange" }, { share: 15, oil: "Grapefruit" }] },
+    { id: "scent-2", name: "Lavender", image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss",
+      notes: "Soft lavender with calming floral and herbal notes. A fresh, relaxing car scent.",
+      blend: [{ share: 60, oil: "Lavender" }, { share: 25, oil: "Rosemary" }, { share: 15, oil: "Roman chamomile" }] },
+    { id: "scent-3", name: "Vanilla", image: "images/product-mirror-1.jpg", imageVent: "images/product-vent-clip.jpg", accent: "sage",
+      notes: "Soft, creamy vanilla with warm and comforting sweet notes. A smooth, cozy car scent.",
+      blend: [{ share: 60, oil: "Vanilla" }, { share: 25, oil: "Benzoin" }, { share: 15, oil: "Tonka bean" }] },
+    { id: "scent-4", name: "Linen", image: "images/product-studio-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "ink",
+      notes: "Bright, clean citrus with soft lavender and a cool herbal finish. Like freshly washed laundry.",
+      blend: [{ share: 60, oil: "Lemon" }, { share: 25, oil: "Lavender" }, { share: 15, oil: "Eucalyptus" }] },
+    { id: "scent-5", name: "Wildflowers", image: "images/product-mirror-2.jpg", imageVent: "images/product-vent-clip.jpg", accent: "moss",
+      notes: "Sweet, rosy florals with green herbs and a soft floral sweetness. Like an open meadow.",
+      blend: [{ share: 60, oil: "Geranium" }, { share: 25, oil: "Clary sage" }, { share: 15, oil: "Roman chamomile" }] },
   ],
 
   /* The Shop page (shop.html). One card per entry, shown in this order.
@@ -128,9 +139,15 @@ window.SEED_SCENT = {
       price: 28.99, image: "images/product-garden.jpg" },
     { id: "limited-5", veUrl: "https://portal.veinternational.org/buybuttons/us0111040/btn/limited-edition-seed-pack-14011/",
       name: "Bake and Bloom Collection *LIMITED EDITION*", kicker: "Limited edition · 5 pack",
-      notes: null,
-      contents: ["5 limited edition seed papers"],
-      price: 12.99, image: "images/product-limited-edition.jpg" },
+      notes: "Five bakery scents in one limited edition pack. You get five seed papers, one in each scent of the collection, to use in your wooden box and plant when the scent fades.",
+      contents: [
+        "Chocolate Chip Cookie: warm brown sugar and melted chocolate over a buttery vanilla dough base",
+        "Brownie: rich dark cocoa and fudge with hints of toasted walnut and caramel",
+        "Cake Batter: sweet vanilla buttercream and fresh batter with a light note of rainbow sprinkles and sugar",
+        "Cinnamon: spiced cinnamon and clove wrapped in warm brown sugar and soft vanilla",
+        "Cupcake: fluffy vanilla sponge topped with whipped frosting and a touch of strawberry",
+      ],
+      price: 12.99, image: "images/product-bake-and-bloom.jpg" },
     { id: "wooden-box", goesWith: "the-releaf", goesWithNote: "Seed paper to fill it.",
       veUrls: { "Hanging": "https://portal.veinternational.org/buybuttons/us0111040/btn/wooden-box-hanging-15011/", "Vent clip": "https://portal.veinternational.org/buybuttons/us0111040/btn/wooden-box-vent-clip-15012/" },
       name: "Wooden Box", kicker: "On its own",

@@ -112,3 +112,7 @@ body.reduced .shop-card:hover .card-media img { transform: none; }
 .goes-with .kicker { color: var(--moss); margin-right: 6px; }
 .goes-note { opacity: .8; }
 .shop-card { scroll-margin-top: calc(var(--nav-h) + 16px); }
+
+/* under a scent picker: what the picked scent smells like and what is in it */
+.scent-profile { margin: -6px 0 16px; font-size: 14px; line-height: 1.45; color: var(--ink); min-height: 4.35em; }
+.scent-mix { display: block; opacity: .75; }

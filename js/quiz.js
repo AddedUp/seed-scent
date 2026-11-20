@@ -4,6 +4,7 @@
    the earlier answer breaking a tie. Nothing is stored or sent anywhere. */
 const CFG = window.SEED_SCENT || {}
 const scents = (Array.isArray(CFG.scents) ? CFG.scents : []).map((s, i) => (s && s.name ? String(s.name) : `Scent ${i + 1}`))
+const notes = (Array.isArray(CFG.scents) ? CFG.scents : []).map(s => (s && s.notes ? String(s.notes) : ''))
 
 const QUESTIONS = [
   { ask: 'How should the drive feel?', answers: [
@@ -40,10 +41,11 @@ if (root && scents.length >= 5) {
         </div>
         ${step ? '<button class="text-btn quiz-back" type="button" data-back>Back</button>' : ''}`
     } else {
-      const name = scents[result()]
+      const won = result(), name = scents[won]
       stage.innerHTML = `
         <p class="kicker quiz-count">Your scent</p>
         <h3 class="quiz-ask quiz-result" tabindex="-1">${esc(name)}.</h3>
+        ${notes[won] ? `<p class="quiz-notes">${esc(notes[won])}</p>` : ''}
         <div class="quiz-answers">
           <a class="pill small" href="shop.html?scent=${encodeURIComponent(name)}#products">Shop ${esc(name)} <span class="dot">·</span></a>
           <button class="pill ghost small" type="button" data-again>Start again</button>

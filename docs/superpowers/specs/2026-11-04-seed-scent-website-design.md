@@ -433,6 +433,13 @@ replaces the placeholder with no code change.
   `js/intro.js`: once per visit, about four seconds, any tap or key skips it, never under
   reduced motion or for automated browsers (`?intro=1` forces it, `?intro=hold` keeps it up).
   The headline reveal and the pendant wait for it to lift. `check-intro.mjs` covers it.
+- **Scent profiles (2026-11-19).** From the firm's two profile sheets. Each signature scent
+  in `scents` has `notes` (what it smells like) and `blend` (three oils and rough shares):
+  the home scent cards show both, the shop's scent pickers show the picked scent's profile,
+  and the quiz result shows the notes. Supplier names stay off the site. The sheet's summary
+  lines for Fresh Linen and Wildflower Meadow were copies of other scents' lines, so those
+  two are written from their own note descriptions. The Bake and Bloom pack lists its five
+  bakery scents with their profiles and has its own mock-up photo.
 - **First facts (2026-11-05).** The team supplied the school (Syosset Senior High
   School), the place (Syosset, New York) and the Instagram handle (`seedscent.ve`).
   A filled-in fact that is a place to go becomes a link: the handle opens the

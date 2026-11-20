@@ -39,7 +39,16 @@ function choiceHtml(p, t) {
   const label = p.choice && p.choice.label ? String(p.choice.label) : 'Choose'
   return `<fieldset class="item-pick"><legend class="kicker">${escapeHtml(label)}</legend>
     <select class="item-choice" id="${t}-choice" aria-label="${escapeHtml(label)}">${opts.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}</select>
-  </fieldset>`
+  </fieldset>${scentProfile(opts[0]) ? `<p class="scent-profile" aria-live="polite">${scentProfile(opts[0])}</p>` : ''}`
+}
+/* what a scent smells like and what is in it, from the scents list in the config ('' when the
+   option is not a scent, or the scent has no profile yet) */
+function scentProfile(name) {
+  const s = (cfg('scents') || []).find(x => x && x.name === name)
+  if (!s || !s.notes) return ''
+  const parts = Array.isArray(s.blend) ? s.blend.filter(b => b && b.oil && Number(b.share) > 0) : []
+  const mix = parts.length ? ` <span class="scent-mix">About ${parts.map(b => `${Number(b.share)}% ${escapeHtml(String(b.oil).toLowerCase())}`).join(', ')}.</span>` : ''
+  return `${escapeHtml(s.notes)}${mix}`
 }
 /* what is in the box, one line each */
 function contentsHtml(p) {
@@ -113,6 +122,8 @@ function initChoicePhotos(items) {
     // sold on the VE marketplace with a buy button per option: the button follows the pick
     const buy = card.querySelector('a.buy-ve'), link = p ? veLink(p, sel.value) : null
     if (buy && link) buy.href = link
+    const profile = card.querySelector('.scent-profile')
+    if (profile) profile.innerHTML = scentProfile(sel.value)
     const src = p && p.images && typeof p.images === 'object' ? p.images[sel.value] : null
     const img = card.querySelector('img.slot')
     if (!src || !img || img.hidden) return
